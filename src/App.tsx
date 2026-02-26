@@ -5,6 +5,8 @@ import { ValidationPanel } from './components/ValidationPanel';
 import { InvestigationView } from './components/InvestigationView';
 import { CaseSelector } from './components/CaseSelector';
 import { CaseSolvedScreen } from './components/CaseSolvedScreen';
+import { OutputPanel } from './components/terminal/OutputPanel';
+import { usePyodideWorker } from './hooks/usePyodideWorker';
 import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { cases } from './data/cases';
@@ -35,6 +37,9 @@ function App() {
   const [isValidating, setIsValidating] = useState(false);
   const [investigationAttempts, setInvestigationAttempts] = useState(0);
 
+  const { isReady: isWorkerReady, isRunning, output, runCode } = usePyodideWorker();
+  const [workerError, setWorkerError] = useState<string | null>(null);
+
   const currentCase = cases.find(c => c.id === currentCaseId) ?? cases[0];
   const currentIdx = cases.findIndex(c => c.id === currentCaseId);
   const nextCase = cases[currentIdx + 1];
@@ -60,12 +65,20 @@ function App() {
   };
 
   // Phase 1 validation
-  const handleValidate = () => {
+  const handleValidate = async () => {
     setIsValidating(true);
+    setWorkerError(null);
 
     // Mark in-progress
     updateProgress(currentCaseId, { status: 'in-progress', timeStartedMs: Date.now() });
 
+    try {
+      await runCode(code);
+    } catch (err: any) {
+      setWorkerError(err.message || 'Unknown execution error');
+    }
+
+    // Keep existing validation simulation for now
     setTimeout(() => {
       const results = currentCase.phase1.validations.map(v => {
         const passed = simulateValidation(code, v);
@@ -78,7 +91,7 @@ function App() {
         updateProgress(currentCaseId, { phase: 'investigation' });
       }
       setIsValidating(false);
-    }, 1500);
+    }, 500);
   };
 
   // Phase 2 solved
@@ -214,14 +227,19 @@ function App() {
               <div className="flex-1 p-4 overflow-hidden">
                 <CodeEditor value={code} onChange={setCode} language="python" />
               </div>
-              <div className="h-56 flex-shrink-0 border-t border-slate-700 bg-slate-800">
-                <ValidationPanel
-                  results={validationResults}
-                  isValidating={isValidating}
-                  onValidate={handleValidate}
-                  phaseUnlocked={phaseUnlocked}
-                  onStartInvestigation={() => setAppPhase('investigation')}
-                />
+              <div className="h-56 flex-shrink-0 border-t border-slate-700 bg-slate-800 flex">
+                <div className="flex-1 border-r border-slate-700">
+                  <ValidationPanel
+                    results={validationResults}
+                    isValidating={isValidating || !isWorkerReady}
+                    onValidate={handleValidate}
+                    phaseUnlocked={phaseUnlocked}
+                    onStartInvestigation={() => setAppPhase('investigation')}
+                  />
+                </div>
+                <div className="flex-1">
+                  <OutputPanel output={output} error={workerError} isRunning={isRunning} />
+                </div>
               </div>
             </div>
           </>
