@@ -68,28 +68,28 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | Pending | Pending |
-| CORE-02 | Pending | Pending |
-| CORE-03 | Pending | Pending |
-| CORE-04 | Pending | Pending |
-| CORE-05 | Pending | Pending |
-| LOOP-01 | Pending | Pending |
-| LOOP-02 | Pending | Pending |
-| LOOP-03 | Pending | Pending |
-| LOOP-04 | Pending | Pending |
-| LOOP-05 | Pending | Pending |
-| VIS-01 | Pending | Pending |
-| VIS-02 | Pending | Pending |
-| VIS-03 | Pending | Pending |
-| VIS-04 | Pending | Pending |
-| CASE-01 | Pending | Pending |
-| CASE-02 | Pending | Pending |
-| CASE-03 | Pending | Pending |
+| CORE-01 | Phase 1 | Pending |
+| CORE-02 | Phase 1 | Pending |
+| CORE-03 | Phase 1 | Pending |
+| CORE-04 | Phase 1 | Pending |
+| CORE-05 | Phase 2 | Pending |
+| LOOP-01 | Phase 2 | Pending |
+| LOOP-02 | Phase 2 | Pending |
+| LOOP-03 | Phase 3 | Pending |
+| LOOP-04 | Phase 2 | Pending |
+| LOOP-05 | Phase 4 | Pending |
+| VIS-01 | Phase 3 | Pending |
+| VIS-02 | Phase 3 | Pending |
+| VIS-03 | Phase 3 | Pending |
+| VIS-04 | Phase 3 | Pending |
+| CASE-01 | Phase 4 | Pending |
+| CASE-02 | Phase 4 | Pending |
+| CASE-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-26*
