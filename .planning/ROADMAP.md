@@ -28,8 +28,8 @@ Telemetry Academy is an interactive, browser-based learning platform that teache
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Setup Pyodide Web Worker and Monaco Editor integration
-- [ ] 01-02: Implement OTel JS Exporter and Python-to-JS telemetry bridging
+- [ ] 01-01-PLAN.md — Setup Pyodide Web Worker and App Integration
+- [ ] 01-02-PLAN.md — Implement OTel JS Exporter and Python-to-JS telemetry bridging
 
 ### Phase 2: Validation & Core Loop
 **Goal**: Users receive real-time validation on their code and can progress through saved cases.
