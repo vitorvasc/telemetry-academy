@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import setupScript from './python/setup_telemetry.py?raw';
 
 // Declare global types for Pyodide
 declare global {
@@ -18,6 +19,13 @@ self.onmessage = async (event: MessageEvent) => {
       pyodide = await loadPyodide({
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/'
       });
+      
+      await pyodide.loadPackage('micropip');
+      const micropip = pyodide.pyimport('micropip');
+      await micropip.install(['opentelemetry-api', 'opentelemetry-sdk']);
+      
+      await pyodide.runPythonAsync(setupScript);
+      
       self.postMessage({ type: 'ready' });
     } catch (error) {
       self.postMessage({ type: 'error', error: String(error) });
