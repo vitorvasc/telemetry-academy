@@ -9,8 +9,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Core Engine & Infrastructure
 
-- [ ] **CORE-01**: User code executes securely in a Pyodide WASM Web Worker
-- [ ] **CORE-02**: Web Worker execution includes timeouts to prevent infinite loop freezing
+- [x] **CORE-01**: User code executes securely in a Pyodide WASM Web Worker
+- [x] **CORE-02**: Web Worker execution includes timeouts to prevent infinite loop freezing
 - [ ] **CORE-03**: Custom OpenTelemetry `SpanExporter` intercepts Pyodide telemetry output
 - [ ] **CORE-04**: Python OpenTelemetry spans and attributes serialize cleanly to JSON for the JS bridge
 - [ ] **CORE-05**: User progress and state persist across browser reloads via `localStorage`
@@ -68,8 +68,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | Phase 1 | Pending |
-| CORE-02 | Phase 1 | Pending |
+| CORE-01 | Phase 1 | Complete |
+| CORE-02 | Phase 1 | Complete |
 | CORE-03 | Phase 1 | Pending |
 | CORE-04 | Phase 1 | Pending |
 | CORE-05 | Phase 2 | Pending |
