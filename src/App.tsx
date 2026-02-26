@@ -37,7 +37,7 @@ function App() {
   const [isValidating, setIsValidating] = useState(false);
   const [investigationAttempts, setInvestigationAttempts] = useState(0);
 
-  const { isReady: isWorkerReady, isRunning, output, runCode } = usePyodideWorker();
+  const { isReady: isWorkerReady, isRunning, output, spans, runCode } = usePyodideWorker();
   const [workerError, setWorkerError] = useState<string | null>(null);
 
   const currentCase = cases.find(c => c.id === currentCaseId) ?? cases[0];
@@ -239,6 +239,11 @@ function App() {
                 </div>
                 <div className="flex-1">
                   <OutputPanel output={output} error={workerError} isRunning={isRunning} />
+                  {spans.length > 0 && (
+                    <div className="text-xs text-slate-500 mt-1 px-4">
+                      Captured {spans.length} telemetry span(s)
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

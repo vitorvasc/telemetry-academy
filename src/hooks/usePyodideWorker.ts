@@ -4,6 +4,7 @@ export function usePyodideWorker() {
   const [isReady, setIsReady] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<string[]>([]);
+  const [spans, setSpans] = useState<any[]>([]);
   const workerRef = useRef<Worker | null>(null);
 
   const initWorker = useCallback(() => {
@@ -43,6 +44,7 @@ export function usePyodideWorker() {
 
       setIsRunning(true);
       setOutput([]);
+      setSpans([]);
 
       const runId = Math.random().toString(36).substring(7);
       
@@ -58,8 +60,30 @@ export function usePyodideWorker() {
       }, timeoutMs);
 
       const messageHandler = (event: MessageEvent) => {
-        const { type, id, result, error } = event.data;
+        let data = event.data;
         
+        // Handle JSON strings originating from Python's js.postMessage
+        if (typeof data === 'string') {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            // Not a JSON string, ignore or log
+            return;
+          }
+        }
+
+        const { type, id, result, error, message, span } = data;
+        
+        if (type === 'stdout') {
+          setOutput(prev => [...prev, message]);
+          return;
+        }
+
+        if (type === 'telemetry') {
+          setSpans(prev => [...prev, span]);
+          return;
+        }
+
         if (id !== runId) return;
 
         if (type === 'success') {
@@ -80,5 +104,5 @@ export function usePyodideWorker() {
     });
   }, [isReady, initWorker]);
 
-  return { isReady, isRunning, output, runCode };
+  return { isReady, isRunning, output, spans, runCode };
 }
