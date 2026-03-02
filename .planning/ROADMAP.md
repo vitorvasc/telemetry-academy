@@ -10,7 +10,7 @@ Telemetry Academy is an interactive, browser-based learning platform that teache
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: WASM Engine & Telemetry Bridge** - User's Python code runs in the browser and its OpenTelemetry output is captured in JavaScript.
+- [x] **Phase 1: WASM Engine & Telemetry Bridge** - User's Python code runs in the browser and its OpenTelemetry output is captured in JavaScript.
 - [ ] **Phase 2: Validation & Core Loop** - Users receive real-time validation on their code and can progress through saved cases.
 - [ ] **Phase 3: Visualization & Investigation** - Users can visually analyze telemetry data to diagnose simulated incidents.
 - [ ] **Phase 4: Content & Polish** - Users can play through three complete, distinct learning scenarios end-to-end.
@@ -28,8 +28,8 @@ Telemetry Academy is an interactive, browser-based learning platform that teache
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Setup Pyodide Web Worker and App Integration
-- [ ] 01-02-PLAN.md — Implement OTel JS Exporter and Python-to-JS telemetry bridging
+- [x] 01-01-PLAN.md — Setup Pyodide Web Worker and App Integration
+- [x] 01-02-PLAN.md — Implement OTel JS Exporter and Python-to-JS telemetry bridging
 
 ### Phase 2: Validation & Core Loop
 **Goal**: Users receive real-time validation on their code and can progress through saved cases.
@@ -42,8 +42,8 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 **Wave 1** (Parallel):
-- [ ] 02-01-PLAN.md — Implement span-based validation engine with progressive hints
-- [ ] 02-03-PLAN.md — Implement localStorage persistence with schema versioning, attempt history, and reset
+- [x] 02-01-PLAN.md — Implement span-based validation engine with progressive hints
+- [x] 02-03-PLAN.md — Implement localStorage persistence with schema versioning, attempt history, and reset
 
 **Wave 2** (Depends on Wave 1):
 - [ ] 02-02-PLAN.md — Integrate validation and persistence into UI with spinner, staggered reveal, attempt tracking, and case unlocking
@@ -85,7 +85,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. WASM Engine & Telemetry Bridge | 0/2 | Not started | - |
-| 2. Validation & Core Loop | 0/3 | Not started | - |
+| 1. WASM Engine & Telemetry Bridge | 2/2 | Complete | 2026-02-26 |
+| 2. Validation & Core Loop | 2/3 | In Progress | 2026-03-02 |
 | 3. Visualization & Investigation | 0/3 | Not started | - |
 | 4. Content & Polish | 0/3 | Not started | - |

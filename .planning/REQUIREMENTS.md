@@ -13,7 +13,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **CORE-02**: Web Worker execution includes timeouts to prevent infinite loop freezing
 - [x] **CORE-03**: Custom OpenTelemetry `SpanExporter` intercepts Pyodide telemetry output
 - [x] **CORE-04**: Python OpenTelemetry spans and attributes serialize cleanly to JSON for the JS bridge
-- [ ] **CORE-05**: User progress and state persist across browser reloads via `localStorage`
+- [x] **CORE-05**: User progress and state persist across browser reloads via `localStorage`
 
 ### Gamified Learning Loop
 
@@ -72,7 +72,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-02 | Phase 1 | Complete |
 | CORE-03 | Phase 1 | Complete |
 | CORE-04 | Phase 1 | Complete |
-| CORE-05 | Phase 2 | Pending |
+| CORE-05 | Phase 2 | Complete |
 | LOOP-01 | Phase 2 | Pending |
 | LOOP-02 | Phase 2 | Complete |
 | LOOP-03 | Phase 3 | Pending |
