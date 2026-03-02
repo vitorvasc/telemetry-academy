@@ -312,7 +312,8 @@ function App() {
                 <div className="flex-1 border-r border-slate-700">
                   <ValidationPanel
                     results={validationResults}
-                    isValidating={isValidating || !isWorkerReady}
+                    isValidating={isValidating}
+                    isWorkerReady={isWorkerReady}
                     onValidate={handleValidate}
                     phaseUnlocked={phaseUnlocked}
                     onStartInvestigation={() => setAppPhase('investigation')}

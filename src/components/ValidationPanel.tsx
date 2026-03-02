@@ -88,27 +88,39 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
           </div>
         ) : (
           <div className="space-y-3">
-            {results.map((result, index) => (
-              <div
-                key={index}
-                className={`
-                  flex items-start gap-3 p-3 rounded-lg border
-                  ${result.passed 
-                    ? 'bg-green-400/10 border-success/30' 
-                    : 'bg-red-400/10 border-error/30'
-                  }
-                  animate-slide-in
-                `}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
+            {results.map((result, index) => {
+              const isGuided = result.attemptsOnThisRule >= 3;
+              const bgClass = result.passed
+                ? 'bg-green-400/10 border-success/30'
+                : isGuided
+                  ? 'bg-amber-400/10 border-amber-500/30'  // Amber for guided help
+                  : 'bg-red-400/10 border-error/30';       // Red for errors
+              const textClass = result.passed
+                ? 'text-green-400'
+                : isGuided
+                  ? 'text-amber-400'
+                  : 'text-red-400';
+
+              return (
+                <div
+                  key={index}
+                  className={`
+                    flex items-start gap-3 p-3 rounded-lg border
+                    ${bgClass}
+                    animate-slide-in
+                  `}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                 {result.passed ? (
                   <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                ) : isGuided ? (
+                  <XCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                 ) : (
                   <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                 )}
                 
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${result.passed ? 'text-green-400' : 'text-red-400'}`}>
+                  <p className={`text-sm font-medium ${textClass}`}>
                     {result.message}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
@@ -123,7 +135,8 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
 
             {/* Success Message */}
             {phaseUnlocked && (
