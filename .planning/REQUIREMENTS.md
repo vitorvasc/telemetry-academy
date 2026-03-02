@@ -18,9 +18,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Gamified Learning Loop
 
 - [ ] **LOOP-01**: Case selector allows linear progression (next case unlocks upon completion)
-- [ ] **LOOP-02**: Phase 1 (Instrumentation) validates JSON telemetry output, not RegEx parsing of code
+- [x] **LOOP-02**: Phase 1 (Instrumentation) validates JSON telemetry output, not RegEx parsing of code
 - [ ] **LOOP-03**: "Root Cause Engine" provides detailed, attribute-specific explanations for incorrect guesses
-- [ ] **LOOP-04**: Validation Panel displays real-time ✓/✗ feedback on specific telemetry requirements
+- [x] **LOOP-04**: Validation Panel displays real-time ✓/✗ feedback on specific telemetry requirements
 - [ ] **LOOP-05**: Case Solved screen displays attempts, time, score, and "What you learned" summary
 
 ### Visualization (Investigation)
@@ -74,9 +74,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CORE-04 | Phase 1 | Complete |
 | CORE-05 | Phase 2 | Pending |
 | LOOP-01 | Phase 2 | Pending |
-| LOOP-02 | Phase 2 | Pending |
+| LOOP-02 | Phase 2 | Complete |
 | LOOP-03 | Phase 3 | Pending |
-| LOOP-04 | Phase 2 | Pending |
+| LOOP-04 | Phase 2 | Complete |
 | LOOP-05 | Phase 4 | Pending |
 | VIS-01 | Phase 3 | Pending |
 | VIS-02 | Phase 3 | Pending |

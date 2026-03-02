@@ -39,6 +39,7 @@ Progress: [██████████] 100%
 *Updated after each plan completion*
 | Phase 01 P01 | 5 min | 3 tasks | 4 files |
 | Phase 01 P02 | 7 min | 3 tasks | 4 files |
+| Phase 02-validation-core-loop P01 | 2 min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -49,6 +50,8 @@ Recent decisions affecting current work:
 
 - [Phase 1]: Use Pyodide and Web Workers to sandbox Python execution
 - [Phase 2]: Validate JSON spans instead of parsing AST
+- [Phase 02-validation-core-loop]: Native TypeScript over Zod for validation (no external dependency)
+- [Phase 02-validation-core-loop]: Progressive messages escalate after 3 attempts (1-2: hint, 3+: guided)
 
 ### Pending Todos
 
