@@ -39,12 +39,14 @@ Plans:
   1. User sees immediate pass/fail feedback for specific case requirements when running code.
   2. User can unlock the next case only after passing all current validations.
   3. User retains their completed case status after refreshing the browser page.
-**Plans**: 3 plans
+**Plans**: 3 plans in 2 waves
 
-Plans:
+**Wave 1** (Parallel):
 - [ ] 02-01-PLAN.md — Implement span-based validation engine with progressive hints
-- [ ] 02-02-PLAN.md — Integrate validation into UI with spinner, staggered reveal, and case unlocking
-- [ ] 02-03-PLAN.md — Implement localStorage persistence with schema versioning and reset
+- [ ] 02-03-PLAN.md — Implement localStorage persistence with schema versioning, attempt history, and reset
+
+**Wave 2** (Depends on Wave 1):
+- [ ] 02-02-PLAN.md — Integrate validation and persistence into UI with spinner, staggered reveal, attempt tracking, and case unlocking
 
 ### Phase 3: Visualization & Investigation
 **Goal**: Users can visually analyze telemetry data to diagnose simulated incidents.
