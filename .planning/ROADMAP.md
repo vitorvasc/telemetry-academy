@@ -42,9 +42,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Implement TelemetryStore and validation engine logic
-- [ ] 02-02: Build Validation Panel UI and case unlocking flow
-- [ ] 02-03: Implement localStorage state persistence
+- [ ] 02-01-PLAN.md — Implement span-based validation engine with progressive hints
+- [ ] 02-02-PLAN.md — Integrate validation into UI with spinner, staggered reveal, and case unlocking
+- [ ] 02-03-PLAN.md — Implement localStorage persistence with schema versioning and reset
 
 ### Phase 3: Visualization & Investigation
 **Goal**: Users can visually analyze telemetry data to diagnose simulated incidents.
