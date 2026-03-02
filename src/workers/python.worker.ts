@@ -10,6 +10,8 @@ self.onmessage = async (event: MessageEvent) => {
     try {
       pyodide = await loadPyodide({
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
+        // @ts-expect-error - cache option exists but types are outdated
+        cache: true,
       });
 
       await pyodide.loadPackage('micropip');

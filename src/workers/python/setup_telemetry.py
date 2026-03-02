@@ -4,6 +4,7 @@ import js
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExporter, SpanExportResult
+from opentelemetry.sdk.resources import Resource
 
 class JSStdout:
     def write(self, s):
@@ -34,7 +35,10 @@ class JSSpanExporter(SpanExporter):
 sys.stdout = JSStdout()
 
 # Configure OpenTelemetry global TracerProvider
-provider = TracerProvider()
+# Use Resource directly to avoid threading-based resource detection (not supported in WASM)
+# Note: Resource.create() uses threading - we must use Resource() constructor directly
+resource = Resource(attributes={"service.name": "telemetry-academy"})
+provider = TracerProvider(resource=resource)
 processor = SimpleSpanProcessor(JSSpanExporter())
 provider.add_span_processor(processor)
 trace.set_tracer_provider(provider)
