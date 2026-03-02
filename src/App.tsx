@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CodeEditor } from './components/CodeEditor';
 import { InstructionsPanel } from './components/InstructionsPanel';
 import { ValidationPanel } from './components/ValidationPanel';
@@ -7,11 +7,12 @@ import { CaseSelector } from './components/CaseSelector';
 import { CaseSolvedScreen } from './components/CaseSolvedScreen';
 import { OutputPanel } from './components/terminal/OutputPanel';
 import { useCodeRunner } from './hooks/useCodeRunner';
+import { useAcademyPersistence } from './hooks/useAcademyPersistence';
 import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { cases } from './data/cases';
 import { helloSpanPhase2 } from './data/phase2';
-import { FlaskConical } from 'lucide-react';
+import { FlaskConical, RotateCcw } from 'lucide-react';
 
 type AppPhase = 'instrumentation' | 'investigation' | 'solved';
 
@@ -29,13 +30,25 @@ function initProgress(cases: Case[]): CaseProgress[] {
 }
 
 function App() {
-  const [allProgress, setAllProgress] = useState<CaseProgress[]>(initProgress(cases));
+  // Persistence hook - handles loading from and saving to localStorage
+  const {
+    progress: allProgress,
+    setProgress: setAllProgress,
+    getSavedCode,
+    saveCode,
+    updateAttemptHistory,
+    getAttemptCount,
+    resetAll,
+    isLoaded,
+  } = useAcademyPersistence(initProgress(cases));
+
   const [currentCaseId, setCurrentCaseId] = useState(cases[0].id);
   const [appPhase, setAppPhase] = useState<AppPhase>('instrumentation');
   const [code, setCode] = useState(cases[0].phase1.initialCode);
   const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);
   const [isValidating, setIsValidating] = useState(false);
   const [investigationAttempts, setInvestigationAttempts] = useState(0);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode } = useCodeRunner('python');
   const [workerError, setWorkerError] = useState<string | null>(null);
@@ -47,13 +60,21 @@ function App() {
   const phase2Data = PHASE2_DATA[currentCaseId];
   const phaseUnlocked = appPhase === 'investigation' || appPhase === 'solved';
 
+  // Code auto-save effect
+  useEffect(() => {
+    if (isLoaded) {
+      saveCode(currentCaseId, code);
+    }
+  }, [code, currentCaseId, isLoaded, saveCode]);
+
   // Switch cases
   const switchCase = (id: string) => {
     const c = cases.find(x => x.id === id);
     if (!c) return;
     const prog = allProgress.find(p => p.caseId === id)!;
     setCurrentCaseId(id);
-    setCode(c.phase1.initialCode);
+    // Load saved code or use initial code
+    setCode(getSavedCode(id) || c.phase1.initialCode);
     setValidationResults([]);
     setAppPhase(prog.phase as AppPhase);
     setInvestigationAttempts(prog.attempts);
@@ -82,7 +103,12 @@ function App() {
     setTimeout(() => {
       const results = currentCase.phase1.validations.map(v => {
         const passed = simulateValidation(code, v);
-        return { ...v, passed, message: passed ? v.successMessage : v.errorMessage };
+        // Track attempts for failed validations
+        if (!passed) {
+          updateAttemptHistory(currentCaseId, v.errorMessage);
+        }
+        const attemptsOnThisRule = getAttemptCount(currentCaseId, v.errorMessage);
+        return { ...v, passed, message: passed ? v.successMessage : v.errorMessage, attemptsOnThisRule };
       });
       setValidationResults(results);
 
@@ -114,6 +140,15 @@ function App() {
     setInvestigationAttempts(a => a + 1);
   };
 
+  const handleResetAll = () => {
+    resetAll();
+    setCode(currentCase.phase1.initialCode);
+    setValidationResults([]);
+    setInvestigationAttempts(0);
+    setAppPhase('instrumentation');
+    setShowResetConfirm(false);
+  };
+
   const goToNext = () => {
     if (nextCase) switchCase(nextCase.id);
   };
@@ -130,6 +165,18 @@ function App() {
       default: return false;
     }
   };
+
+  // Loading state
+  if (!isLoaded) {
+    return (
+      <div className="h-screen bg-slate-900 flex items-center justify-center text-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-slate-400">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-slate-900 text-slate-50 flex flex-col overflow-hidden">
@@ -199,6 +246,34 @@ function App() {
           }`}>
             {currentCase.difficulty.toUpperCase()}
           </span>
+
+          {/* Reset Progress Button */}
+          {showResetConfirm ? (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs text-slate-400">Reset all progress?</span>
+              <button
+                onClick={handleResetAll}
+                className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="px-2 py-1 bg-slate-700 text-white text-xs rounded hover:bg-slate-600"
+              >
+                No
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-400 hover:text-red-400 transition-colors"
+              title="Reset All Progress"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset</span>
+            </button>
+          )}
         </div>
       </header>
 
