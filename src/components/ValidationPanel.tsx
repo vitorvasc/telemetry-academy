@@ -16,6 +16,7 @@ interface ValidationPanelProps {
   onValidate: () => void;
   phaseUnlocked: boolean;
   onStartInvestigation?: () => void;
+  isWorkerReady?: boolean; // Add to distinguish init vs execution
 }
 
 export const ValidationPanel: React.FC<ValidationPanelProps> = ({
@@ -24,6 +25,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
   onValidate,
   phaseUnlocked,
   onStartInvestigation,
+  isWorkerReady = true, // Default to true for backward compatibility
 }) => {
   return (
     <div className="h-full flex flex-col">
@@ -36,22 +38,27 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
         
         <button
           onClick={onValidate}
-          disabled={isValidating || phaseUnlocked}
+          disabled={!isWorkerReady || isValidating || phaseUnlocked}
           className={`
             flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
             transition-all duration-200
             ${phaseUnlocked 
               ? 'bg-success/20 text-green-400 cursor-default' 
-              : isValidating
+              : !isWorkerReady || isValidating
                 ? 'bg-primary/50 text-white cursor-not-allowed'
                 : 'bg-sky-500 hover:bg-sky-600 text-white active:scale-95'
             }
           `}
         >
-          {isValidating ? (
+          {!isWorkerReady ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Validating...
+              Loading Python...
+            </>
+          ) : isValidating ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Running code...
             </>
           ) : phaseUnlocked ? (
             <>
@@ -69,7 +76,12 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
 
       {/* Results */}
       <div className="flex-1 overflow-y-auto p-4">
-        {results.length === 0 ? (
+        {isValidating && results.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-slate-400">
+            <Loader2 className="w-8 h-8 animate-spin mb-3" />
+            <p className="text-sm">Running code and capturing telemetry...</p>
+          </div>
+        ) : results.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Play className="w-12 h-12 mb-3 opacity-50" />
             <p className="text-sm">Click "Check Code" to validate your instrumentation</p>
@@ -99,18 +111,27 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                   <p className={`text-sm font-medium ${result.passed ? 'text-green-400' : 'text-red-400'}`}>
                     {result.message}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {result.description}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-slate-400">
+                      {result.description}
+                    </p>
+                    {!result.passed && result.attemptsOnThisRule > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-slate-700 text-slate-300 rounded">
+                        Attempt {result.attemptsOnThisRule + 1}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
 
             {/* Success Message */}
             {phaseUnlocked && (
-              <div className="mt-4 p-4 bg-green-400/10 border border-success/30 rounded-lg animate-slide-in">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
+              <div className="mt-4 p-4 bg-green-400/10 border border-success/30 rounded-lg animate-slide-in relative overflow-hidden">
+                {/* Celebration glow animation */}
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 via-emerald-500/10 to-green-500/20 animate-pulse" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center animate-pulse">
                     <Sparkles className="w-5 h-5 text-green-400" />
                   </div>
                   
