@@ -6,7 +6,7 @@ import { InvestigationView } from './components/InvestigationView';
 import { CaseSelector } from './components/CaseSelector';
 import { CaseSolvedScreen } from './components/CaseSolvedScreen';
 import { OutputPanel } from './components/terminal/OutputPanel';
-import { usePyodideWorker } from './hooks/usePyodideWorker';
+import { useCodeRunner } from './hooks/useCodeRunner';
 import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { cases } from './data/cases';
@@ -37,7 +37,7 @@ function App() {
   const [isValidating, setIsValidating] = useState(false);
   const [investigationAttempts, setInvestigationAttempts] = useState(0);
 
-  const { isReady: isWorkerReady, isRunning, output, spans, runCode } = usePyodideWorker();
+  const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode } = useCodeRunner('python');
   const [workerError, setWorkerError] = useState<string | null>(null);
 
   const currentCase = cases.find(c => c.id === currentCaseId) ?? cases[0];
@@ -238,7 +238,7 @@ function App() {
                   />
                 </div>
                 <div className="flex-1">
-                  <OutputPanel output={output} error={workerError} isRunning={isRunning} />
+                  <OutputPanel output={output} error={workerError || initError} isRunning={isRunning} />
                   {spans.length > 0 && (
                     <div className="text-xs text-slate-500 mt-1 px-4">
                       Captured {spans.length} telemetry span(s)
