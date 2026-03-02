@@ -20,18 +20,24 @@ export interface Phase2Config {
 }
 
 export interface ValidationRule {
-  type: 'span_exists' | 'attribute_exists' | 'telemetry_flowing' | 'error_handling';
+  type: 'span_exists' | 'attribute_exists' | 'attribute_value' | 'span_count' | 'status_ok' | 'status_error' | 'telemetry_flowing' | 'error_handling';
   description: string;
   successMessage: string;
   errorMessage: string;
+  // Progressive hint messages for escalating guidance
+  hintMessage?: string;
+  guidedMessage?: string;
   // Optional params for specific validations
   spanName?: string;
   attributeKey?: string;
+  attributeValue?: any;
+  minCount?: number;
 }
 
 export interface ValidationResult extends ValidationRule {
   passed: boolean;
   message: string;
+  attemptsOnThisRule: number;
 }
 
 export interface TraceSpan {
