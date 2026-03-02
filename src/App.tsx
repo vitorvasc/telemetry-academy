@@ -10,6 +10,7 @@ import { useCodeRunner } from './hooks/useCodeRunner';
 import { useAcademyPersistence } from './hooks/useAcademyPersistence';
 import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
+import { validateSpans, type SpanValidationRule } from './lib/validation';
 import { cases } from './data/cases';
 import { helloSpanPhase2 } from './data/phase2';
 import { FlaskConical, RotateCcw } from 'lucide-react';
@@ -51,6 +52,12 @@ function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode } = useCodeRunner('python');
+
+  // Clear validation results when code changes (prevents stale state)
+  useEffect(() => {
+    setValidationResults([]);
+    setWorkerError(null);
+  }, [code]);
   const [workerError, setWorkerError] = useState<string | null>(null);
 
   const currentCase = cases.find(c => c.id === currentCaseId) ?? cases[0];
@@ -99,25 +106,33 @@ function App() {
       setWorkerError(err.message || 'Unknown execution error');
     }
 
-    // Keep existing validation simulation for now
-    setTimeout(() => {
-      const results = currentCase.phase1.validations.map(v => {
-        const passed = simulateValidation(code, v);
-        // Track attempts for failed validations
-        if (!passed) {
-          updateAttemptHistory(currentCaseId, v.errorMessage);
-        }
-        const attemptsOnThisRule = getAttemptCount(currentCaseId, v.errorMessage);
-        return { ...v, passed, message: passed ? v.successMessage : v.errorMessage, attemptsOnThisRule };
-      });
-      setValidationResults(results);
+    // Get attempt history for current case
+    const currentAttemptHistory: Record<string, number> = {};
+    currentCase.phase1.validations.forEach(rule => {
+      currentAttemptHistory[rule.description] = getAttemptCount(currentCaseId, rule.description);
+    });
 
-      if (results.every(r => r.passed)) {
-        setAppPhase('investigation');
-        updateProgress(currentCaseId, { phase: 'investigation' });
+    // Run real span-based validation
+    const results = validateSpans(
+      currentCase.phase1.validations as SpanValidationRule[],
+      { spans, attemptHistory: currentAttemptHistory }
+    );
+
+    // Update attempt history for failed rules
+    results.forEach(r => {
+      if (!r.passed) {
+        updateAttemptHistory(currentCaseId, r.description);
       }
-      setIsValidating(false);
-    }, 500);
+    });
+
+    setValidationResults(results);
+
+    if (results.every(r => r.passed)) {
+      setAppPhase('investigation');
+      updateProgress(currentCaseId, { phase: 'investigation' });
+    }
+
+    setIsValidating(false);
   };
 
   // Phase 2 solved
@@ -155,15 +170,6 @@ function App() {
 
   const reviewInvestigation = () => {
     setAppPhase('investigation');
-  };
-
-  const simulateValidation = (code: string, validation: any): boolean => {
-    switch (validation.type) {
-      case 'span_exists':    return code.includes('start_as_current_span') || code.includes('start_span');
-      case 'attribute_exists': return code.includes('set_attribute') && code.includes('order_id');
-      case 'telemetry_flowing': return code.includes('start_as_current_span') && code.includes('order_id');
-      default: return false;
-    }
   };
 
   // Loading state
