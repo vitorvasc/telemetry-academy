@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 updated: 2026-03-02T20:38:00Z
 phase: 02-validation-core-loop
 source:
@@ -81,16 +81,26 @@ skipped: 6
   reason: "User reported: No validations are passing, even if I have the code on the editor, when I click on 'check code' it fails"
   severity: blocker
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Missing implementation for 'telemetry_flowing' validation type in src/lib/validation.ts - falls through to default case which returns false"
+  artifacts:
+    - path: "src/lib/validation.ts"
+      issue: "ValidationCheckType missing 'telemetry_flowing' and 'error_handling' types, runCheck() has no case for these types"
+    - path: "src/data/cases.ts"
+      issue: "hello-span-001 case uses type: 'telemetry_flowing' which has no implementation"
+  missing:
+    - "Add 'telemetry_flowing' and 'error_handling' to ValidationCheckType"
+    - "Implement case handlers in runCheck() for missing validation types"
+  debug_session: ".planning/debug/validation-not-working.md"
 - truth: "Make some code edits, refresh the browser page. Your code edits should be restored from localStorage"
   status: failed
   reason: "User reported: Code edits weren't restored, after refreshing the page, it starts from scratch"
   severity: blocker
   test: 8
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "App.tsx initializes code state with cases[0].phase1.initialCode instead of persisted code. Auto-save effect then overwrites persisted data with initial code."
+  artifacts:
+    - path: "src/App.tsx"
+      issue: "Line 48: code state initialized with default instead of persisted. Missing useEffect to load persisted code when isLoaded becomes true."
+  missing:
+    - "Add useEffect in App.tsx to load persisted code when isLoaded becomes true"
+    - "Consider adding initialLoadRef to prevent auto-save from overwriting on mount"
+  debug_session: ".planning/debug/persistence-not-working.md"
