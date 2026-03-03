@@ -4,7 +4,9 @@ export type ValidationCheckType =
   | 'attribute_value'
   | 'span_count'
   | 'status_ok'
-  | 'status_error';
+  | 'status_error'
+  | 'telemetry_flowing'
+  | 'error_handling';
 
 export interface SpanValidationRule {
   type: ValidationCheckType;
