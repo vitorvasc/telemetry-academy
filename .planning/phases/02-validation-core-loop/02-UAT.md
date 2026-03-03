@@ -1,13 +1,14 @@
 ---
-status: diagnosed
-updated: 2026-03-02T20:38:00Z
+status: resolved
 phase: 02-validation-core-loop
 source:
   - 02-01-SUMMARY.md
   - 02-02-SUMMARY.md
   - 02-03-SUMMARY.md
+  - 02-04-SUMMARY.md
+  - 02-05-SUMMARY.md
 started: 2026-03-02T20:35:00Z
-updated: 2026-03-02T20:36:00Z
+updated: 2026-03-02T20:45:00Z
 ---
 
 ## Current Test
@@ -77,30 +78,23 @@ skipped: 6
 ## Gaps
 
 - truth: "After running code, validation panel shows checkmarks for passed validations and X marks for failed ones with specific messages"
-  status: failed
+  status: resolved
   reason: "User reported: No validations are passing, even if I have the code on the editor, when I click on 'check code' it fails"
   severity: blocker
   test: 2
   root_cause: "Missing implementation for 'telemetry_flowing' validation type in src/lib/validation.ts - falls through to default case which returns false"
-  artifacts:
-    - path: "src/lib/validation.ts"
-      issue: "ValidationCheckType missing 'telemetry_flowing' and 'error_handling' types, runCheck() has no case for these types"
-    - path: "src/data/cases.ts"
-      issue: "hello-span-001 case uses type: 'telemetry_flowing' which has no implementation"
-  missing:
-    - "Add 'telemetry_flowing' and 'error_handling' to ValidationCheckType"
-    - "Implement case handlers in runCheck() for missing validation types"
+  fix_plan: "02-04"
+  fix_commits:
+    - "22610bd: Add telemetry_flowing and error_handling to ValidationCheckType"
+    - "e0dec66: Implement telemetry_flowing and error_handling validation handlers"
   debug_session: ".planning/debug/validation-not-working.md"
 - truth: "Make some code edits, refresh the browser page. Your code edits should be restored from localStorage"
-  status: failed
+  status: resolved
   reason: "User reported: Code edits weren't restored, after refreshing the page, it starts from scratch"
   severity: blocker
   test: 8
   root_cause: "App.tsx initializes code state with cases[0].phase1.initialCode instead of persisted code. Auto-save effect then overwrites persisted data with initial code."
-  artifacts:
-    - path: "src/App.tsx"
-      issue: "Line 48: code state initialized with default instead of persisted. Missing useEffect to load persisted code when isLoaded becomes true."
-  missing:
-    - "Add useEffect in App.tsx to load persisted code when isLoaded becomes true"
-    - "Consider adding initialLoadRef to prevent auto-save from overwriting on mount"
+  fix_plan: "02-05"
+  fix_commits:
+    - "f2a479d: Add persistence loading and prevent auto-save race condition"
   debug_session: ".planning/debug/persistence-not-working.md"
