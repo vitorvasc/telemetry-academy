@@ -71,6 +71,18 @@ function runCheck(rule: SpanValidationRule, spans: any[]): boolean {
       return checkStatus(spans, rule.spanName, 'OK');
     case 'status_error':
       return checkStatus(spans, rule.spanName, 'ERROR');
+    case 'telemetry_flowing':
+      // Check that spans exist (telemetry is flowing) and span name matches if specified
+      return checkSpanExists(spans, rule.spanName) && spans.length > 0;
+    case 'error_handling':
+      // Check for error status or error attributes in spans
+      return spans.some(span => {
+        const status = span.status || {};
+        const attributes = span.attributes || {};
+        const hasErrorStatus = (status.status_code || status.code) === 'ERROR';
+        const hasErrorAttributes = 'error.type' in attributes || 'error.message' in attributes;
+        return hasErrorStatus || hasErrorAttributes;
+      });
     default:
       return false;
   }
