@@ -3,7 +3,6 @@ import type { Phase2Data, RootCauseOption } from '../types/phase2';
 import { transformSpans, getTraceId, getTotalDurationMs } from '../lib/spanTransform';
 import { generateLogsFromSpans } from '../lib/logGenerator';
 import { cases } from '../data/cases';
-import { helloSpanPhase2 } from '../data/phase2';
 
 /**
  * Raw OTel span format from the Python worker telemetry
@@ -32,20 +31,13 @@ export interface Phase2DataState {
 }
 
 /**
- * Map of case IDs to their Phase2Data (for rootCauseOptions lookup)
- */
-const CASE_PHASE2_DATA: Record<string, Phase2Data> = {
-  'hello-span-001': helloSpanPhase2,
-};
-
-/**
  * Filter out malformed spans before transformation
- * 
+ *
  * A span is considered malformed if:
  * - Missing context object
  * - Missing span_id in context
  * - Invalid timestamps (start_time >= end_time)
- * 
+ *
  * @param spans - Raw spans from telemetry
  * @returns Filtered array of valid spans
  */
@@ -82,12 +74,13 @@ function getCase(caseId: string) {
 
 /**
  * Get root cause options for a case
- * 
+ *
  * @param caseId - Case identifier
  * @returns Array of root cause options or empty array if not found
  */
 function getRootCauseOptions(caseId: string): RootCauseOption[] {
-  return CASE_PHASE2_DATA[caseId]?.rootCauseOptions || [];
+  const caseDef = getCase(caseId);
+  return caseDef?.phase2?.rootCauseOptions || [];
 }
 
 /**

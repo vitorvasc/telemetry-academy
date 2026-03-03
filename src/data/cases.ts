@@ -1,4 +1,60 @@
-import type { Case } from '../types';
+import type { Case, RootCauseOption } from '../types';
+
+// Root cause options for hello-span-001: DB connection pool issue
+const helloSpanRootCauseOptions: RootCauseOption[] = [
+  {
+    id: 'a',
+    label: 'Missing index on the orders table — the UPDATE query does a full table scan',
+    correct: false,
+    explanation: 'Not quite. The trace shows db.connection_pool.wait_ms=4750, meaning 4.75 seconds were spent waiting for a connection — not executing the query itself. A missing index would slow the query, but the query barely ran.',
+  },
+  {
+    id: 'b',
+    label: 'DB connection pool is too small — all 5 connections are in use, new requests queue up',
+    correct: true,
+    explanation: '✓ Exactly! The logs show "pool_size=5, waiting=12" — 12 requests are queued for only 5 connections. The span attribute db.connection_pool.wait_ms=4750 confirms 95% of the latency is waiting, not querying. Fix: increase pool_size or reduce connection hold time.',
+  },
+  {
+    id: 'c',
+    label: 'The external cache is slow — Redis is adding latency to every request',
+    correct: false,
+    explanation: 'Not quite. The cache.invalidate span took only 12ms — totally fine. The culprit is db.query at 4980ms, and most of that is connection pool wait time.',
+  },
+  {
+    id: 'd',
+    label: 'The order-service is CPU-bound — too many concurrent requests overwhelming the process',
+    correct: false,
+    explanation: 'No. If it were CPU-bound, you\'d see spans running (not waiting). The trace clearly shows time spent in db.connection_pool.wait_ms=4750, which is blocking I/O wait — not CPU.',
+  },
+];
+
+// Root cause options for auto-magic-002: HTTP error investigation
+const autoMagicRootCauseOptions: RootCauseOption[] = [
+  {
+    id: 'a',
+    label: 'External API is returning 500 errors',
+    correct: true,
+    explanation: '✓ Correct! The traces show HTTP client spans with error status, indicating calls to the external API are failing.',
+  },
+  {
+    id: 'b',
+    label: 'Database connection timeout',
+    correct: false,
+    explanation: 'Not quite. Check the traces for database spans — do you see any connection errors or long wait times?',
+  },
+  {
+    id: 'c',
+    label: 'FastAPI application crashed',
+    correct: false,
+    explanation: 'The application is still running and responding. Look for error spans in the trace data.',
+  },
+  {
+    id: 'd',
+    label: 'Network latency to external API',
+    correct: false,
+    explanation: 'Latency would show as slow spans, not errors. Look at the status code in the HTTP span attributes.',
+  },
+];
 
 export const cases: Case[] = [
   {
@@ -84,6 +140,7 @@ Now that telemetry is flowing, we can see what's happening!
 The traces show that the order processing is taking 5 seconds. Your job is to investigate the trace data and find the root cause.
 `,
       investigationTools: ['traces', 'logs'],
+      rootCauseOptions: helloSpanRootCauseOptions,
     },
   },
   {
@@ -139,6 +196,7 @@ def get_user(user_id: int):
 Users are reporting 500 errors. Investigate the traces to find which endpoint is failing and why.
 `,
       investigationTools: ['traces'],
+      rootCauseOptions: autoMagicRootCauseOptions,
     },
   },
 ];
