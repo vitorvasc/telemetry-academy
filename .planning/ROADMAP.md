@@ -39,14 +39,18 @@ Plans:
   1. User sees immediate pass/fail feedback for specific case requirements when running code.
   2. User can unlock the next case only after passing all current validations.
   3. User retains their completed case status after refreshing the browser page.
-**Plans**: 3 plans in 2 waves
+**Plans**: 5 plans in 2 waves
 
 **Wave 1** (Parallel):
 - [x] 02-01-PLAN.md — Implement span-based validation engine with progressive hints
 - [x] 02-03-PLAN.md — Implement localStorage persistence with schema versioning, attempt history, and reset
 
 **Wave 2** (Depends on Wave 1):
-- [ ] 02-02-PLAN.md — Integrate validation and persistence into UI with spinner, staggered reveal, attempt tracking, and case unlocking
+- [x] 02-02-PLAN.md — Integrate validation and persistence into UI with spinner, staggered reveal, attempt tracking, and case unlocking
+
+**Gap Closure** (Fixes UAT blockers):
+- [ ] 02-04-PLAN.md — Fix validation engine: Add missing 'telemetry_flowing' and 'error_handling' validation types
+- [ ] 02-05-PLAN.md — Fix persistence loading: Load persisted code on mount and prevent overwrite on initial load
 
 ### Phase 3: Visualization & Investigation
 **Goal**: Users can visually analyze telemetry data to diagnose simulated incidents.
@@ -86,6 +90,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. WASM Engine & Telemetry Bridge | 2/2 | Complete | 2026-02-26 |
-| 2. Validation & Core Loop | 2/3 | In Progress | 2026-03-02 |
+| 2. Validation & Core Loop | 3/5 | In Progress (Gap Closure) | 2026-03-03 |
 | 3. Visualization & Investigation | 0/3 | Not started | - |
 | 4. Content & Polish | 0/3 | Not started | - |
