@@ -27,7 +27,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **VIS-01**: Trace Viewer displays an interactive, Jaeger-like span waterfall timeline
 - [ ] **VIS-02**: Trace Viewer allows expanding spans to inspect custom attributes, events, and statuses
-- [ ] **VIS-03**: Log Viewer displays a terminal-style table with support for `trace_id` correlation
+- [x] **VIS-03**: Log Viewer displays a terminal-style table with support for `trace_id` correlation
 - [ ] **VIS-04**: SLOW and ERROR badges visually flag anomalous spans in the waterfall
 
 ### Case Content (MVP Tier)
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOOP-05 | Phase 4 | Pending |
 | VIS-01 | Phase 3 | Pending |
 | VIS-02 | Phase 3 | Pending |
-| VIS-03 | Phase 3 | Pending |
+| VIS-03 | Phase 3 | Complete |
 | VIS-04 | Phase 3 | Pending |
 | CASE-01 | Phase 4 | Pending |
 | CASE-02 | Phase 4 | Pending |
