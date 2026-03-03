@@ -11,7 +11,7 @@ Telemetry Academy is an interactive, browser-based learning platform that teache
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: WASM Engine & Telemetry Bridge** - User's Python code runs in the browser and its OpenTelemetry output is captured in JavaScript.
-- [ ] **Phase 2: Validation & Core Loop** - Users receive real-time validation on their code and can progress through saved cases.
+- [x] **Phase 2: Validation & Core Loop** - Users receive real-time validation on their code and can progress through saved cases.
 - [ ] **Phase 3: Visualization & Investigation** - Users can visually analyze telemetry data to diagnose simulated incidents.
 - [ ] **Phase 4: Content & Polish** - Users can play through three complete, distinct learning scenarios end-to-end.
 
@@ -49,8 +49,8 @@ Plans:
 - [x] 02-02-PLAN.md — Integrate validation and persistence into UI with spinner, staggered reveal, attempt tracking, and case unlocking
 
 **Gap Closure** (Fixes UAT blockers):
-- [ ] 02-04-PLAN.md — Fix validation engine: Add missing 'telemetry_flowing' and 'error_handling' validation types
-- [ ] 02-05-PLAN.md — Fix persistence loading: Load persisted code on mount and prevent overwrite on initial load
+- [x] 02-04-PLAN.md — Fix validation engine: Add missing 'telemetry_flowing' and 'error_handling' validation types
+- [x] 02-05-PLAN.md — Fix persistence loading: Load persisted code on mount and prevent overwrite on initial load
 
 ### Phase 3: Visualization & Investigation
 **Goal**: Users can visually analyze telemetry data to diagnose simulated incidents.
@@ -60,12 +60,14 @@ Plans:
   1. User can navigate a visual trace waterfall to identify slow or erroring spans.
   2. User can click spans to inspect attributes and correlate them with logs.
   3. User can attempt to solve the case and read specific feedback on their incorrect guesses.
-**Plans**: 3 plans
+**Plans**: 3 plans in 2 waves
 
-Plans:
-- [ ] 03-01: Build Trace Viewer waterfall and span expansion UI
-- [ ] 03-02: Build Log Viewer with trace correlation
-- [ ] 03-03: Implement Root Cause Engine and guess feedback UI
+**Wave 1** (Parallel):
+- [ ] 03-01-PLAN.md — Build Trace Viewer waterfall with real OTel span transformation and SLOW/ERROR badges
+- [ ] 03-02-PLAN.md — Build Log Viewer with synthetic log generation and trace correlation
+
+**Wave 2** (Depends on Wave 1):
+- [ ] 03-03-PLAN.md — Implement Root Cause Engine with attribute-specific feedback and guess evaluation
 
 ### Phase 4: Content & Polish
 **Goal**: Users can play through three complete, distinct learning scenarios end-to-end.
@@ -90,6 +92,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. WASM Engine & Telemetry Bridge | 2/2 | Complete | 2026-02-26 |
-| 2. Validation & Core Loop | 3/5 | In Progress (Gap Closure) | 2026-03-03 |
-| 3. Visualization & Investigation | 0/3 | Not started | - |
+| 2. Validation & Core Loop | 5/5 | Complete | 2026-03-03 |
+| 3. Visualization & Investigation | 0/3 | Planned | - |
 | 4. Content & Polish | 0/3 | Not started | - |
