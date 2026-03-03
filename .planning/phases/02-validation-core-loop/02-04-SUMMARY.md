@@ -89,6 +89,16 @@ None.
 - Ready for testing UAT Tests 3-7 (progressive hints, attempt counts, case unlock)
 - Persistence issue (UAT Test 8) remains as separate gap (02-05)
 
+## Self-Check: PASSED
+
+- [x] SUMMARY.md created: .planning/phases/02-validation-core-loop/02-04-SUMMARY.md
+- [x] All commits present: 22610bd (task 1), e0dec66 (task 2), 1e9fff1 (metadata)
+- [x] validation.ts modified with 12 insertions (2 types + 2 case handlers)
+- [x] Build passes: npm run build succeeds
+- [x] TypeScript compiles: npx tsc --noEmit passes
+- [x] STATE.md updated with position and metrics
+- [x] ROADMAP.md updated with plan progress
+
 ---
 *Phase: 02-validation-core-loop*
 *Completed: 2026-03-03*
