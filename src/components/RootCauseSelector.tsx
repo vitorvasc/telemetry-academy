@@ -1,27 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { RootCauseOption } from '../types/phase2';
+import type { EvaluationResult } from '../lib/rootCauseEngine';
 import { CheckCircle2, XCircle, Trophy, RotateCcw, HelpCircle } from 'lucide-react';
 
 interface RootCauseSelectorProps {
   options: RootCauseOption[];
+  evaluationResult?: EvaluationResult | null;
+  onSubmitGuess?: (guessId: string) => void;
   onSolved: () => void;
   onAttempt?: () => void;
 }
 
-export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({ options, onSolved, onAttempt }) => {
+export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({ 
+  options, 
+  evaluationResult,
+  onSubmitGuess,
+  onSolved, 
+  onAttempt 
+}) => {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [attempts, setAttempts] = useState(0);
 
   const selectedOption = options.find(o => o.id === selected);
-  const isCorrect = submitted && !!selectedOption?.correct;
+  // Use evaluation result if available, otherwise fall back to static option.correct
+  const isCorrect = submitted && (evaluationResult?.correct ?? selectedOption?.correct);
+
+  // Reset state when evaluation result is cleared (new telemetry data)
+  useEffect(() => {
+    if (evaluationResult === null) {
+      setSubmitted(false);
+      setSelected(null);
+    }
+  }, [evaluationResult]);
 
   const handleSubmit = () => {
     if (!selected) return;
     setSubmitted(true);
     setAttempts(a => a + 1);
     onAttempt?.();
-    if (selectedOption?.correct) setTimeout(onSolved, 2000);
+    
+    // Use engine evaluation if onSubmitGuess is provided
+    if (onSubmitGuess) {
+      onSubmitGuess(selected);
+    } else if (selectedOption?.correct) {
+      // Fallback to static behavior
+      setTimeout(onSolved, 2000);
+    }
   };
 
   const handleRetry = () => {
@@ -97,7 +122,20 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({ options, o
                     ? 'border-green-800/60 bg-green-950/30 text-green-300'
                     : 'border-red-800/60 bg-red-950/30 text-red-300'
                 }`}>
-                  {option.explanation}
+                  {evaluationResult && isSelected ? (
+                    // Show dynamic feedback from the engine
+                    <>
+                      {evaluationResult.explanation}
+                      {evaluationResult.hint && (
+                        <div className="mt-2 text-amber-400">
+                          {evaluationResult.hint}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    // Fallback to static explanation from option
+                    option.explanation
+                  )}
                 </div>
               )}
             </div>

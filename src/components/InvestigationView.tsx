@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Phase2Data } from '../types/phase2';
+import type { EvaluationResult } from '../lib/rootCauseEngine';
 import { TraceViewer } from './TraceViewer';
 import { LogViewer } from './LogViewer';
 import { RootCauseSelector } from './RootCauseSelector';
+import { evaluateGuess } from '../lib/rootCauseEngine';
 import { GitBranch, ScrollText, Target, Siren, CheckCircle2 } from 'lucide-react';
 
 type Tab = 'traces' | 'logs' | 'rootcause';
@@ -10,15 +12,37 @@ type Tab = 'traces' | 'logs' | 'rootcause';
 interface InvestigationViewProps {
   data: Phase2Data;
   caseName: string;
+  currentCaseId: string;
   onCaseSolved: () => void;
   onAttempt?: () => void;
 }
 
-export const InvestigationView: React.FC<InvestigationViewProps> = ({ data, caseName, onCaseSolved, onAttempt }) => {
+export const InvestigationView: React.FC<InvestigationViewProps> = ({ 
+  data, 
+  caseName, 
+  currentCaseId,
+  onCaseSolved, 
+  onAttempt 
+}) => {
   const [activeTab, setActiveTab] = useState<Tab>('traces');
   const [solved, setSolved] = useState(false);
   // Lifted filter state for LogViewer - persists across tab switches
   const [logFilter, setLogFilter] = useState('');
+  // Root cause evaluation result from the engine
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
+
+  // Reset evaluation when trace data changes (user re-ran code)
+  useEffect(() => {
+    setEvaluationResult(null);
+  }, [data.traceId]);
+
+  const handleGuessSubmit = (guessId: string) => {
+    const result = evaluateGuess(guessId, data, currentCaseId);
+    setEvaluationResult(result);
+    if (result.correct) {
+      handleSolved();
+    }
+  };
 
   const handleSolved = () => {
     setSolved(true);
@@ -109,7 +133,13 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({ data, case
         
         {/* Root Cause Tab */}
         <div style={{ display: activeTab === 'rootcause' ? 'block' : 'none' }} className="h-full overflow-y-auto p-6">
-          <RootCauseSelector options={data.rootCauseOptions} onSolved={handleSolved} onAttempt={onAttempt} />
+          <RootCauseSelector
+            options={data.rootCauseOptions}
+            evaluationResult={evaluationResult}
+            onSubmitGuess={handleGuessSubmit}
+            onSolved={handleSolved}
+            onAttempt={onAttempt}
+          />
         </div>
       </div>
     </div>

@@ -344,6 +344,7 @@ function App() {
               <InvestigationView
                 data={phase2Data}
                 caseName={currentCase.name}
+                currentCaseId={currentCaseId}
                 onCaseSolved={handleCaseSolved}
                 onAttempt={handleInvestigationAttempt}
               />
