@@ -17,6 +17,8 @@ interface InvestigationViewProps {
 export const InvestigationView: React.FC<InvestigationViewProps> = ({ data, caseName, onCaseSolved, onAttempt }) => {
   const [activeTab, setActiveTab] = useState<Tab>('traces');
   const [solved, setSolved] = useState(false);
+  // Lifted filter state for LogViewer - persists across tab switches
+  const [logFilter, setLogFilter] = useState('');
 
   const handleSolved = () => {
     setSolved(true);
@@ -88,15 +90,27 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({ data, case
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content - using display:none to preserve component state across tab switches */}
       <div className="flex-1 overflow-hidden">
-        {activeTab === 'traces'    && <TraceViewer spans={data.spans} totalDurationMs={data.totalDurationMs} traceId={data.traceId} />}
-        {activeTab === 'logs'      && <LogViewer logs={data.logs} highlightTraceId={data.traceId} />}
-        {activeTab === 'rootcause' && (
-          <div className="h-full overflow-y-auto p-6">
-            <RootCauseSelector options={data.rootCauseOptions} onSolved={handleSolved} onAttempt={onAttempt} />
-          </div>
-        )}
+        {/* Traces Tab */}
+        <div style={{ display: activeTab === 'traces' ? 'block' : 'none' }} className="h-full">
+          <TraceViewer spans={data.spans} totalDurationMs={data.totalDurationMs} traceId={data.traceId} />
+        </div>
+        
+        {/* Logs Tab - with lifted filter state for persistence */}
+        <div style={{ display: activeTab === 'logs' ? 'block' : 'none' }} className="h-full">
+          <LogViewer 
+            logs={data.logs} 
+            highlightTraceId={data.traceId}
+            filter={logFilter}
+            onFilterChange={setLogFilter}
+          />
+        </div>
+        
+        {/* Root Cause Tab */}
+        <div style={{ display: activeTab === 'rootcause' ? 'block' : 'none' }} className="h-full overflow-y-auto p-6">
+          <RootCauseSelector options={data.rootCauseOptions} onSolved={handleSolved} onAttempt={onAttempt} />
+        </div>
       </div>
     </div>
   );

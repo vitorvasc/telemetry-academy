@@ -5,6 +5,8 @@ import { Search, Link2 } from 'lucide-react';
 interface LogViewerProps {
   logs: LogEntry[];
   highlightTraceId?: string;
+  filter?: string;
+  onFilterChange?: (filter: string) => void;
 }
 
 const LEVEL = {
@@ -14,8 +16,17 @@ const LEVEL = {
   error: { label: 'ERROR', cls: 'text-red-400',    bg: 'bg-red-900/10' },
 };
 
-export const LogViewer: React.FC<LogViewerProps> = ({ logs, highlightTraceId }) => {
-  const [filter, setFilter] = useState('');
+export const LogViewer: React.FC<LogViewerProps> = ({ 
+  logs, 
+  highlightTraceId,
+  filter: externalFilter,
+  onFilterChange,
+}) => {
+  // Support both controlled (parent-managed) and uncontrolled (internal) filter state
+  const [internalFilter, setInternalFilter] = useState('');
+  const filter = externalFilter ?? internalFilter;
+  const setFilter = onFilterChange ?? setInternalFilter;
+  
   const [traceCorr, setTraceCorr] = useState(true);
   const [selected, setSelected] = useState<number | null>(null);
 
