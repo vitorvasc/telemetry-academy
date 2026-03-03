@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CodeEditor } from './components/CodeEditor';
 import { InstructionsPanel } from './components/InstructionsPanel';
 import { ValidationPanel } from './components/ValidationPanel';
@@ -59,6 +59,7 @@ function App() {
     setWorkerError(null);
   }, [code]);
   const [workerError, setWorkerError] = useState<string | null>(null);
+  const initialLoadRef = useRef(true);
 
   const currentCase = cases.find(c => c.id === currentCaseId) ?? cases[0];
   const currentIdx = cases.findIndex(c => c.id === currentCaseId);
@@ -67,11 +68,22 @@ function App() {
   const phase2Data = PHASE2_DATA[currentCaseId];
   const phaseUnlocked = appPhase === 'investigation' || appPhase === 'solved';
 
-  // Code auto-save effect
+  // Load persisted code when persistence is ready
   useEffect(() => {
     if (isLoaded) {
+      const saved = getSavedCode(currentCaseId);
+      if (saved) {
+        setCode(saved);
+      }
+    }
+  }, [isLoaded, currentCaseId, getSavedCode]);
+
+  // Code auto-save effect
+  useEffect(() => {
+    if (isLoaded && !initialLoadRef.current) {
       saveCode(currentCaseId, code);
     }
+    initialLoadRef.current = false;
   }, [code, currentCaseId, isLoaded, saveCode]);
 
   // Switch cases
