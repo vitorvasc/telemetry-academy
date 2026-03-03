@@ -8,18 +8,14 @@ import { CaseSolvedScreen } from './components/CaseSolvedScreen';
 import { OutputPanel } from './components/terminal/OutputPanel';
 import { useCodeRunner } from './hooks/useCodeRunner';
 import { useAcademyPersistence } from './hooks/useAcademyPersistence';
+import { usePhase2Data } from './hooks/usePhase2Data';
 import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { validateSpans, type SpanValidationRule } from './lib/validation';
 import { cases } from './data/cases';
-import { helloSpanPhase2 } from './data/phase2';
-import { FlaskConical, RotateCcw } from 'lucide-react';
+import { FlaskConical, RotateCcw, Radio } from 'lucide-react';
 
 type AppPhase = 'instrumentation' | 'investigation' | 'solved';
-
-const PHASE2_DATA: Record<string, typeof helloSpanPhase2> = {
-  'hello-span-001': helloSpanPhase2,
-};
 
 function initProgress(cases: Case[]): CaseProgress[] {
   return cases.map((c, i) => ({
@@ -65,7 +61,7 @@ function App() {
   const currentIdx = cases.findIndex(c => c.id === currentCaseId);
   const nextCase = cases[currentIdx + 1];
   const currentProgress = allProgress.find(p => p.caseId === currentCaseId)!;
-  const phase2Data = PHASE2_DATA[currentCaseId];
+  const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
   const phaseUnlocked = appPhase === 'investigation' || appPhase === 'solved';
 
   // Load persisted code when persistence is ready
@@ -344,7 +340,7 @@ function App() {
           </>
         ) : (
           <div className="flex-1 overflow-hidden">
-            {phase2Data ? (
+            {hasPhase2Data && phase2Data ? (
               <InvestigationView
                 data={phase2Data}
                 caseName={currentCase.name}
@@ -352,8 +348,22 @@ function App() {
                 onAttempt={handleInvestigationAttempt}
               />
             ) : (
-              <div className="h-full flex items-center justify-center text-slate-500">
-                Investigation data not available for this case yet.
+              <div className="h-full flex items-center justify-center bg-slate-900">
+                <div className="text-center max-w-md mx-auto px-6">
+                  <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Radio className="w-8 h-8 text-slate-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-200 mb-2">No Telemetry Data</h3>
+                  <p className="text-sm text-slate-500 mb-6">
+                    Run your code in Phase 1 to generate telemetry data for investigation.
+                  </p>
+                  <button
+                    onClick={() => setAppPhase('instrumentation')}
+                    className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Go to Phase 1
+                  </button>
+                </div>
               </div>
             )}
           </div>
