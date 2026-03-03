@@ -14,9 +14,17 @@ export interface Phase1Config {
   validations: ValidationRule[];
 }
 
+export interface RootCauseOption {
+  id: string;
+  label: string;
+  correct: boolean;
+  explanation: string;
+}
+
 export interface Phase2Config {
   description: string;
   investigationTools: ('traces' | 'logs' | 'metrics')[];
+  rootCauseOptions?: RootCauseOption[];
 }
 
 export interface ValidationRule {
