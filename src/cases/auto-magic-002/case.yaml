@@ -1,0 +1,60 @@
+id: auto-magic-002
+name: "Auto-magic"
+order: 2
+difficulty: rookie
+concepts:
+  - auto_instrumentation
+  - http_traces
+  - zero_code
+
+phase1:
+  description: |
+    **Case #2: Auto-magic**
+
+    Your system has multiple HTTP endpoints, but manual instrumentation is tedious. Let's explore auto-instrumentation!
+
+    **Your Mission:**
+    Configure auto-instrumentation for a FastAPI application without modifying the application code.
+
+  hints:
+    - "Use opentelemetry-instrument command"
+    - "Set OTEL_SERVICE_NAME environment variable"
+    - "Configure the exporter endpoint"
+
+  validations:
+    - type: span_exists
+      description: "HTTP spans must be auto-generated"
+      successMessage: "✓ HTTP spans are being generated"
+      errorMessage: "✗ No HTTP spans found. Check auto-instrumentation config"
+      hintMessage: "💡 Hint: Check opentelemetry-instrument is configured"
+      guidedMessage: "📖 Set OTEL_SERVICE_NAME and run with: opentelemetry-instrument python app.py"
+
+phase2:
+  description: |
+    **Investigation Phase**
+
+    Users are reporting 500 errors. Investigate the traces to find which endpoint is failing and why.
+
+  investigationTools:
+    - traces
+
+  rootCauseOptions:
+    - id: a
+      label: "External API is returning 500 errors"
+      correct: true
+      explanation: "✓ Correct! The traces show HTTP client spans with error status, indicating calls to the external API are failing."
+
+    - id: b
+      label: "Database connection timeout"
+      correct: false
+      explanation: "Not quite. Check the traces for database spans — do you see any connection errors or long wait times?"
+
+    - id: c
+      label: "FastAPI application crashed"
+      correct: false
+      explanation: "The application is still running and responding. Look for error spans in the trace data."
+
+    - id: d
+      label: "Network latency to external API"
+      correct: false
+      explanation: "Latency would show as slow spans, not errors. Look at the status code in the HTTP span attributes."
