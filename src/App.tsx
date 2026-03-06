@@ -5,6 +5,7 @@ import { ValidationPanel } from './components/ValidationPanel';
 import { InvestigationView } from './components/InvestigationView';
 import { CaseSelector } from './components/CaseSelector';
 import { CaseSolvedScreen } from './components/CaseSolvedScreen';
+import { HomePage } from './components/HomePage';
 import { OutputPanel } from './components/terminal/OutputPanel';
 import { useCodeRunner } from './hooks/useCodeRunner';
 import { useAcademyPersistence } from './hooks/useAcademyPersistence';
@@ -13,7 +14,7 @@ import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { validateSpans, type SpanValidationRule } from './lib/validation';
 import { cases } from './data/cases';
-import { FlaskConical, RotateCcw, Radio } from 'lucide-react';
+import { FlaskConical, RotateCcw, Radio, ArrowLeft } from 'lucide-react';
 
 type AppPhase = 'instrumentation' | 'investigation' | 'solved';
 
@@ -39,6 +40,7 @@ function App() {
     isLoaded,
   } = useAcademyPersistence(initProgress(cases));
 
+  const [showHome, setShowHome] = useState(true);
   const [currentCaseId, setCurrentCaseId] = useState(cases[0].id);
   const [appPhase, setAppPhase] = useState<AppPhase>('instrumentation');
   const [code, setCode] = useState(cases[0].phase1.initialCode);
@@ -81,6 +83,12 @@ function App() {
     }
     initialLoadRef.current = false;
   }, [code, currentCaseId, isLoaded, saveCode]);
+
+  // Navigate to a case from home
+  const goToCase = (id: string) => {
+    switchCase(id);
+    setShowHome(false);
+  };
 
   // Switch cases
   const switchCase = (id: string) => {
@@ -192,6 +200,15 @@ function App() {
     );
   }
 
+  if (showHome) {
+    return (
+      <HomePage
+        progress={allProgress}
+        onSelectCase={goToCase}
+      />
+    );
+  }
+
   return (
     <div className="h-screen bg-slate-900 text-slate-50 flex flex-col overflow-hidden">
       {/* ── Header ── */}
@@ -207,6 +224,15 @@ function App() {
               <div className="text-[10px] text-slate-500">OpenTelemetry · Zero to Hero</div>
             </div>
           </div>
+
+          {/* Back to home */}
+          <button
+            onClick={() => setShowHome(true)}
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors flex-shrink-0 px-2 py-1 rounded hover:bg-slate-700"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Cases
+          </button>
 
           {/* Divider */}
           <div className="w-px h-8 bg-slate-700 flex-shrink-0" />
