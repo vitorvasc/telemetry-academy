@@ -126,8 +126,12 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
       {/* ── Mobile Drawer ── */}
       {drawerOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/70" onClick={() => setDrawerOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-72 bg-slate-950 border-r border-slate-800 flex flex-col overflow-y-auto">
+          <button
+            className="absolute inset-0 w-full h-full bg-black/70 cursor-default"
+            onClick={() => setDrawerOpen(false)}
+            aria-label="Close menu"
+          />
+          <div className="absolute inset-y-0 left-0 w-72 bg-slate-950 border-r border-slate-800 flex flex-col overflow-y-auto z-50">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 flex-shrink-0">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Incidents</span>
               <button onClick={() => setDrawerOpen(false)} className="text-slate-500 hover:text-white p-1">
