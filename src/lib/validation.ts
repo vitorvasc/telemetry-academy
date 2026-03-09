@@ -1,12 +1,15 @@
-export type ValidationCheckType = 
-  | 'span_exists' 
-  | 'attribute_exists' 
+import yaml from 'js-yaml';
+
+export type ValidationCheckType =
+  | 'span_exists'
+  | 'attribute_exists'
   | 'attribute_value'
   | 'span_count'
   | 'status_ok'
   | 'status_error'
   | 'telemetry_flowing'
-  | 'error_handling';
+  | 'error_handling'
+  | 'yaml_key_exists';   // NEW: checks YAML structure, used for The Collector case
 
 export interface SpanValidationRule {
   type: ValidationCheckType;
@@ -19,11 +22,19 @@ export interface SpanValidationRule {
   errorMessage: string;
   hintMessage?: string;
   guidedMessage?: string;
+  // YAML validation fields (used when type === 'yaml_key_exists')
+  yamlPath?: string;      // dot-notation path: 'processors.tail_sampling'
+  expectedValue?: string; // optional: check that value equals this string
 }
 
 export interface ValidationContext {
   spans: any[];
   attemptHistory: Record<string, number>; // rule description -> attempt count
+}
+
+export interface YamlValidationContext {
+  yamlContent: string;
+  attemptHistory: Record<string, number>;
 }
 
 export interface ValidationResult extends SpanValidationRule {
@@ -83,6 +94,8 @@ function runCheck(rule: SpanValidationRule, spans: any[]): boolean {
         const hasErrorAttributes = 'error.type' in attributes || 'error.message' in attributes;
         return hasErrorStatus || hasErrorAttributes;
       });
+    case 'yaml_key_exists':
+      return false; // Handled by validateYaml, not validateSpans
     default:
       return false;
   }
@@ -194,14 +207,67 @@ export function checkStatus(
   if (!spans || spans.length === 0) {
     return false;
   }
-  
-  const spansToCheck = spanName 
+
+  const spansToCheck = spanName
     ? spans.filter(span => span.name === spanName)
     : spans;
-  
+
   return spansToCheck.some(span => {
     const status = span.status || {};
     const actualStatusCode = status.status_code || status.code;
     return actualStatusCode === statusCode;
   });
+}
+
+/**
+ * Validates a YAML string against yaml_key_exists rules.
+ * Used for The Collector case — no Python worker involved.
+ */
+export function validateYaml(
+  rules: SpanValidationRule[],
+  context: YamlValidationContext
+): ValidationResult[] {
+  return rules.map(rule => {
+    const attempts = context.attemptHistory[rule.description] || 0;
+    const passed = rule.type === 'yaml_key_exists'
+      ? checkYamlKeyExists(context.yamlContent, rule.yamlPath, rule.expectedValue)
+      : false;
+    const message = selectMessage(rule, attempts, passed);
+    return {
+      ...rule,
+      passed,
+      message,
+      attemptsOnThisRule: attempts,
+    };
+  });
+}
+
+/**
+ * Checks if a dot-notation path exists in a parsed YAML document.
+ * Optionally checks that the value equals expectedValue.
+ */
+function checkYamlKeyExists(
+  yamlContent: string,
+  path?: string,
+  expectedValue?: string
+): boolean {
+  if (!path) return false;
+  try {
+    const doc = yaml.load(yamlContent) as Record<string, any>;
+    if (!doc || typeof doc !== 'object') return false;
+    const keys = path.split('.');
+    let current: any = doc;
+    for (const key of keys) {
+      if (current === null || typeof current !== 'object' || !(key in current)) {
+        return false;
+      }
+      current = current[key];
+    }
+    if (expectedValue !== undefined) {
+      return String(current) === String(expectedValue);
+    }
+    return true;
+  } catch {
+    return false; // Invalid YAML — treat as failed
+  }
 }

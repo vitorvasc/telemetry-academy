@@ -1,6 +1,7 @@
 export interface Case {
   id: string;
   name: string;
+  type?: 'python' | 'yaml-config';  // defaults to 'python' — 'yaml-config' skips Python worker
   difficulty: 'rookie' | 'junior' | 'senior' | 'staff';
   concepts: string[];
   phase1: Phase1Config;
@@ -28,7 +29,7 @@ export interface Phase2Config {
 }
 
 export interface ValidationRule {
-  type: 'span_exists' | 'attribute_exists' | 'attribute_value' | 'span_count' | 'status_ok' | 'status_error' | 'telemetry_flowing' | 'error_handling';
+  type: 'span_exists' | 'attribute_exists' | 'attribute_value' | 'span_count' | 'status_ok' | 'status_error' | 'telemetry_flowing' | 'error_handling' | 'yaml_key_exists';  // NEW
   description: string;
   successMessage: string;
   errorMessage: string;
@@ -40,6 +41,8 @@ export interface ValidationRule {
   attributeKey?: string;
   attributeValue?: any;
   minCount?: number;
+  yamlPath?: string;      // NEW: for yaml_key_exists
+  expectedValue?: string; // NEW: for yaml_key_exists
 }
 
 export interface ValidationResult extends ValidationRule {

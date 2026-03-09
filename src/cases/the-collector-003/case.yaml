@@ -1,0 +1,99 @@
+id: the-collector-003
+name: "The Collector"
+order: 3
+type: yaml-config
+difficulty: junior
+concepts:
+  - collector_config
+  - tail_sampling
+  - pipeline_setup
+
+phase1:
+  description: |
+    **Case #3: The Collector**
+
+    **The Situation:**
+    The OTel Collector is deployed but misconfigured. Critical error spans are
+    being dropped before they reach the backend. The sampling configuration is
+    wrong, and the pipeline isn't properly set up.
+
+    **Your Mission:**
+    Fix the collector.yaml configuration to:
+    1. Enable tail-based sampling in the processors pipeline
+    2. Configure the OTLP exporter for trace export
+    3. Set the service.name resource attribute
+
+    **Key Concepts:**
+    - **OTel Collector**: A standalone agent that receives, processes, and exports telemetry
+    - **Tail sampling**: Makes sampling decisions after the full trace is complete (keeps errors!)
+    - **Pipeline**: receivers → processors → exporters
+
+    **Hints:**
+    1. The `processors` section needs `tail_sampling` to keep error spans
+    2. The `exporters` section needs `otlp` configured with an endpoint
+    3. Resource attributes go under `service` → `telemetry` in the config
+
+  hints:
+    - "Add tail_sampling to the processors section"
+    - "Add an otlp exporter with an endpoint URL"
+    - "Set service.name under the resource attributes"
+
+  validations:
+    - type: yaml_key_exists
+      yamlPath: "processors.tail_sampling"
+      description: "tail_sampling must be configured in the processors section"
+      successMessage: "✓ tail_sampling processor configured"
+      errorMessage: "✗ tail_sampling missing from processors. Error spans will be dropped!"
+      hintMessage: "💡 Hint: Add tail_sampling: under processors: in the YAML"
+      guidedMessage: "📖 Add to processors:\n  tail_sampling:\n    decision_wait: 10s\n    policies:\n      - name: keep-errors\n        type: status_code\n        status_code: {status_codes: [ERROR]}"
+
+    - type: yaml_key_exists
+      yamlPath: "exporters.otlp"
+      description: "An OTLP exporter must be configured"
+      successMessage: "✓ OTLP exporter configured"
+      errorMessage: "✗ otlp exporter missing. Traces have nowhere to go!"
+      hintMessage: "💡 Hint: Add otlp: under exporters: with an endpoint"
+      guidedMessage: "📖 Add to exporters:\n  otlp:\n    endpoint: http://jaeger:4317\n    tls:\n      insecure: true"
+
+    - type: yaml_key_exists
+      yamlPath: "service.telemetry"
+      description: "Service telemetry must be configured with resource attributes"
+      successMessage: "✓ Service telemetry configured"
+      errorMessage: "✗ service.telemetry missing. Set resource attributes so spans are identifiable."
+      hintMessage: "💡 Hint: Add a telemetry section under service: with resource_attributes"
+      guidedMessage: "📖 Add under service:\n  telemetry:\n    resource_attributes:\n      service.name: my-collector"
+
+phase2:
+  description: |
+    **Investigation Phase**
+
+    The collector was misconfigured: tail_sampling had sampling_percentage set to
+    1%, dropping 99% of traces — including all error spans. A critical payment
+    processing bug went undetected for hours because the errors were sampled out.
+
+    Investigate the trace gaps and identify the misconfiguration.
+
+  investigationTools:
+    - traces
+    - logs
+
+  rootCauseOptions:
+    - id: a
+      label: "tail_sampling sampling_percentage too low — dropping 99% of traces including all errors"
+      correct: true
+      explanation: "✓ Correct! The tail_sampling processor had sampling_percentage=1, meaning 99% of traces were dropped before export. Error spans — which should always be kept — were sampled out. Fix: set sampling_percentage=100 for error status_code policies, or use a policy that explicitly keeps ERROR spans."
+
+    - id: b
+      label: "OTLP exporter endpoint misconfigured — traces sent to wrong address"
+      correct: false
+      explanation: "Not quite. A wrong endpoint would result in export failures (connection refused errors in collector logs), but traces would still be sampled correctly. The gap you see is upstream — traces are being dropped at the tail_sampling processor before export even happens."
+
+    - id: c
+      label: "Receivers not configured — no telemetry reaching the collector"
+      correct: false
+      explanation: "Not quite. If receivers were missing, NO traces would appear — not just error traces. The pattern here is selective gaps: some traces arrive, error-status traces are missing. That selective dropout is the signature of aggressive sampling, not a receiver problem."
+
+    - id: d
+      label: "Batch processor buffer overflow — high-throughput traces are queued and dropped"
+      correct: false
+      explanation: "No. Buffer overflow would drop traces uniformly under high load — you'd see random gaps across all trace types. The gaps here are selective: only error spans are missing. That's tail_sampling behavior, not buffer overflow. tail_sampling with a misconfigured policy can actively filter out the spans you most need."
