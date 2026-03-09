@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-09T15:08:31.979Z"
-last_activity: 2026-03-03 — Plan 03-03 complete (Root Cause Engine) — Rules-based evaluation integrated
+status: in_progress
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-09T18:20:00.000Z"
+last_activity: 2026-03-09 — Plan 04-01 complete (Fix hello-span-001) — Case now playable end-to-end
 progress:
   total_phases: 4
   completed_phases: 3
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-Phase: 3 of 4 (Visualization Investigation)
-Plan: 3 of 3 in current phase
-Status: Complete
-Last activity: 2026-03-03 — Plan 03-03 complete (Root Cause Engine) — Rules-based evaluation integrated
+Phase: 4 of 4 (Content & Polish)
+Plan: 1 in current phase
+Status: In Progress
+Last activity: 2026-03-09 — Plan 04-01 complete (Fix hello-span-001) — Case now playable end-to-end
 
-Progress: [██████████] 100%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Progress: [██████████] 100%
 | Phase 03-visualization-investigation P02 | 4min | 3 tasks | 5 files |
 | Phase 03-visualization-investigation P01 | 6 min | 3 tasks | 3 files |
 | Phase 03-visualization-investigation P03 | 6min | 3 tasks | 6 files |
+| Phase 04-content-polish P01 | 3 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Recent decisions affecting current work:
 - [Phase 03-visualization-investigation]: Rules-based engine over static explanations for contextual feedback — Provides contextual feedback that references actual span attribute values (e.g., db.connection_pool.wait_ms=4750) rather than generic text. This teaches users to interpret real observability data.
 - [Phase 03-visualization-investigation]: State reset on traceId change — useEffect watches traceId and clears evaluationResult, ensuring users don't see stale feedback after re-running code. This addresses the common pitfall of Root Cause Feedback Staleness.
 - [Phase 03-visualization-investigation]: Targeted hints for incorrect guesses — Each distractor option gets a specific hint guiding the user toward what to look for (e.g., Look at db.connection_pool.wait_ms — is the time spent waiting or querying?).
+- [Phase 04-content-polish]: Mock objects as minimal pass-through classes — No complex simulation needed - just prevent NameError so users focus on instrumentation
+- [Phase 04-content-polish]: Explicit spanName in validation rules — Prevents matching wrong spans by scoping check to correct operation
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T15:08:31.971Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-content-polish/04-CONTEXT.md
+Last session: 2026-03-09T18:20:00.000Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None

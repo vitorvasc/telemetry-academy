@@ -12,7 +12,7 @@ Telemetry Academy is an interactive, browser-based learning platform that teache
 
 - [x] **Phase 1: WASM Engine & Telemetry Bridge** - User's Python code runs in the browser and its OpenTelemetry output is captured in JavaScript.
 - [x] **Phase 2: Validation & Core Loop** - Users receive real-time validation on their code and can progress through saved cases.
-- [ ] **Phase 3: Visualization & Investigation** - Users can visually analyze telemetry data to diagnose simulated incidents.
+- [x] **Phase 3: Visualization & Investigation** - Users can visually analyze telemetry data to diagnose simulated incidents.
 - [ ] **Phase 4: Content & Polish** - Users can play through three complete, distinct learning scenarios end-to-end.
 
 ## Phase Details
@@ -80,7 +80,7 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 **Wave 1** (Parallel):
-- [ ] 04-01-PLAN.md — Fix hello-span-001: add MockDB/MockCache, fix attributeKey — makes CASE-01 fully playable
+- [x] 04-01-PLAN.md — Fix hello-span-001: add MockDB/MockCache, fix attributeKey — makes CASE-01 fully playable
 - [ ] 04-02-PLAN.md — Author auto-magic-002 for Pyodide (URLLibInstrumentor) + author the-collector-003 (YAML editor + yaml_key_exists)
 
 **Wave 2** (Depends on Wave 1):
@@ -95,5 +95,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. WASM Engine & Telemetry Bridge | 2/2 | Complete | 2026-02-26 |
 | 2. Validation & Core Loop | 5/5 | Complete | 2026-03-03 |
-| 3. Visualization & Investigation | 0/3 | Planned | - |
-| 4. Content & Polish | 0/3 | In progress | - |
+| 3. Visualization & Investigation | 3/3 | Complete | 2026-03-03 |
+| 4. Content & Polish | 1/3 | In progress | 2026-03-09 |
