@@ -12,7 +12,7 @@ import { useAcademyPersistence } from './hooks/useAcademyPersistence';
 import { usePhase2Data } from './hooks/usePhase2Data';
 import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
-import { validateSpans, type SpanValidationRule } from './lib/validation';
+import { validateSpans, validateYaml, type SpanValidationRule } from './lib/validation';
 import { cases } from './data/cases';
 import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, Search } from 'lucide-react';
 
@@ -118,6 +118,36 @@ function App() {
     // Mark in-progress
     updateProgress(currentCaseId, { status: 'in-progress', timeStartedMs: Date.now() });
 
+    // YAML-mode branch: The Collector case validates YAML directly, no Python worker
+    if ((currentCase as any).type === 'yaml-config') {
+      const currentAttemptHistory: Record<string, number> = {};
+      currentCase.phase1.validations.forEach(rule => {
+        currentAttemptHistory[rule.description] = getAttemptCount(currentCaseId, rule.description);
+      });
+
+      const results = validateYaml(
+        currentCase.phase1.validations as SpanValidationRule[],
+        { yamlContent: code, attemptHistory: currentAttemptHistory }
+      );
+
+      results.forEach(r => {
+        if (!r.passed) {
+          updateAttemptHistory(currentCaseId, r.description);
+        }
+      });
+
+      setValidationResults(results);
+
+      if (results.every(r => r.passed)) {
+        setAppPhase('investigation');
+        updateProgress(currentCaseId, { phase: 'investigation' });
+      }
+
+      setIsValidating(false);
+      return;
+    }
+
+    // Python worker path
     try {
       await runCode(code);
     } catch (err: any) {
@@ -393,7 +423,12 @@ function App() {
               )}
               {mobileTab === 'code' && (
                 <div className="flex-1 p-3 overflow-hidden">
-                  <CodeEditor value={code} onChange={setCode} language="python" />
+                <CodeEditor
+                  value={code}
+                  onChange={setCode}
+                  language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
+                  filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
+                />
                 </div>
               )}
               {mobileTab === 'output' && (

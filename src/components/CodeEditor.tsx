@@ -5,18 +5,20 @@ interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
   language?: string;
+  filename?: string;   // NEW: overrides displayed filename, defaults to 'payment_service.py'
 }
 
-export const CodeEditor: React.FC<CodeEditorProps> = ({ 
-  value, 
-  onChange, 
-  language = 'python' 
+export const CodeEditor: React.FC<CodeEditorProps> = ({
+  value,
+  onChange,
+  language = 'python',
+  filename,            // NEW
 }) => {
   return (
     <div className="h-full flex flex-col rounded-lg overflow-hidden border border-slate-700 bg-slate-800">
       <div className="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-700">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-slate-50">payment_service.py</span>
+          <span className="text-sm font-medium text-slate-50">{filename ?? 'payment_service.py'}</span>
           <span className="text-xs text-slate-400">Modified</span>
         </div>
         <div className="flex items-center gap-2">
