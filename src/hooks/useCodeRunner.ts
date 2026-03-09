@@ -31,10 +31,10 @@ export function useCodeRunner(language: Language = 'python') {
     setInitError(null);
 
     worker.onmessage = (event) => {
-      const { type, error } = event.data;
+      const { type, error, id } = event.data;
       if (type === 'ready') {
         setIsReady(true);
-      } else if (type === 'error') {
+      } else if (type === 'error' && !id) {  // run errors have an id; ignore them here
         console.error('Worker initialization error:', error);
         setInitError(error);
       }

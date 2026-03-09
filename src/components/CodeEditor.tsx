@@ -1,5 +1,5 @@
-import Editor from '@monaco-editor/react';
-import React from 'react';
+import Editor, { OnMount } from '@monaco-editor/react';
+import React, { useRef, useEffect } from 'react';
 
 interface CodeEditorProps {
   value: string;
@@ -14,6 +14,26 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   language = 'python',
   filename,            // NEW
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
+  const observerRef = useRef<ResizeObserver | null>(null);
+
+  const handleEditorDidMount: OnMount = (editor) => {
+    editorRef.current = editor;
+    if (containerRef.current) {
+      observerRef.current = new ResizeObserver(() => {
+        editor.layout();
+      });
+      observerRef.current.observe(containerRef.current);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, []);
+
   return (
     <div className="h-full flex flex-col rounded-lg overflow-hidden border border-slate-700 bg-slate-800">
       <div className="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-700">
@@ -25,14 +45,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           <span className="text-xs text-slate-400">{language.toUpperCase()}</span>
         </div>
       </div>
-      
-      <div className="flex-1">
+
+      <div ref={containerRef} className="flex-1">
         <Editor
           height="100%"
           language={language}
           value={value}
           onChange={(val) => onChange(val || '')}
           theme="vs-dark"
+          onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },
             fontSize: 14,
@@ -40,7 +61,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             roundedSelection: false,
             scrollBeyondLastLine: false,
             readOnly: false,
-            automaticLayout: true,
+            automaticLayout: false,
             padding: { top: 16 },
             fontFamily: 'JetBrains Mono, Monaco, Consolas, monospace',
           }}
