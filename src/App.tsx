@@ -7,6 +7,7 @@ import { CaseSelector } from './components/CaseSelector';
 import { CaseSolvedScreen } from './components/CaseSolvedScreen';
 import { HomePage } from './components/HomePage';
 import { OutputPanel } from './components/terminal/OutputPanel';
+import { ReviewModal } from './components/ReviewModal';
 import { useCodeRunner } from './hooks/useCodeRunner';
 import { useAcademyPersistence } from './hooks/useAcademyPersistence';
 import { usePhase2Data } from './hooks/usePhase2Data';
@@ -50,6 +51,7 @@ function App() {
   const [isValidating, setIsValidating] = useState(false);
   const [investigationAttempts, setInvestigationAttempts] = useState(0);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode } = useCodeRunner('python');
 
@@ -103,6 +105,7 @@ function App() {
     setValidationResults([]);
     setAppPhase(prog.phase as AppPhase);
     setInvestigationAttempts(prog.attempts);
+    setShowReviewModal(false);
   };
 
   // Update progress helper
@@ -216,9 +219,7 @@ function App() {
     if (nextCase) switchCase(nextCase.id);
   };
 
-  const reviewInvestigation = () => {
-    setAppPhase('investigation');
-  };
+  const reviewInvestigation = () => setShowReviewModal(true);
 
   // Loading state
   if (!isLoaded) {
@@ -364,6 +365,15 @@ function App() {
 
       {/* ── Main ── */}
       <main className="flex-1 flex overflow-hidden">
+        {/* ReviewModal — rendered at App root level, gated only on showReviewModal */}
+        {showReviewModal && (
+          <ReviewModal
+            spans={phase2Data?.spans ?? []}
+            correctOption={phase2Data?.rootCauseOptions.find(o => o.correct) ?? null}
+            onClose={() => setShowReviewModal(false)}
+          />
+        )}
+
         {appPhase === 'solved' ? (
           <div className="flex-1 overflow-hidden">
             <CaseSolvedScreen
