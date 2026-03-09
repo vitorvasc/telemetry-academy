@@ -77,12 +77,14 @@ Plans:
   1. User can successfully instrument and solve the manual instrumentation case (CASE-01).
   2. User can complete the auto-instrumentation and configuration cases (CASE-02, CASE-03).
   3. User views a "Case Solved" summary screen outlining their performance and takeaways after each case.
-**Plans**: 3 plans
+**Plans**: 3 plans in 2 waves
 
-Plans:
-- [ ] 04-01: Author and test "Hello, Span" (CASE-01)
-- [ ] 04-02: Author and test "Auto-magic" (CASE-02) and "The Collector" (CASE-03)
-- [ ] 04-03: Build Case Solved summary screen and final polish
+**Wave 1** (Parallel):
+- [ ] 04-01-PLAN.md — Fix hello-span-001: add MockDB/MockCache, fix attributeKey — makes CASE-01 fully playable
+- [ ] 04-02-PLAN.md — Author auto-magic-002 for Pyodide (URLLibInstrumentor) + author the-collector-003 (YAML editor + yaml_key_exists)
+
+**Wave 2** (Depends on Wave 1):
+- [ ] 04-03-PLAN.md — Wire ReviewModal for CaseSolvedScreen, add WelcomeModal, polish HomePage
 
 ## Progress
 
@@ -94,4 +96,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. WASM Engine & Telemetry Bridge | 2/2 | Complete | 2026-02-26 |
 | 2. Validation & Core Loop | 5/5 | Complete | 2026-03-03 |
 | 3. Visualization & Investigation | 0/3 | Planned | - |
-| 4. Content & Polish | 0/3 | Not started | - |
+| 4. Content & Polish | 0/3 | In progress | - |
