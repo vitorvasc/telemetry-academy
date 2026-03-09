@@ -33,8 +33,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Case Content (MVP Tier)
 
 - [x] **CASE-01**: "Hello, Span" (Manual Instrumentation) implemented with real WASM execution
-- [ ] **CASE-02**: "Auto-magic" (Auto-instrumentation) fully implemented with Phase 2 data
-- [ ] **CASE-03**: "The Collector" configuration case implemented (via YAML editor or terminal sim)
+- [x] **CASE-02**: "Auto-magic" (Auto-instrumentation) fully implemented with Phase 2 data
+- [x] **CASE-03**: "The Collector" configuration case implemented (via YAML editor or terminal sim)
 
 ## v2 Requirements
 
@@ -83,8 +83,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIS-03 | Phase 3 | Complete |
 | VIS-04 | Phase 3 | Complete |
 | CASE-01 | Phase 4 | Complete |
-| CASE-02 | Phase 4 | Pending |
-| CASE-03 | Phase 4 | Pending |
+| CASE-02 | Phase 4 | Complete |
+| CASE-03 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 17 total
@@ -93,4 +93,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-26 after initial definition*
+*Last updated: 2026-03-09 after completing CASE-02 and CASE-03*
