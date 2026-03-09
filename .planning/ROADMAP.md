@@ -13,7 +13,7 @@ Telemetry Academy is an interactive, browser-based learning platform that teache
 - [x] **Phase 1: WASM Engine & Telemetry Bridge** - User's Python code runs in the browser and its OpenTelemetry output is captured in JavaScript.
 - [x] **Phase 2: Validation & Core Loop** - Users receive real-time validation on their code and can progress through saved cases.
 - [x] **Phase 3: Visualization & Investigation** - Users can visually analyze telemetry data to diagnose simulated incidents.
-- [ ] **Phase 4: Content & Polish** - Users can play through three complete, distinct learning scenarios end-to-end.
+- [x] **Phase 4: Content & Polish** - Users can play through three complete, distinct learning scenarios end-to-end.
 
 ## Phase Details
 
@@ -63,11 +63,11 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 **Wave 1** (Parallel):
-- [ ] 03-01-PLAN.md — Build Trace Viewer waterfall with real OTel span transformation and SLOW/ERROR badges
-- [ ] 03-02-PLAN.md — Build Log Viewer with synthetic log generation and trace correlation
+- [x] 03-01-PLAN.md — Build Trace Viewer waterfall with real OTel span transformation and SLOW/ERROR badges
+- [x] 03-02-PLAN.md — Build Log Viewer with synthetic log generation and trace correlation
 
 **Wave 2** (Depends on Wave 1):
-- [ ] 03-03-PLAN.md — Implement Root Cause Engine with attribute-specific feedback and guess evaluation
+- [x] 03-03-PLAN.md — Implement Root Cause Engine with attribute-specific feedback and guess evaluation
 
 ### Phase 4: Content & Polish
 **Goal**: Users can play through three complete, distinct learning scenarios end-to-end.
@@ -84,7 +84,7 @@ Plans:
 - [x] 04-02-PLAN.md — Author auto-magic-002 for Pyodide (URLLibInstrumentor) + author the-collector-003 (YAML editor + yaml_key_exists)
 
 **Wave 2** (Depends on Wave 1):
-- [ ] 04-03-PLAN.md — Wire ReviewModal for CaseSolvedScreen, add WelcomeModal, polish HomePage
+- [x] 04-03-PLAN.md — Wire ReviewModal for CaseSolvedScreen, add WelcomeModal, polish HomePage
 
 ## Progress
 
@@ -96,4 +96,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. WASM Engine & Telemetry Bridge | 2/2 | Complete | 2026-02-26 |
 | 2. Validation & Core Loop | 5/5 | Complete | 2026-03-03 |
 | 3. Visualization & Investigation | 3/3 | Complete | 2026-03-03 |
-| 4. Content & Polish | 2/3 | In progress | 2026-03-09 |
+| 4. Content & Polish | 3/3 | Complete | 2026-03-09 |
