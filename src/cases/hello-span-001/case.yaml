@@ -41,6 +41,8 @@ phase1:
       guidedMessage: "📖 Use: with tracer.start_as_current_span('process_order') as span:"
 
     - type: attribute_exists
+      spanName: process_order
+      attributeKey: order_id
       description: "The order_id must be added as a span attribute"
       successMessage: "✓ Attribute order_id added"
       errorMessage: "✗ Attribute order_id not found. Use set_attribute()"
