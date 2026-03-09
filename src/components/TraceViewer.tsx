@@ -70,7 +70,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({ spans, totalDurationMs
       </div>
 
       {/* Span Rows */}
-      <div className="flex-1 overflow-y-auto divide-y divide-slate-800/60">
+      <div className="flex-1 overflow-x-auto overflow-y-auto divide-y divide-slate-800/60 min-w-[600px]">
         {spans.map((span) => {
           const s = STATUS[span.status];
           const isOpen = openSpan === span.id;
