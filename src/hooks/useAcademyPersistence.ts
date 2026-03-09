@@ -9,6 +9,7 @@ export interface PersistedState {
   progress: CaseProgress[];
   caseCode: Record<string, string>; // caseId -> code
   attemptHistory: Record<string, Record<string, number>>; // caseId -> rule -> attempts
+  hasSeenWelcome: boolean;
   timestamp: number;
 }
 
@@ -24,6 +25,8 @@ interface UseAcademyPersistenceReturn {
   saveCode: (caseId: string, code: string) => void;
   resetAll: () => void;
   isLoaded: boolean;
+  hasSeenWelcome: boolean;
+  markWelcomeSeen: () => void;
 }
 
 export function useAcademyPersistence(
@@ -33,6 +36,7 @@ export function useAcademyPersistence(
   const [progress, setProgress] = useState<CaseProgress[]>(initialProgress);
   const [caseCode, setCaseCode] = useState<Record<string, string>>({});
   const [attemptHistory, setAttemptHistory] = useState<Record<string, Record<string, number>>>({});
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Ref for debounce timer
@@ -55,6 +59,7 @@ export function useAcademyPersistence(
           setProgress(parsed.progress || initialProgress);
           setCaseCode(parsed.caseCode || {});
           setAttemptHistory(parsed.attemptHistory || {});
+          setHasSeenWelcome(parsed.hasSeenWelcome ?? false);
         } else {
           // Version mismatch - clear and use initial values
           console.warn(`Schema version mismatch: stored=${parsed.version}, expected=${SCHEMA_VERSION}. Clearing localStorage.`);
@@ -91,6 +96,7 @@ export function useAcademyPersistence(
         progress,
         caseCode,
         attemptHistory,
+        hasSeenWelcome,
         timestamp: Date.now(),
       };
 
@@ -151,7 +157,13 @@ export function useAcademyPersistence(
     setProgress(initialProgress);
     setCaseCode({});
     setAttemptHistory({});
+    setHasSeenWelcome(false);
   }, [initialProgress]);
+
+  // Mark welcome modal as seen
+  const markWelcomeSeen = useCallback(() => {
+    setHasSeenWelcome(true);
+  }, []);
 
   return {
     progress,
@@ -165,5 +177,7 @@ export function useAcademyPersistence(
     saveCode,
     resetAll,
     isLoaded,
+    hasSeenWelcome,
+    markWelcomeSeen,
   };
 }

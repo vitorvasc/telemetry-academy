@@ -14,5 +14,6 @@ export interface PersistedState {
   progress: CaseProgress[];
   caseCode: Record<string, string>;
   attemptHistory: Record<string, Record<string, number>>; // caseId -> rule -> count
+  hasSeenWelcome: boolean;   // true after user dismisses the welcome modal
   timestamp: number;
 }

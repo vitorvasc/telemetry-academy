@@ -165,6 +165,14 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
             <p className="text-slate-500 text-sm mb-8 max-w-xs">
               Learn OpenTelemetry by instrumenting real systems and investigating real incidents.
             </p>
+            {/* How it works teaser */}
+            <div className="flex items-center gap-4 text-xs text-slate-500 mb-6">
+              <span>Instrument</span>
+              <span className="text-slate-700">→</span>
+              <span>Investigate</span>
+              <span className="text-slate-700">→</span>
+              <span>Solve</span>
+            </div>
             {/* Stats */}
             <div className="flex border border-slate-800 rounded-xl overflow-hidden w-full max-w-xs">
               {[

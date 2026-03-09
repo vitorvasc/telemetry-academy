@@ -8,6 +8,7 @@ import { CaseSolvedScreen } from './components/CaseSolvedScreen';
 import { HomePage } from './components/HomePage';
 import { OutputPanel } from './components/terminal/OutputPanel';
 import { ReviewModal } from './components/ReviewModal';
+import { WelcomeModal } from './components/WelcomeModal';
 import { useCodeRunner } from './hooks/useCodeRunner';
 import { useAcademyPersistence } from './hooks/useAcademyPersistence';
 import { usePhase2Data } from './hooks/usePhase2Data';
@@ -40,6 +41,8 @@ function App() {
     getAttemptCount,
     resetAll,
     isLoaded,
+    hasSeenWelcome,
+    markWelcomeSeen,
   } = useAcademyPersistence(initProgress(cases));
 
   const [showHome, setShowHome] = useState(true);
@@ -52,6 +55,7 @@ function App() {
   const [investigationAttempts, setInvestigationAttempts] = useState(0);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode } = useCodeRunner('python');
 
@@ -60,6 +64,13 @@ function App() {
     setValidationResults([]);
     setWorkerError(null);
   }, [code]);
+
+  // Show welcome modal on first visit
+  useEffect(() => {
+    if (isLoaded && !hasSeenWelcome) {
+      setShowWelcome(true);
+    }
+  }, [isLoaded, hasSeenWelcome]);
   const [workerError, setWorkerError] = useState<string | null>(null);
   const initialLoadRef = useRef(true);
 
@@ -215,6 +226,11 @@ function App() {
     setShowResetConfirm(false);
   };
 
+  const handleWelcomeClose = () => {
+    setShowWelcome(false);
+    markWelcomeSeen();
+  };
+
   const goToNext = () => {
     if (nextCase) switchCase(nextCase.id);
   };
@@ -365,7 +381,7 @@ function App() {
 
       {/* ── Main ── */}
       <main className="flex-1 flex overflow-hidden">
-        {/* ReviewModal — rendered at App root level, gated only on showReviewModal */}
+        {/* Modals — rendered at App root level */}
         {showReviewModal && (
           <ReviewModal
             spans={phase2Data?.spans ?? []}
@@ -373,6 +389,7 @@ function App() {
             onClose={() => setShowReviewModal(false)}
           />
         )}
+        {showWelcome && <WelcomeModal onClose={handleWelcomeClose} />}
 
         {appPhase === 'solved' ? (
           <div className="flex-1 overflow-hidden">
