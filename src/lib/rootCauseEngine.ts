@@ -199,35 +199,95 @@ const helloSpanRules: RootCauseRule[] = [
 
 /**
  * Auto-magic (auto-magic-002) case rules
- * 
- * Scenario: HTTP endpoint returning 500 errors
- * Placeholder for Phase 4 content authoring
+ *
+ * Scenario: Checkout service HTTP calls to payment API are failing.
+ * HTTP client span has status=ERROR and http.status_code=500.
  */
 const autoMagicRules: RootCauseRule[] = [
   {
     id: 'a',
-    label: 'External API is returning 500 errors',
+    label: 'Payment API is returning HTTP 500 — external service is down',
     evaluate: (data: Phase2Data) => {
-      // Check for HTTP client spans with error status
-      return data.spans.some(span => 
-        span.name?.includes('http') && 
-        span.status === 'error'
-      );
+      return data.spans.some(span => span.status === 'error');
     },
     explainCorrect: (data: Phase2Data) => {
-      const errorSpan = data.spans.find(span => 
-        span.name?.includes('http') && span.status === 'error'
-      );
-      return `✓ Correct! The trace shows HTTP span "${errorSpan?.name}" with status=error, indicating the external API call is failing.`;
+      const errorSpan = data.spans.find(span => span.status === 'error');
+      const statusCode = errorSpan?.attributes?.['http.status_code'] || '500';
+      return `✓ Exactly! The "${errorSpan?.name ?? 'http.client'}" span has status=ERROR and http.status_code=${statusCode}. The logs show retry attempts that all failed. The root cause is the downstream payment service. Fix: add a circuit breaker or fallback.`;
     },
-    explainIncorrect: () => 'Look for HTTP spans with error status in the trace.',
+    explainIncorrect: () => '',
   },
   {
     id: 'b',
-    label: 'Database connection timeout',
+    label: 'Database connection pool exhausted — order writes are timing out',
     evaluate: () => false,
     explainCorrect: () => '',
-    explainIncorrect: () => 'Check if there are any database spans showing errors or long wait times.',
+    explainIncorrect: (data: Phase2Data) => {
+      const errorSpan = data.spans.find(span => span.status === 'error');
+      return `Not quite. There are no database spans in this trace. The error is on the "${errorSpan?.name ?? 'http.client'}" span — an outbound HTTP call to the payment API (status=ERROR). Check the span's http.status_code attribute.`;
+    },
+  },
+  {
+    id: 'c',
+    label: 'Order service has a memory leak — GC pauses causing 500ms timeouts',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const totalMs = data.totalDurationMs;
+      return `No. The total trace duration is only ${formatDuration(totalMs)} — too fast for a GC issue. The error span shows http.status_code=500, which is an HTTP response from the payment service, not a timeout. GC pauses produce slow spans, not 500 errors.`;
+    },
+  },
+  {
+    id: 'd',
+    label: 'Network routing issue — DNS resolution failing for the payment service',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const errorSpan = data.spans.find(span => span.status === 'error');
+      const statusCode = errorSpan?.attributes?.['http.status_code'];
+      if (statusCode) {
+        return `Not quite. A DNS failure means the connection never reaches the server — there would be no HTTP status code. But the span shows http.status_code=${statusCode}, meaning the payment API responded. The problem is inside the payment service, not the network.`;
+      }
+      return `Not quite. A DNS failure would show as a connection error with no HTTP status code. The error span has an HTTP status code, meaning the server was reached and responded with an error.`;
+    },
+  },
+];
+
+/**
+ * The Collector (the-collector-003) case rules
+ *
+ * Scenario: tail_sampling misconfigured (sampling_percentage=1%) drops all error spans.
+ * The-collector-003 is a YAML-config case — no live spans from user code.
+ * evaluate() uses static logic (always true for 'a') since there are no user spans.
+ */
+const collectorRules: RootCauseRule[] = [
+  {
+    id: 'a',
+    label: 'tail_sampling sampling_percentage too low — dropping 99% of traces including all errors',
+    evaluate: () => true, // Always correct for this case (YAML-based, no live spans)
+    explainCorrect: () => '✓ Correct! The tail_sampling processor had sampling_percentage=1, dropping 99% of traces. Error spans — which should always be kept — were sampled out. Fix: use a policy that explicitly keeps ERROR status spans.',
+    explainIncorrect: () => '',
+  },
+  {
+    id: 'b',
+    label: 'OTLP exporter endpoint misconfigured — traces sent to wrong address',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: () => 'Not quite. A wrong endpoint causes export failures, but traces would still be sampled. The selective dropout of error spans points to tail_sampling, which runs before export.',
+  },
+  {
+    id: 'c',
+    label: 'Receivers not configured — no telemetry reaching the collector',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: () => 'Not quite. Missing receivers would drop ALL traces, not just error traces. The selective gap — only errors missing — is the signature of tail_sampling filtering.',
+  },
+  {
+    id: 'd',
+    label: 'Batch processor buffer overflow — high-throughput traces queued and dropped',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: () => 'No. Buffer overflow drops traces uniformly under load. Here, only error spans are missing — that selective behavior is tail_sampling with a misconfigured error policy, not random buffer overflow.',
   },
 ];
 
@@ -241,6 +301,7 @@ const autoMagicRules: RootCauseRule[] = [
 const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
   'hello-span-001': helloSpanRules,
   'auto-magic-002': autoMagicRules,
+  'the-collector-003': collectorRules,
 };
 
 /**
