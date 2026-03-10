@@ -3,6 +3,33 @@ import { loadPyodide } from 'pyodide';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let pyodide: any = null;
 
+/**
+ * Converts a Pyodide PyProxy (or any value) to a plain, structured-cloneable
+ * JS value before postMessage. Without this, postMessage throws DataCloneError
+ * because PyProxy objects are not structured-cloneable.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function serializeResult(result: unknown): unknown {
+  if (result === null || result === undefined) return null;
+  // Primitive JS values are structured-cloneable as-is
+  if (typeof result !== 'object' && typeof result !== 'function') return result;
+  // Pyodide PyProxy objects have a toJs() method
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (typeof (result as any).toJs === 'function') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const plain = (result as any).toJs({ dict_converter: Object.fromEntries });
+    // Destroy the proxy to free Python memory
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (typeof (result as any).destroy === 'function') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (result as any).destroy();
+    }
+    return plain;
+  }
+  // Unknown object type — return null rather than risk DataCloneError
+  return null;
+}
+
 self.onmessage = async (event: MessageEvent) => {
   const { type, code, id, setupScript } = event.data;
 
@@ -32,7 +59,7 @@ self.onmessage = async (event: MessageEvent) => {
 
     try {
       const result = await pyodide.runPythonAsync(code);
-      self.postMessage({ type: 'success', id, result });
+      self.postMessage({ type: 'success', id, result: serializeResult(result) });
     } catch (error) {
       self.postMessage({ type: 'error', id, error: String(error) });
     }
