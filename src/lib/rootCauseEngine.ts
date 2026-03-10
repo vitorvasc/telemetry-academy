@@ -110,7 +110,7 @@ export function calculatePercentage(partMs: number, totalMs: number): string {
 // ============================================================================
 
 /**
- * Hello Span (hello-span-001) case rules
+ * Hello Span (001-hello-span) case rules
  * 
  * Scenario: Order processing is slow (5s) due to DB connection pool exhaustion
  */
@@ -198,7 +198,7 @@ const helloSpanRules: RootCauseRule[] = [
 ];
 
 /**
- * Auto-magic (auto-magic-002) case rules
+ * Auto-magic (002-auto-magic) case rules
  *
  * Scenario: Checkout service HTTP calls to payment API are failing.
  * HTTP client span has status=ERROR and http.status_code=500.
@@ -254,7 +254,7 @@ const autoMagicRules: RootCauseRule[] = [
 ];
 
 /**
- * The Collector (the-collector-003) case rules
+ * The Collector (003-the-collector) case rules
  *
  * Scenario: tail_sampling misconfigured (sampling_percentage=1%) drops all error spans.
  * The-collector-003 is a YAML-config case — no live spans from user code.
@@ -299,9 +299,9 @@ const collectorRules: RootCauseRule[] = [
  * Registry of rules per case
  */
 const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
-  'hello-span-001': helloSpanRules,
-  'auto-magic-002': autoMagicRules,
-  'the-collector-003': collectorRules,
+  '001-hello-span': helloSpanRules,
+  '002-auto-magic': autoMagicRules,
+  '003-the-collector': collectorRules,
 };
 
 /**
@@ -351,7 +351,7 @@ function getHintForGuess(guessId: string, _data: Phase2Data): string | undefined
  * 
  * @example
  * ```typescript
- * const result = evaluateGuess('b', phase2Data, 'hello-span-001');
+ * const result = evaluateGuess('b', phase2Data, '001-hello-span');
  * // result = {
  * //   correct: true,
  * //   explanation: '✓ Exactly! The span shows db.connection_pool.wait_ms=4750...'

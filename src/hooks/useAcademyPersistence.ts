@@ -1,3 +1,8 @@
+// Note on caseId keys in localStorage:
+// Case directories were renamed from suffix-number format (e.g., hello-span-001)
+// to numbered-prefix format (e.g., 001-hello-span) in the quick-001 refactor.
+// Existing localStorage data keyed by old caseIds will be orphaned.
+// If a migration is ever needed, increment SCHEMA_VERSION and map old keys to new ones.
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { CaseProgress } from '../types/progress';
 

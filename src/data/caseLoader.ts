@@ -20,7 +20,7 @@ const caseSetups = import.meta.glob('../cases/*/setup.py', {
 }) as Record<string, string>;
 
 function getCaseId(path: string): string {
-  // '../cases/hello-span-001/case.yaml' -> 'hello-span-001'
+  // '../cases/001-hello-span/case.yaml' -> '001-hello-span'
   return path.split('/').at(-2) ?? '';
 }
 
