@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { CaseProgress } from '../types/progress';
 
 const STORAGE_KEY = 'telemetry-academy';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2; // v2: case dir rename (hello-span-001 → 001-hello-span)
 
 export interface PersistedState {
   version: number;
