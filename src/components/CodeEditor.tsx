@@ -26,7 +26,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     return Number(localStorage.getItem('ta-editor-fontsize')) || 14;
   });
 
-  const [wordWrap, setWordWrap] = useState<boolean>(defaultWordWrap);
+  const [wordWrap, setWordWrap] = useState<boolean>(() => {
+    const stored = localStorage.getItem('ta-editor-wordwrap');
+    return stored !== null ? stored === 'true' : defaultWordWrap;
+  });
 
   const decreaseFontSize = () => {
     const next = Math.max(10, fontSize - 1);
@@ -88,7 +91,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
           {/* Word wrap toggle */}
           <button
-            onClick={() => setWordWrap(w => !w)}
+            onClick={() => {
+              const next = !wordWrap;
+              setWordWrap(next);
+              localStorage.setItem('ta-editor-wordwrap', String(next));
+            }}
             className={`px-2 py-0.5 text-xs rounded transition-colors ${
               wordWrap ? 'bg-sky-500/20 text-sky-400' : 'text-slate-500 hover:text-slate-300'
             }`}
