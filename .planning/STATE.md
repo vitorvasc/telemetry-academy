@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 Phase: 4 of 4 (Content & Polish)
 Plan: 4 of 3 in current phase (all plans complete)
 Status: In Progress
-Last activity: 2026-03-09 — Plan 04-03 complete (Review Modal, Onboarding, Polish) — All three cases playable end-to-end
+Last activity: 2026-03-10 - Completed quick task 001: Fix Pyodide threading error, rename case dirs to numbered format, add case slug routing
 
 Progress: [██████████] 100%
 
@@ -102,6 +102,12 @@ None yet.
 ### Blockers/Concerns
 
 None yet.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 001 | Fix Pyodide threading error, rename case dirs to numbered format, add case slug routing | 2026-03-10 | 16fe670 | [001-fix-pyodide-threading-rename-dirs-slug-routing](./quick/001-fix-pyodide-threading-rename-dirs-slug-routing/) |
 
 ## Session Continuity
 
