@@ -477,7 +477,7 @@ function App() {
               defaultLayout={mainLayout.defaultLayout}
               onLayoutChanged={mainLayout.onLayoutChanged}
             >
-              <Panel id="ta-instructions" defaultSize={25} minSize={15} maxSize={45} className="overflow-y-auto">
+              <Panel id="ta-instructions" defaultSize="25%" minSize="15%" maxSize="45%" className="overflow-y-auto">
                 <InstructionsPanel
                   case={currentCase}
                   phaseUnlocked={phaseUnlocked}
@@ -492,7 +492,7 @@ function App() {
                   defaultLayout={rightLayout.defaultLayout}
                   onLayoutChanged={rightLayout.onLayoutChanged}
                 >
-                  <Panel id="ta-editor" defaultSize={70} minSize={25} className="overflow-hidden p-4">
+                  <Panel id="ta-editor" defaultSize="70%" minSize="25%" className="overflow-hidden p-4">
                     <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
                       <CodeEditor
                         value={code}
@@ -505,14 +505,14 @@ function App() {
                     </Suspense>
                   </Panel>
                   <Separator className="h-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-row-resize flex-shrink-0" />
-                  <Panel id="ta-bottom" defaultSize={30} minSize={15} className="overflow-hidden bg-slate-800 border-t border-slate-700">
+                  <Panel id="ta-bottom" defaultSize="30%" minSize="15%" className="overflow-hidden bg-slate-800 border-t border-slate-700">
                     <Group
                       orientation="horizontal"
                       className="h-full"
                       defaultLayout={bottomLayout.defaultLayout}
                       onLayoutChanged={bottomLayout.onLayoutChanged}
                     >
-                      <Panel id="ta-validation" defaultSize={50} minSize={20}>
+                      <Panel id="ta-validation" defaultSize="50%" minSize="20%">
                         <ValidationPanel
                           results={validationResults}
                           isValidating={isValidating}
@@ -524,7 +524,7 @@ function App() {
                         />
                       </Panel>
                       <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-                      <Panel id="ta-output" defaultSize={50} minSize={20}>
+                      <Panel id="ta-output" defaultSize="50%" minSize="20%">
                         <OutputPanel output={output} error={workerError || initError} isRunning={isRunning} />
                         {spans.length > 0 && (
                           <div className="text-xs text-slate-500 mt-1 px-4">
