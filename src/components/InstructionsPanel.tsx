@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import type { Case } from '../types';
 import {
   BookOpen,
@@ -21,6 +22,9 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
   phaseUnlocked,
   onStartInvestigation,
 }) => {
+  const mdClass = "prose prose-invert prose-sm max-w-none prose-p:text-slate-400 prose-strong:text-slate-200 prose-code:text-sky-300 prose-code:bg-slate-800 prose-code:px-1 prose-code:rounded prose-headings:text-slate-200 prose-li:text-slate-400 prose-ul:my-1 prose-ol:my-1 prose-p:my-1";
+  const hintMdClass = "prose prose-invert prose-sm max-w-none prose-p:text-slate-400 prose-p:my-0 prose-code:text-sky-300 prose-code:bg-slate-800 prose-code:px-1 prose-code:rounded [&>p]:inline";
+
   return (
     <div className="p-6 space-y-6">
       {/* Case Header */}
@@ -51,10 +55,8 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
           <h3 className="font-semibold">Phase 1: Instrumentation</h3>
         </div>
         
-        <div className="prose prose-invert prose-sm max-w-none">
-          <div className="whitespace-pre-line text-slate-400 leading-relaxed">
-            {caseData.phase1.description}
-          </div>
+        <div className={mdClass}>
+          <ReactMarkdown>{caseData.phase1.description}</ReactMarkdown>
         </div>
 
         {/* Hints Section — always visible */}
@@ -66,8 +68,10 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
           <ul className="p-4 space-y-2 bg-slate-800">
             {caseData.phase1.hints.map((hint, index) => (
               <li key={index} className="flex items-start gap-2 text-sm text-slate-400">
-                <span className="text-sky-400 font-mono">{index + 1}.</span>
-                {hint}
+                <span className="text-sky-400 font-mono flex-shrink-0">{index + 1}.</span>
+                <span className={hintMdClass}>
+                  <ReactMarkdown>{hint}</ReactMarkdown>
+                </span>
               </li>
             ))}
           </ul>
@@ -83,8 +87,8 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
         
         {phaseUnlocked ? (
           <div className="space-y-3">
-            <div className="whitespace-pre-line text-slate-400 text-sm">
-              {caseData.phase2?.description || 'Investigation phase ready!'}
+            <div className={mdClass}>
+              <ReactMarkdown>{caseData.phase2?.description || 'Investigation phase ready!'}</ReactMarkdown>
             </div>
             <button
               onClick={onStartInvestigation}
