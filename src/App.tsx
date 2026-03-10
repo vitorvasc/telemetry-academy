@@ -113,7 +113,7 @@ function App() {
   const currentProgress = allProgress.find(p => p.caseId === currentCaseId)!;
   const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
   const phaseUnlocked =
-    (appPhase === 'investigation' || appPhase === 'solved') &&
+    lastPassedCodeRef.current !== null &&
     code === lastPassedCodeRef.current;
 
   const phaseBar = currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
