@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-01-PLAN.md — resizable panels
-last_updated: "2026-03-10T12:42:42.617Z"
+stopped_at: Completed 05-02-PLAN.md — hint system visibility
+last_updated: "2026-03-10T12:46:31.911Z"
 last_activity: "2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 18
-  completed_plans: 14
+  completed_plans: 15
   percent: 100
 ---
 
@@ -67,6 +67,7 @@ Progress: [██████████] 100%
 | Phase 04-content-polish P02 | 18 min | 3 tasks | 9 files |
 | Phase 04-content-polish P03 | 10min | 4 tasks | 7 files |
 | Phase 05 P01 | 5 | 2 tasks | 4 files |
+| Phase 05 P02 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase 05-01]: react-resizable-panels v4 API: Group/Panel/Separator with useDefaultLayout hook for persistence (not v3 autoSaveId prop)
 - [Phase 05-01]: setLayout in v4 takes {panelId: percentage} object — panel IDs must be stable (ta-instructions, ta-editor-group, ta-editor, ta-bottom, ta-validation, ta-output)
 - [Phase 05-01]: vite.config.ts must import defineConfig from vitest/config (not vite) when test field is present
+- [Phase 05-02]: Hints always visible in InstructionsPanel — progressive disclosure was hiding key information from struggling users
+- [Phase 05-02]: aria-label instead of title on Lightbulb SVG — lucide-react LucideProps does not accept title prop
 
 ### Pending Todos
 
@@ -120,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T12:42:42.612Z
-Stopped at: Completed 05-01-PLAN.md — resizable panels
+Last session: 2026-03-10T12:46:31.907Z
+Stopped at: Completed 05-02-PLAN.md — hint system visibility
 Resume file: None
