@@ -116,6 +116,37 @@ function App() {
     (appPhase === 'investigation' || appPhase === 'solved') &&
     code === lastPassedCodeRef.current;
 
+  const phaseBar = currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
+    <div className="flex-shrink-0 flex border-t border-slate-700 bg-slate-900">
+      <button
+        onClick={() => setAppPhase('instrumentation')}
+        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+          appPhase === 'instrumentation'
+            ? 'bg-sky-600/20 text-sky-400 border-t-2 border-sky-500'
+            : 'text-slate-500 hover:text-slate-300'
+        }`}
+      >
+        <Code2 className="w-4 h-4" />
+        1 · Instrument
+      </button>
+      <button
+        disabled={!phaseUnlocked}
+        onClick={() => phaseUnlocked && setAppPhase('investigation')}
+        title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
+        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+          appPhase === 'investigation'
+            ? 'bg-amber-600/20 text-amber-400 border-t-2 border-amber-500'
+            : phaseUnlocked
+              ? 'text-slate-500 hover:text-slate-300'
+              : 'text-slate-700 cursor-not-allowed'
+        }`}
+      >
+        {!phaseUnlocked && <Lock className="w-4 h-4 opacity-40" />}
+        2 · Investigate
+      </button>
+    </div>
+  ) : null;
+
   // Load persisted code when persistence is ready or case switches.
   // getSavedCode is intentionally accessed via ref so its changing reference
   // (caused by caseCode updates on every keystroke) does not re-trigger this effect.
@@ -464,10 +495,10 @@ function App() {
                 />
               </Panel>
               <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-              <Panel id="ta-editor-group">
+              <Panel id="ta-editor-group" className="flex flex-col overflow-hidden">
                 <Group
                   orientation="vertical"
-                  className="h-full"
+                  className="flex-1 overflow-hidden"
                   defaultLayout={rightLayout.defaultLayout}
                   onLayoutChanged={rightLayout.onLayoutChanged}
                 >
@@ -515,6 +546,7 @@ function App() {
                     </Group>
                   </Panel>
                 </Group>
+                {phaseBar}
               </Panel>
             </Group>
 
@@ -562,6 +594,7 @@ function App() {
                   </div>
                 </div>
               )}
+              {phaseBar}
             </div>
           </>
         ) : (
@@ -581,7 +614,44 @@ function App() {
                 />
               </Panel>
               <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-              <Panel id="ta-investigation" defaultSize="75%" minSize="40%" className="overflow-hidden">
+              <Panel id="ta-investigation" defaultSize="75%" minSize="40%" className="flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-hidden">
+                  {hasPhase2Data && phase2Data ? (
+                    <InvestigationView
+                      data={phase2Data}
+                      caseName={currentCase.name}
+                      currentCaseId={currentCaseId}
+                      onCaseSolved={handleCaseSolved}
+                      onAttempt={handleInvestigationAttempt}
+                      userOutput={output}
+                    />
+                  ) : (
+                    <div className="h-full flex items-center justify-center bg-slate-900 px-6">
+                      <div className="text-center max-w-md mx-auto">
+                        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Radio className="w-8 h-8 text-slate-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-slate-200 mb-2">No Telemetry Data</h3>
+                        <p className="text-sm text-slate-500 mb-6">
+                          Run your code in Phase 1 to generate telemetry data for investigation.
+                        </p>
+                        <button
+                          onClick={() => setAppPhase('instrumentation')}
+                          className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                          Go to Phase 1
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {phaseBar}
+              </Panel>
+            </Group>
+
+            {/* ── Mobile layout (full-width investigation) ── */}
+            <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
+              <div className="flex-1 overflow-hidden">
                 {hasPhase2Data && phase2Data ? (
                   <InvestigationView
                     data={phase2Data}
@@ -592,7 +662,7 @@ function App() {
                     userOutput={output}
                   />
                 ) : (
-                  <div className="h-full flex items-center justify-center bg-slate-900 px-6">
+                  <div className="h-full w-full flex items-center justify-center bg-slate-900 px-6">
                     <div className="text-center max-w-md mx-auto">
                       <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Radio className="w-8 h-8 text-slate-600" />
@@ -610,75 +680,12 @@ function App() {
                     </div>
                   </div>
                 )}
-              </Panel>
-            </Group>
-
-            {/* ── Mobile layout (full-width investigation) ── */}
-            <div className="flex sm:hidden flex-1 overflow-hidden">
-              {hasPhase2Data && phase2Data ? (
-                <InvestigationView
-                  data={phase2Data}
-                  caseName={currentCase.name}
-                  currentCaseId={currentCaseId}
-                  onCaseSolved={handleCaseSolved}
-                  onAttempt={handleInvestigationAttempt}
-                  userOutput={output}
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center bg-slate-900 px-6">
-                  <div className="text-center max-w-md mx-auto">
-                    <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Radio className="w-8 h-8 text-slate-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-200 mb-2">No Telemetry Data</h3>
-                    <p className="text-sm text-slate-500 mb-6">
-                      Run your code in Phase 1 to generate telemetry data for investigation.
-                    </p>
-                    <button
-                      onClick={() => setAppPhase('instrumentation')}
-                      className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                      Go to Phase 1
-                    </button>
-                  </div>
-                </div>
-              )}
+              </div>
+              {phaseBar}
             </div>
           </>
         )}
       </main>
-
-      {/* ── Phase Bottom Bar ── */}
-      {currentProgress.status !== 'locked' && appPhase !== 'solved' && (
-        <div className="flex-shrink-0 flex border-t border-slate-700 bg-slate-900">
-          <button
-            onClick={() => setAppPhase('instrumentation')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-              appPhase === 'instrumentation'
-                ? 'bg-sky-600/20 text-sky-400 border-t-2 border-sky-500'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            <Code2 className="w-4 h-4" />
-            1 · Instrument
-          </button>
-          <button
-            disabled={!phaseUnlocked}
-            onClick={() => phaseUnlocked && setAppPhase('investigation')}
-            title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-              appPhase === 'investigation'
-                ? 'bg-amber-600/20 text-amber-400 border-t-2 border-amber-500'
-                : phaseUnlocked
-                  ? 'text-slate-500 hover:text-slate-300'
-                  : 'text-slate-700 cursor-not-allowed'
-            }`}
-          >
-            {!phaseUnlocked && <Lock className="w-4 h-4 opacity-40" />}
-            2 · Investigate
-          </button>
-        </div>
-      )}
     </div>
   );
 }
