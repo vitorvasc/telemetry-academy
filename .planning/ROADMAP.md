@@ -91,7 +91,7 @@ Plans:
 **Goal:** The app feels professional and usable — users can resize panels to their preference, hints are always discoverable, switching cases on mobile is possible, and Pyodide loading is clearly communicated.
 **Requirements**: TBD
 **Depends on:** Phase 4
-**Plans:** 5/5 plans complete
+**Plans:** 7 plans (5 original + 2 gap closure)
 
 **Wave 1** (Parallel):
 - [ ] 05-01-PLAN.md — Install react-resizable-panels and replace fixed desktop panel layout with three draggable splits
@@ -106,6 +106,10 @@ Plans:
 **Wave 4** (Depends on Wave 3):
 - [ ] 05-05-PLAN.md — Performance: Pyodide loading stage labels, Monaco lazy load
 
+**Gap Closure** (Fixes UAT blockers):
+- [ ] 05-06-PLAN.md — Fix Panel size props: convert bare numbers to string percentages (unblocks resizing, reset button, hints visibility)
+- [ ] 05-07-PLAN.md — Fix word wrap persistence: add localStorage read/write for ta-editor-wordwrap key
+
 ## Progress
 
 **Execution Order:**
@@ -117,4 +121,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Validation & Core Loop | 5/5 | Complete | 2026-03-03 |
 | 3. Visualization & Investigation | 3/3 | Complete | 2026-03-03 |
 | 4. Content & Polish | 3/3 | Complete | 2026-03-09 |
-| 5. UI Polish | 5/5 | Complete   | 2026-03-10 |
+| 5. UI Polish | 5/7 | In Progress (gap closure) | — |
