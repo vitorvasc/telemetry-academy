@@ -1,13 +1,14 @@
 import React from 'react';
 import type { ValidationResult } from '../types';
-import { 
-  Play, 
-  Loader2, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Play,
+  Loader2,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Unlock,
-  Sparkles
+  Sparkles,
+  Lightbulb
 } from 'lucide-react';
 
 interface ValidationPanelProps {
@@ -111,14 +112,19 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                   `}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                {result.passed ? (
-                  <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                ) : isGuided ? (
-                  <XCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                )}
-                
+                <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                  {result.passed ? (
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                  ) : isGuided ? (
+                    <XCircle className="w-5 h-5 text-amber-400" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-400" />
+                  )}
+                  {!result.passed && result.attemptsOnThisRule >= 1 && (
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-400/70" aria-label="Hint available" />
+                  )}
+                </div>
+
                 <div className="flex-1">
                   <p className={`text-sm font-medium ${textClass}`}>
                     {result.message}
@@ -133,6 +139,14 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                       </span>
                     )}
                   </div>
+                  {!result.passed && result.hintMessage && result.attemptsOnThisRule >= 1 && result.attemptsOnThisRule < 3 && (
+                    <p className="mt-1.5 text-xs text-slate-400">{result.hintMessage}</p>
+                  )}
+                  {!result.passed && isGuided && result.guidedMessage && (
+                    <div className="mt-2 px-3 py-2 rounded bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 animate-slide-in">
+                      {result.guidedMessage}
+                    </div>
+                  )}
                 </div>
               </div>
               );
