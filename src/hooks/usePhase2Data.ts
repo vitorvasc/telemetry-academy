@@ -3,6 +3,7 @@ import type { Phase2Data, RootCauseOption } from '../types/phase2';
 import { transformSpans, getTraceId, getTotalDurationMs } from '../lib/spanTransform';
 import { generateLogsFromSpans } from '../lib/logGenerator';
 import { cases } from '../data/cases';
+import { phase2Registry } from '../data/phase2';
 
 /**
  * Raw OTel span format from the Python worker telemetry
@@ -109,7 +110,20 @@ function getRootCauseOptions(caseId: string): RootCauseOption[] {
  */
 export function usePhase2Data(rawSpans: RawOTelSpan[], caseId: string): Phase2DataState {
   return useMemo(() => {
-    // No spans = no data
+    // Use static Phase 2 data from registry if available for this case.
+    // Cases with pre-built investigation scenarios (synthetic traces, logs, root cause options)
+    // always use the registry — the user's live spans only proved Phase 1 works.
+    const staticData = phase2Registry[caseId];
+    if (staticData) {
+      return {
+        data: staticData,
+        error: null,
+        hasData: true,
+      };
+    }
+
+    // Fallback: derive Phase 2 data from the user's live spans
+    // (used for cases that don't have a pre-built investigation scenario yet)
     if (!rawSpans || rawSpans.length === 0) {
       return {
         data: null,
@@ -117,11 +131,11 @@ export function usePhase2Data(rawSpans: RawOTelSpan[], caseId: string): Phase2Da
         hasData: false,
       };
     }
-    
+
     try {
       // Filter out malformed spans before transformation
       const validSpans = filterMalformedSpans(rawSpans);
-      
+
       if (validSpans.length === 0) {
         return {
           data: null,
@@ -129,21 +143,21 @@ export function usePhase2Data(rawSpans: RawOTelSpan[], caseId: string): Phase2Da
           hasData: false,
         };
       }
-      
+
       // Transform spans to TraceSpan format
       const spans = transformSpans(validSpans);
-      
+
       // Get trace metadata
       const traceId = getTraceId(validSpans);
       const totalDurationMs = getTotalDurationMs(validSpans);
-      
+
       // Get case definition for narrative
       const caseDef = getCase(caseId);
-      
+
       // Generate synthetic logs from spans
       const traceStartMs = Date.now() - totalDurationMs;
       const logs = generateLogsFromSpans(spans, traceId, traceStartMs);
-      
+
       // Build Phase2Data object
       const phase2Data: Phase2Data = {
         traceId,
@@ -153,17 +167,17 @@ export function usePhase2Data(rawSpans: RawOTelSpan[], caseId: string): Phase2Da
         rootCauseOptions: getRootCauseOptions(caseId),
         narrative: caseDef?.phase2?.description?.trim() || 'Investigate the incident',
       };
-      
+
       return {
         data: phase2Data,
         error: null,
         hasData: true,
       };
-      
+
     } catch (err) {
       // Transformation failed - return error state
       const errorMessage = err instanceof Error ? err.message : 'Unknown transformation error';
-      
+
       return {
         data: null,
         error: errorMessage,

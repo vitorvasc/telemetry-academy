@@ -1,5 +1,12 @@
 import type { Phase2Data } from '../types/phase2';
 
+/**
+ * Registry mapping case IDs to their static Phase 2 investigation data.
+ * Cases not present here will show "No Telemetry Data" in Phase 2.
+ */
+export const phase2Registry: Record<string, Phase2Data> = {};
+
+// Populated at bottom of file after constants are defined
 export const helloSpanPhase2: Phase2Data = {
   traceId: 'a1b2c3d4e5f6789012345678',
   totalDurationMs: 5240,
@@ -132,3 +139,6 @@ You have traces flowing now. Find the root cause.`,
     },
   ],
 };
+
+// Populate registry after constants are defined
+phase2Registry['001-hello-span'] = helloSpanPhase2;
