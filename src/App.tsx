@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation, useRoute } from 'wouter';
 import { CodeEditor } from './components/CodeEditor';
 import { InstructionsPanel } from './components/InstructionsPanel';
 import { ValidationPanel } from './components/ValidationPanel';
@@ -47,7 +48,12 @@ function App() {
     markWelcomeSeen,
   } = useAcademyPersistence(INITIAL_PROGRESS);
 
-  const [showHome, setShowHome] = useState(true);
+  const [, setLocation] = useLocation();
+  const [matchCase, params] = useRoute('/case/:id');
+
+  // Derive showHome from URL — home when not on a case route
+  const showHome = !matchCase;
+
   const [currentCaseId, setCurrentCaseId] = useState(cases[0].id);
   const [mobileTab, setMobileTab] = useState<MobileTab>('instructions');
   const [appPhase, setAppPhase] = useState<AppPhase>('instrumentation');
@@ -66,6 +72,16 @@ function App() {
     setValidationResults([]);
     setWorkerError(null);
   }, [code]);
+
+  // Sync currentCaseId from URL params when navigating directly to /case/:id
+  useEffect(() => {
+    if (matchCase && params?.id) {
+      const c = cases.find(x => x.id === params.id);
+      if (c) {
+        setCurrentCaseId(params.id);
+      }
+    }
+  }, [matchCase, params?.id]);
 
   // Show welcome modal on first visit
   useEffect(() => {
@@ -108,7 +124,7 @@ function App() {
   // Navigate to a case from home
   const goToCase = (id: string) => {
     switchCase(id);
-    setShowHome(false);
+    setLocation(`/case/${id}`);
   };
 
   // Switch cases
@@ -279,7 +295,7 @@ function App() {
 
           {/* Back to home */}
           <button
-            onClick={() => setShowHome(true)}
+            onClick={() => setLocation('/')}
             className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors flex-shrink-0 px-2 py-1 rounded hover:bg-slate-700"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
