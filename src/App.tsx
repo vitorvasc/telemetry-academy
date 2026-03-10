@@ -501,6 +501,7 @@ function App() {
                         filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
                         onRunShortcut={handleValidate}
                         defaultWordWrap={(currentCase as any).type === 'yaml-config'}
+                        caseKey={currentCaseId}
                       />
                     </Suspense>
                   </Panel>
@@ -559,6 +560,7 @@ function App() {
                       filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
                       onRunShortcut={handleValidate}
                       defaultWordWrap={(currentCase as any).type === 'yaml-config'}
+                      caseKey={currentCaseId}
                     />
                   </Suspense>
                 </div>

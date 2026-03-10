@@ -8,6 +8,7 @@ interface CodeEditorProps {
   filename?: string;   // overrides displayed filename, defaults to 'payment_service.py'
   onRunShortcut?: () => void;  // called by Cmd/Ctrl+Enter
   defaultWordWrap?: boolean;   // true for YAML cases, false (default) for Python
+  caseKey?: string;            // pass currentCaseId; changes trigger imperative setValue to reset editor
 }
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
@@ -17,10 +18,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   filename,
   onRunShortcut,
   defaultWordWrap = false,
+  caseKey,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
+  const latestValueRef = useRef(value);
+  latestValueRef.current = value;
 
   const [fontSize, setFontSize] = useState<number>(() => {
     return Number(localStorage.getItem('ta-editor-fontsize')) || 14;
@@ -62,6 +66,18 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       observerRef.current?.disconnect();
     };
   }, []);
+
+  // When the case switches externally (caseKey changes), imperatively reset editor content
+  // and cursor without relying on the controlled value prop (which causes cursor jumps).
+  useEffect(() => {
+    if (editorRef.current) {
+      const model = editorRef.current.getModel();
+      if (model) {
+        model.setValue(latestValueRef.current);
+        editorRef.current.setPosition({ lineNumber: 1, column: 1 });
+      }
+    }
+  }, [caseKey]);
 
   return (
     <div className="h-full flex flex-col rounded-lg overflow-hidden border border-slate-700 bg-slate-800">
@@ -111,7 +127,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         <Editor
           height="100%"
           language={language}
-          value={value}
+          defaultValue={value}
           onChange={(val) => onChange(val || '')}
           theme="vs-dark"
           onMount={handleEditorDidMount}
