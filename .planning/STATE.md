@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-03-PLAN.md — code editor tweaks
-last_updated: "2026-03-10T12:50:51.660Z"
+stopped_at: Completed 05-04-PLAN.md — navigation improvements
+last_updated: "2026-03-10T12:56:52.747Z"
 last_activity: "2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 100
 ---
 
@@ -69,6 +69,7 @@ Progress: [██████████] 100%
 | Phase 05 P01 | 5 | 2 tasks | 4 files |
 | Phase 05 P02 | 8 | 2 tasks | 3 files |
 | Phase 05 P03 | 4 | 2 tasks | 2 files |
+| Phase 05 P04 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,9 @@ Recent decisions affecting current work:
 - [Phase 05]: Monaco addCommand API for keyboard shortcuts: OnMount handler receives (editor, monaco) to access KeyMod/KeyCode constants
 - [Phase 05]: Font size persisted to localStorage key ta-editor-fontsize (10–20px range)
 - [Phase 05]: defaultWordWrap prop sets initial word wrap state; YAML cases default to on, Python to off
+- [Phase 05]: ProgressDot inline in CaseSelector — small enough to keep co-located, avoids extra file
+- [Phase 05]: getPhaseStatus maps investigation and complete both to phase1done (amber) for consistent phase 1 completion signal
+- [Phase 05]: MobileCaseDrawer sm:hidden ensures drawer never shown on tablet/desktop — no extra conditional logic needed
 
 ### Pending Todos
 
@@ -127,6 +131,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T12:50:51.655Z
-Stopped at: Completed 05-03-PLAN.md — code editor tweaks
+Last session: 2026-03-10T12:56:52.714Z
+Stopped at: Completed 05-04-PLAN.md — navigation improvements
 Resume file: None
