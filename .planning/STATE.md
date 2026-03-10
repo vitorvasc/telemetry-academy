@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-10T12:16:51.315Z"
+stopped_at: Completed 05-01-PLAN.md — resizable panels
+last_updated: "2026-03-10T12:42:42.617Z"
 last_activity: "2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 18
+  completed_plans: 14
   percent: 100
 ---
 
@@ -66,6 +66,7 @@ Progress: [██████████] 100%
 | Phase 04-content-polish P01 | 3 min | 2 tasks | 2 files |
 | Phase 04-content-polish P02 | 18 min | 3 tasks | 9 files |
 | Phase 04-content-polish P03 | 10min | 4 tasks | 7 files |
+| Phase 05 P01 | 5 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 04-content-polish]: Dot-notation YAML paths — processors.tail_sampling syntax for simpler rule authoring
 - [Phase 04-content-polish]: No Python worker for YAML cases — Skip worker entirely for instant validation
 - [Phase 04-content-polish]: Consistent ValidationResult interface — validateYaml() returns same structure as validateSpans()
+- [Phase 05-01]: react-resizable-panels v4 API: Group/Panel/Separator with useDefaultLayout hook for persistence (not v3 autoSaveId prop)
+- [Phase 05-01]: setLayout in v4 takes {panelId: percentage} object — panel IDs must be stable (ta-instructions, ta-editor-group, ta-editor, ta-bottom, ta-validation, ta-output)
+- [Phase 05-01]: vite.config.ts must import defineConfig from vitest/config (not vite) when test field is present
 
 ### Pending Todos
 
@@ -116,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T12:16:51.306Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-ui-polish-resizable-panels-navigation-improvements-hint-system-code-editor-tweaks-performance-and-visual-enhancements/05-CONTEXT.md
+Last session: 2026-03-10T12:42:42.612Z
+Stopped at: Completed 05-01-PLAN.md — resizable panels
+Resume file: None
