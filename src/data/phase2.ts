@@ -6,9 +6,17 @@ import type { Phase2Data } from '../types/phase2';
  */
 export const phase2Registry: Record<string, Phase2Data> = {};
 
+function generateTraceId(): string {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Populated at bottom of file after constants are defined
+const helloSpanTraceId = generateTraceId();
+
 export const helloSpanPhase2: Phase2Data = {
-  traceId: 'a1b2c3d4e5f6789012345678',
+  traceId: helloSpanTraceId,
   totalDurationMs: 5240,
   narrative: `Orders are taking over 5 seconds to process. The on-call team is getting paged. 
 Users are complaining. Time to investigate.
@@ -67,7 +75,7 @@ You have traces flowing now. Find the root cause.`,
       timestamp: '14:32:00.021',
       level: 'info',
       message: 'Processing order ord_9f3k2p for user user_4821',
-      traceId: 'a1b2c3d4e5f6789012345678',
+      traceId: helloSpanTraceId,
       spanId: 'span-001',
       service: 'order-service',
     },
@@ -75,7 +83,7 @@ You have traces flowing now. Find the root cause.`,
       timestamp: '14:32:00.041',
       level: 'warn',
       message: 'DB connection pool exhausted, waiting for available connection (pool_size=5, waiting=12)',
-      traceId: 'a1b2c3d4e5f6789012345678',
+      traceId: helloSpanTraceId,
       spanId: 'span-002',
       service: 'order-service',
     },
@@ -83,7 +91,7 @@ You have traces flowing now. Find the root cause.`,
       timestamp: '14:32:04.791',
       level: 'error',
       message: 'Connection pool wait exceeded 4000ms threshold',
-      traceId: 'a1b2c3d4e5f6789012345678',
+      traceId: helloSpanTraceId,
       spanId: 'span-002',
       service: 'order-service',
     },
@@ -91,7 +99,7 @@ You have traces flowing now. Find the root cause.`,
       timestamp: '14:32:05.001',
       level: 'info',
       message: 'DB query executed successfully after wait (rows_affected=1)',
-      traceId: 'a1b2c3d4e5f6789012345678',
+      traceId: helloSpanTraceId,
       spanId: 'span-002',
       service: 'order-service',
     },
@@ -99,7 +107,7 @@ You have traces flowing now. Find the root cause.`,
       timestamp: '14:32:05.201',
       level: 'info',
       message: 'Cache invalidated for order:ord_9f3k2p',
-      traceId: 'a1b2c3d4e5f6789012345678',
+      traceId: helloSpanTraceId,
       spanId: 'span-003',
       service: 'order-service',
     },
@@ -107,7 +115,7 @@ You have traces flowing now. Find the root cause.`,
       timestamp: '14:32:05.241',
       level: 'info',
       message: 'Order ord_9f3k2p processed successfully in 5220ms',
-      traceId: 'a1b2c3d4e5f6789012345678',
+      traceId: helloSpanTraceId,
       spanId: 'span-001',
       service: 'order-service',
     },
