@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 05-ui-polish-resizable-panels-navigation-improvements-hint-system-code-editor-tweaks-performance-and-visual-enhancements
 source: [05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md, 05-05-SUMMARY.md]
 started: 2026-03-10T13:07:07Z
@@ -84,9 +84,12 @@ skipped: 1
   reason: "User reported: The left sidebar can't be resized more than 48px, it's very small. The resize for bottom components are working fine."
   severity: major
   test: 1
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "react-resizable-panels v4 treats bare numbers as pixels, not percentages. Panel has maxSize={45} which means 45px max, not 45%. All Panel size props (defaultSize, minSize, maxSize) need string percentages like '25%' instead of bare numbers."
+  artifacts:
+    - path: "src/App.tsx"
+      issue: "Panel id='ta-instructions' uses defaultSize={25} minSize={15} maxSize={45} — all treated as pixels in v4, must be string percentages"
+  missing:
+    - "Change all Panel size props to string percentages: defaultSize='25%' minSize='15%' maxSize='45%' (and same for all other Panels in the file)"
   debug_session: ""
 
 - truth: "Clicking the reset button restores panels to default proportions"
@@ -94,19 +97,12 @@ skipped: 1
   reason: "User reported: panels aren't returning to their original positions, the size doesn't change"
   severity: major
   test: 3
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
-
-- truth: "Word wrap preference persists across page reloads (consistent with font size persistence)"
-  status: failed
-  reason: "User reported: It not persists, should it? (font size persists but word wrap preference does not survive a reload)"
-  severity: minor
-  test: 8
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Same pixel/percentage issue as Bug 1. The setLayout call is correct in concept (25/75 are valid 0-100 percentages for the Layout type), but the panel constraints are broken by pixel-based maxSize/minSize props causing clamping. onLayoutChanged also immediately re-persists the broken layout. Fixing Bug 1 (string percentages on Panel props) will unblock the reset button."
+  artifacts:
+    - path: "src/App.tsx"
+      issue: "handleResetPanels at lines 270-275 — setLayout values correct but Panel constraints broken by pixel props"
+  missing:
+    - "Fix Panel size props to string percentages (same fix as Bug 1) — reset button setLayout will then work correctly"
   debug_session: ""
 
 - truth: "Hints/tips section is immediately visible in the Instructions panel"
@@ -114,7 +110,24 @@ skipped: 1
   reason: "User reported: I can't see the hints/tips because the instructions panel width is too small"
   severity: major
   test: 4
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Consequence of Bug 1 — instructions panel stuck at ~48px due to maxSize={45} being treated as 45px. Fixing Bug 1 will fix this."
+  artifacts:
+    - path: "src/App.tsx"
+      issue: "Same root cause as test 1 — Panel pixel constraints"
+  missing:
+    - "Fixed by the same Panel size props fix as Bug 1"
+  debug_session: ""
+
+- truth: "Word wrap preference persists across page reloads (consistent with font size persistence)"
+  status: failed
+  reason: "User reported: It not persists, should it? (font size persists but word wrap preference does not survive a reload)"
+  severity: minor
+  test: 8
+  root_cause: "No localStorage read/write for word wrap. useState is seeded from defaultWordWrap prop only. Font size uses ta-editor-fontsize key with read on init and write on change; word wrap has no equivalent."
+  artifacts:
+    - path: "src/components/CodeEditor.tsx"
+      issue: "Line 29: useState(defaultWordWrap) — no localStorage read. Line 91: toggle click has no localStorage.setItem call."
+  missing:
+    - "Line 29: change to lazy initializer that reads ta-editor-wordwrap from localStorage, falls back to defaultWordWrap"
+    - "Line 91: add localStorage.setItem('ta-editor-wordwrap', String(next)) in toggle handler"
   debug_session: ""
