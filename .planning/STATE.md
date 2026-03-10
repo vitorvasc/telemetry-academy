@@ -136,9 +136,10 @@ None yet.
 | 001 | Fix Pyodide threading error, rename case dirs to numbered format, add case slug routing | 2026-03-10 | 16fe670 | [001-fix-pyodide-threading-rename-dirs-slug-routing](./quick/001-fix-pyodide-threading-rename-dirs-slug-routing/) |
 | 002 | Fix DataCloneError in python.worker.ts — serialize PyProxy via toJs() before postMessage, add Vitest unit tests | 2026-03-10 | ca0896a | [2-fix-datacloneerror-in-python-worker-post](./quick/2-fix-datacloneerror-in-python-worker-post/) |
 | 003 | UI improvements: keyboard shortcut hint on Check Code, Monaco cursor jump fix (uncontrolled defaultValue), phase switcher clarity + lock icon | 2026-03-10 | bfe89e8 | [3-ui-improvements-keyboard-shortcut-hint-o](./quick/3-ui-improvements-keyboard-shortcut-hint-o/) |
+| 004 | Keep InstructionsPanel visible in investigation phase — 25/75 resizable split layout on desktop, mobile unchanged | 2026-03-10 | 2611d92 | [4-keep-instructions-panel-visible-in-inves](./quick/4-keep-instructions-panel-visible-in-inves/) |
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:59:29Z
-Stopped at: Completed quick task 003 — UI improvements: keyboard shortcut, Monaco cursor fix, phase switcher
+Last session: 2026-03-10T14:10:00Z
+Stopped at: Completed quick task 004 — InstructionsPanel visible in investigation phase
 Resume file: None
