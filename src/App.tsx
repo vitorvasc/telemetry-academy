@@ -66,6 +66,7 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(false);
 
   const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode } = useCodeRunner('python');
+  const [workerError, setWorkerError] = useState<string | null>(null);
 
   // Clear validation results when code changes (prevents stale state)
   useEffect(() => {
@@ -89,7 +90,6 @@ function App() {
       setShowWelcome(true);
     }
   }, [isLoaded, hasSeenWelcome]);
-  const [workerError, setWorkerError] = useState<string | null>(null);
   const initialLoadRef = useRef(true);
   const getSavedCodeRef = useRef(getSavedCode);
   getSavedCodeRef.current = getSavedCode;
