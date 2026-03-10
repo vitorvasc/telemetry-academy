@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { Case } from '../types';
-import { 
-  BookOpen, 
-  Lightbulb, 
-  ChevronDown, 
-  ChevronRight,
+import {
+  BookOpen,
+  Lightbulb,
   Target,
   GraduationCap,
   Lock,
@@ -18,13 +16,11 @@ interface InstructionsPanelProps {
   onStartInvestigation?: () => void;
 }
 
-export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({ 
-  case: caseData, 
+export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
+  case: caseData,
   phaseUnlocked,
   onStartInvestigation,
 }) => {
-  const [showHints, setShowHints] = useState(false);
-
   return (
     <div className="p-6 space-y-6">
       {/* Case Header */}
@@ -61,32 +57,20 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
           </div>
         </div>
 
-        {/* Hints Section */}
+        {/* Hints Section — always visible */}
         <div className="border border-slate-700 rounded-lg overflow-hidden">
-          <button
-            onClick={() => setShowHints(!showHints)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-slate-900 hover:bg-slate-800 transition-colors"
-          >
-            <div className="flex items-center gap-2 text-slate-400">
-              <Lightbulb className="w-4 h-4" />
-              <span className="text-sm font-medium">Hints</span>
-            </div>
-            {showHints ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </button>
-          
-          {showHints && (
-            <ul className="p-4 space-y-2 bg-slate-800 animate-slide-in">
-              {caseData.phase1.hints.map((hint, index) => (
-                <li 
-                  key={index}
-                  className="flex items-start gap-2 text-sm text-slate-400"
-                >
-                  <span className="text-sky-400 font-mono">{index + 1}.</span>
-                  {hint}
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="flex items-center gap-2 px-4 py-3 bg-slate-900">
+            <Lightbulb className="w-4 h-4 text-slate-400" />
+            <span className="text-sm font-medium text-slate-400">Hints</span>
+          </div>
+          <ul className="p-4 space-y-2 bg-slate-800">
+            {caseData.phase1.hints.map((hint, index) => (
+              <li key={index} className="flex items-start gap-2 text-sm text-slate-400">
+                <span className="text-sky-400 font-mono">{index + 1}.</span>
+                {hint}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
