@@ -21,7 +21,7 @@ decisions:
 metrics:
   duration: "2.5 min"
   completed: "2026-03-10"
-  tasks_completed: 2
+  tasks_completed: 3
   tasks_total: 3
   files_changed: 9
 ---
@@ -59,15 +59,13 @@ metrics:
 
 **Routes:** `/` → HomePage, `/case/:id` → case view. Browser back/forward and bookmarking work.
 
-### Task 3: Human verification checkpoint
+### Task 3: Human verification + bug fix
 
-**Skipped** per execution constraints. Manual steps for the human to verify:
-1. `npm run dev`
-2. Visit `http://localhost:5173/` — HomePage appears
-3. Click any case card — URL changes to `/case/001-hello-span`
-4. Refresh the page at `/case/001-hello-span` — case still loads (not 404)
-5. Click back arrow — URL returns to `/` and HomePage appears
-6. Run validation in Phase 1 — check no console errors about missing caseIds
+**Commit:** `d95804b`
+
+User verified in browser and found that cases appeared locked. Root cause: localStorage stored progress under old caseIds (`hello-span-001`, etc.) which no longer matched the renamed IDs (`001-hello-span`, etc.). The persistence hook loaded stale data, causing all cases to appear locked.
+
+**Fix:** Bumped `SCHEMA_VERSION` from 1 → 2 in `useAcademyPersistence.ts`. On next load, the version mismatch triggers a clean reset — stale progress data is cleared and cases initialize fresh with the first case available.
 
 ## Deviations from Plan
 
