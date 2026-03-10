@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-02-PLAN.md — hint system visibility
-last_updated: "2026-03-10T12:46:31.911Z"
+stopped_at: Completed 05-03-PLAN.md — code editor tweaks
+last_updated: "2026-03-10T12:50:51.660Z"
 last_activity: "2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 100
 ---
 
@@ -68,6 +68,7 @@ Progress: [██████████] 100%
 | Phase 04-content-polish P03 | 10min | 4 tasks | 7 files |
 | Phase 05 P01 | 5 | 2 tasks | 4 files |
 | Phase 05 P02 | 8 | 2 tasks | 3 files |
+| Phase 05 P03 | 4 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Recent decisions affecting current work:
 - [Phase 05-01]: vite.config.ts must import defineConfig from vitest/config (not vite) when test field is present
 - [Phase 05-02]: Hints always visible in InstructionsPanel — progressive disclosure was hiding key information from struggling users
 - [Phase 05-02]: aria-label instead of title on Lightbulb SVG — lucide-react LucideProps does not accept title prop
+- [Phase 05]: Monaco addCommand API for keyboard shortcuts: OnMount handler receives (editor, monaco) to access KeyMod/KeyCode constants
+- [Phase 05]: Font size persisted to localStorage key ta-editor-fontsize (10–20px range)
+- [Phase 05]: defaultWordWrap prop sets initial word wrap state; YAML cases default to on, Python to off
 
 ### Pending Todos
 
@@ -123,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T12:46:31.907Z
-Stopped at: Completed 05-02-PLAN.md — hint system visibility
+Last session: 2026-03-10T12:50:51.655Z
+Stopped at: Completed 05-03-PLAN.md — code editor tweaks
 Resume file: None
