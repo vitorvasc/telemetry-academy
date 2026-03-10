@@ -17,7 +17,8 @@ import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { validateSpans, validateYaml, type SpanValidationRule } from './lib/validation';
 import { cases } from './data/cases';
-import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, Search } from 'lucide-react';
+import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, Search, LayoutPanelLeft } from 'lucide-react';
+import { Group, Panel, Separator, useGroupRef, useDefaultLayout } from 'react-resizable-panels';
 
 type AppPhase = 'instrumentation' | 'investigation' | 'solved';
 type MobileTab = 'instructions' | 'code' | 'output';
@@ -92,6 +93,12 @@ function App() {
   }, [isLoaded, hasSeenWelcome]);
   const initialLoadRef = useRef(true);
   const getSavedCodeRef = useRef(getSavedCode);
+  const mainGroupRef = useGroupRef();
+
+  // Panel persistence via useDefaultLayout (react-resizable-panels v4)
+  const mainLayout = useDefaultLayout({ id: 'ta-panel-main', storage: localStorage });
+  const rightLayout = useDefaultLayout({ id: 'ta-panel-right', storage: localStorage });
+  const bottomLayout = useDefaultLayout({ id: 'ta-panel-bottom', storage: localStorage });
   getSavedCodeRef.current = getSavedCode;
 
   const currentCase = cases.find(c => c.id === currentCaseId) ?? cases[0];
@@ -255,6 +262,13 @@ function App() {
     markWelcomeSeen();
   };
 
+  const handleResetPanels = () => {
+    localStorage.removeItem('react-resizable-panels:ta-panel-main');
+    localStorage.removeItem('react-resizable-panels:ta-panel-right');
+    localStorage.removeItem('react-resizable-panels:ta-panel-bottom');
+    mainGroupRef.current?.setLayout({ 'ta-instructions': 25, 'ta-editor-group': 75 });
+  };
+
   const goToNext = () => {
     if (nextCase) switchCase(nextCase.id);
   };
@@ -355,6 +369,15 @@ function App() {
             {currentCase.difficulty.toUpperCase()}
           </span>
 
+          {/* Reset panel sizes (desktop) */}
+          <button
+            onClick={handleResetPanels}
+            title="Reset panel sizes"
+            className="hidden sm:block p-1.5 text-slate-500 hover:text-sky-400 transition-colors"
+          >
+            <LayoutPanelLeft className="w-3.5 h-3.5" />
+          </button>
+
           {/* Reset (desktop) */}
           <div className="hidden sm:block">
             {showResetConfirm ? (
@@ -427,39 +450,69 @@ function App() {
           </div>
         ) : appPhase === 'instrumentation' ? (
           <>
-            {/* ── Desktop layout ── */}
-            <div className="hidden sm:flex w-80 flex-shrink-0 border-r border-slate-700 overflow-y-auto">
-              <InstructionsPanel
-                case={currentCase}
-                phaseUnlocked={phaseUnlocked}
-                onStartInvestigation={() => setAppPhase('investigation')}
-              />
-            </div>
-            <div className="hidden sm:flex flex-1 flex-col overflow-hidden">
-              <div className="flex-1 p-4 overflow-hidden">
-                <CodeEditor value={code} onChange={setCode} language="python" />
-              </div>
-              <div className="h-56 flex-shrink-0 border-t border-slate-700 bg-slate-800 flex">
-                <div className="flex-1 border-r border-slate-700">
-                  <ValidationPanel
-                    results={validationResults}
-                    isValidating={isValidating}
-                    isWorkerReady={isWorkerReady}
-                    onValidate={handleValidate}
-                    phaseUnlocked={phaseUnlocked}
-                    onStartInvestigation={() => setAppPhase('investigation')}
-                  />
-                </div>
-                <div className="flex-1">
-                  <OutputPanel output={output} error={workerError || initError} isRunning={isRunning} />
-                  {spans.length > 0 && (
-                    <div className="text-xs text-slate-500 mt-1 px-4">
-                      Captured {spans.length} telemetry span(s)
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            {/* ── Desktop layout (resizable panels) ── */}
+            <Group
+              orientation="horizontal"
+              groupRef={mainGroupRef}
+              className="hidden sm:flex flex-1 overflow-hidden"
+              defaultLayout={mainLayout.defaultLayout}
+              onLayoutChanged={mainLayout.onLayoutChanged}
+            >
+              <Panel id="ta-instructions" defaultSize={25} minSize={15} maxSize={45} className="overflow-y-auto">
+                <InstructionsPanel
+                  case={currentCase}
+                  phaseUnlocked={phaseUnlocked}
+                  onStartInvestigation={() => setAppPhase('investigation')}
+                />
+              </Panel>
+              <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
+              <Panel id="ta-editor-group">
+                <Group
+                  orientation="vertical"
+                  className="h-full"
+                  defaultLayout={rightLayout.defaultLayout}
+                  onLayoutChanged={rightLayout.onLayoutChanged}
+                >
+                  <Panel id="ta-editor" defaultSize={70} minSize={25} className="overflow-hidden p-4">
+                    <CodeEditor
+                      value={code}
+                      onChange={setCode}
+                      language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
+                      filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
+                    />
+                  </Panel>
+                  <Separator className="h-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-row-resize flex-shrink-0" />
+                  <Panel id="ta-bottom" defaultSize={30} minSize={15} className="overflow-hidden bg-slate-800 border-t border-slate-700">
+                    <Group
+                      orientation="horizontal"
+                      className="h-full"
+                      defaultLayout={bottomLayout.defaultLayout}
+                      onLayoutChanged={bottomLayout.onLayoutChanged}
+                    >
+                      <Panel id="ta-validation" defaultSize={50} minSize={20}>
+                        <ValidationPanel
+                          results={validationResults}
+                          isValidating={isValidating}
+                          isWorkerReady={isWorkerReady}
+                          onValidate={handleValidate}
+                          phaseUnlocked={phaseUnlocked}
+                          onStartInvestigation={() => setAppPhase('investigation')}
+                        />
+                      </Panel>
+                      <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
+                      <Panel id="ta-output" defaultSize={50} minSize={20}>
+                        <OutputPanel output={output} error={workerError || initError} isRunning={isRunning} />
+                        {spans.length > 0 && (
+                          <div className="text-xs text-slate-500 mt-1 px-4">
+                            Captured {spans.length} telemetry span(s)
+                          </div>
+                        )}
+                      </Panel>
+                    </Group>
+                  </Panel>
+                </Group>
+              </Panel>
+            </Group>
 
             {/* ── Mobile layout (tabs) ── */}
             <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
