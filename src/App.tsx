@@ -21,7 +21,7 @@ import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { validateSpans, validateYaml, type SpanValidationRule } from './lib/validation';
 import { cases } from './data/cases';
-import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, Search, LayoutPanelLeft, ChevronDown, Lock } from 'lucide-react';
+import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, LayoutPanelLeft, ChevronDown, Lock } from 'lucide-react';
 import { Group, Panel, Separator, useGroupRef, useDefaultLayout } from 'react-resizable-panels';
 
 type AppPhase = 'instrumentation' | 'investigation' | 'solved';
@@ -98,6 +98,7 @@ function App() {
   }, [isLoaded, hasSeenWelcome]);
   const initialLoadRef = useRef(true);
   const getSavedCodeRef = useRef(getSavedCode);
+  const lastPassedCodeRef = useRef<string | null>(null);
   const mainGroupRef = useGroupRef();
 
   // Panel persistence via useDefaultLayout (react-resizable-panels v4)
@@ -111,7 +112,9 @@ function App() {
   const nextCase = cases[currentIdx + 1];
   const currentProgress = allProgress.find(p => p.caseId === currentCaseId)!;
   const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
-  const phaseUnlocked = appPhase === 'investigation' || appPhase === 'solved';
+  const phaseUnlocked =
+    (appPhase === 'investigation' || appPhase === 'solved') &&
+    code === lastPassedCodeRef.current;
 
   // Load persisted code when persistence is ready or case switches.
   // getSavedCode is intentionally accessed via ref so its changing reference
@@ -146,11 +149,17 @@ function App() {
     const prog = allProgress.find(p => p.caseId === id)!;
     setCurrentCaseId(id);
     // Load saved code or use initial code
-    setCode(getSavedCode(id) || c.phase1.initialCode);
+    const savedCode = getSavedCode(id) || c.phase1.initialCode;
+    setCode(savedCode);
     setValidationResults([]);
     setAppPhase(prog.phase as AppPhase);
     setInvestigationAttempts(prog.attempts);
     setShowReviewModal(false);
+    if (prog.phase === 'investigation' || prog.phase === 'complete') {
+      lastPassedCodeRef.current = savedCode;
+    } else {
+      lastPassedCodeRef.current = null;
+    }
   };
 
   // Update progress helper
@@ -188,6 +197,7 @@ function App() {
 
       if (results.every(r => r.passed)) {
         setAppPhase('investigation');
+        lastPassedCodeRef.current = code;
         updateProgress(currentCaseId, { phase: 'investigation' });
       }
 
@@ -227,6 +237,7 @@ function App() {
 
     if (results.every(r => r.passed)) {
       setAppPhase('investigation');
+      lastPassedCodeRef.current = code;
       updateProgress(currentCaseId, { phase: 'investigation' });
     }
 
@@ -259,6 +270,7 @@ function App() {
     setValidationResults([]);
     setInvestigationAttempts(0);
     setAppPhase('instrumentation');
+    lastPassedCodeRef.current = null;
     setShowResetConfirm(false);
   };
 
@@ -345,32 +357,6 @@ function App() {
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
           </button>
 
-          {/* Phase Switcher */}
-          {currentProgress.status !== 'locked' && (
-            <div className="flex items-center gap-0.5 bg-slate-950 rounded-lg p-0.5 border border-slate-700 flex-shrink-0">
-              <button
-                onClick={() => setAppPhase('instrumentation')}
-                className={`px-3 sm:px-4 py-1.5 rounded text-xs font-medium transition-colors ${
-                  appPhase === 'instrumentation' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                1 · Instrument
-              </button>
-              <button
-                disabled={!phaseUnlocked}
-                onClick={() => phaseUnlocked && setAppPhase('investigation')}
-                title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded text-xs font-medium transition-colors ${
-                  appPhase === 'investigation' || appPhase === 'solved' ? 'bg-amber-600 text-white' :
-                  phaseUnlocked ? 'text-slate-400 hover:text-slate-200' : 'text-slate-700 cursor-not-allowed'
-                }`}
-              >
-                {!phaseUnlocked && <Lock className="w-3 h-3 opacity-50" />}
-                2 · Investigate
-              </button>
-            </div>
-          )}
-
           {/* Difficulty badge (desktop) */}
           <span className={`hidden sm:inline text-[10px] font-bold px-2 py-1 rounded-full border flex-shrink-0 ${
             currentCase.difficulty === 'rookie' ? 'border-green-800 text-green-400 bg-green-950/40' :
@@ -426,15 +412,6 @@ function App() {
               {label}
             </button>
           ))}
-        </div>
-      )}
-
-      {appPhase === 'investigation' && (
-        <div className="flex sm:hidden border-b border-slate-700 bg-slate-800 flex-shrink-0">
-          <div className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-amber-400 border-b-2 border-amber-500">
-            <Search className="w-3.5 h-3.5" />
-            Investigation
-          </div>
         </div>
       )}
 
@@ -596,6 +573,7 @@ function App() {
                 currentCaseId={currentCaseId}
                 onCaseSolved={handleCaseSolved}
                 onAttempt={handleInvestigationAttempt}
+                userOutput={output}
               />
             ) : (
               <div className="h-full flex items-center justify-center bg-slate-900 px-6">
@@ -619,6 +597,38 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* ── Phase Bottom Bar ── */}
+      {currentProgress.status !== 'locked' && appPhase !== 'solved' && (
+        <div className="flex-shrink-0 flex border-t border-slate-700 bg-slate-900">
+          <button
+            onClick={() => setAppPhase('instrumentation')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+              appPhase === 'instrumentation'
+                ? 'bg-sky-600/20 text-sky-400 border-t-2 border-sky-500'
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <Code2 className="w-4 h-4" />
+            1 · Instrument
+          </button>
+          <button
+            disabled={!phaseUnlocked}
+            onClick={() => phaseUnlocked && setAppPhase('investigation')}
+            title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+              appPhase === 'investigation'
+                ? 'bg-amber-600/20 text-amber-400 border-t-2 border-amber-500'
+                : phaseUnlocked
+                  ? 'text-slate-500 hover:text-slate-300'
+                  : 'text-slate-700 cursor-not-allowed'
+            }`}
+          >
+            {!phaseUnlocked && <Lock className="w-4 h-4 opacity-40" />}
+            2 · Investigate
+          </button>
+        </div>
+      )}
     </div>
   );
 }

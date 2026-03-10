@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import type { LogEntry } from '../types/phase2';
-import { Search, Link2 } from 'lucide-react';
+import { Search, Link2, ChevronDown } from 'lucide-react';
 
 interface LogViewerProps {
   logs: LogEntry[];
   highlightTraceId?: string;
   filter?: string;
   onFilterChange?: (filter: string) => void;
+  userOutput?: string[];
 }
 
 const LEVEL = {
@@ -16,19 +17,21 @@ const LEVEL = {
   error: { label: 'ERROR', cls: 'text-red-400',    bg: 'bg-red-900/10' },
 };
 
-export const LogViewer: React.FC<LogViewerProps> = ({ 
-  logs, 
+export const LogViewer: React.FC<LogViewerProps> = ({
+  logs,
   highlightTraceId,
   filter: externalFilter,
   onFilterChange,
+  userOutput,
 }) => {
   // Support both controlled (parent-managed) and uncontrolled (internal) filter state
   const [internalFilter, setInternalFilter] = useState('');
   const filter = externalFilter ?? internalFilter;
   const setFilter = onFilterChange ?? setInternalFilter;
-  
+
   const [traceCorr, setTraceCorr] = useState(true);
   const [selected, setSelected] = useState<number | null>(null);
+  const [outputExpanded, setOutputExpanded] = useState(false);
 
   const filtered = logs.filter(l =>
     !filter || l.message.toLowerCase().includes(filter.toLowerCase()) || l.level.includes(filter.toLowerCase())
@@ -123,6 +126,23 @@ export const LogViewer: React.FC<LogViewerProps> = ({
             })}
           </tbody>
         </table>
+
+        {userOutput && userOutput.length > 0 && (
+          <div className="border-t border-slate-800 mt-2">
+            <button
+              onClick={() => setOutputExpanded(v => !v)}
+              className="w-full flex items-center gap-2 px-4 py-2 text-[10px] text-slate-500 hover:text-slate-400"
+            >
+              <ChevronDown className={`w-3 h-3 transition-transform ${outputExpanded ? 'rotate-180' : ''}`} />
+              Code Output ({userOutput.length} lines)
+            </button>
+            {outputExpanded && (
+              <div className="px-4 pb-3 font-mono text-[11px] text-slate-600 space-y-0.5">
+                {userOutput.map((line, i) => <div key={i}>{line}</div>)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Footer */}

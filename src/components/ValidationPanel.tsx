@@ -31,6 +31,9 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
   loadingLabel,
 }) => {
   const isMac = navigator.platform.toUpperCase().includes('MAC');
+  const buttonTitle = (!isWorkerReady || isValidating || phaseUnlocked)
+    ? undefined
+    : isMac ? 'Run code (⌘↵)' : 'Run code (Ctrl+↵)';
 
   return (
     <div className="h-full flex flex-col">
@@ -43,6 +46,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
         
         <button
           onClick={onValidate}
+          title={buttonTitle}
           disabled={!isWorkerReady || isValidating || phaseUnlocked}
           className={`
             flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
@@ -74,9 +78,6 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
             <>
               <Play className="w-4 h-4" />
               Check Code
-              <kbd className="ml-1 text-[10px] font-mono opacity-60 hidden sm:inline-block px-1 py-0.5 bg-white/10 rounded border border-white/20">
-                {isMac ? '⌘↵' : 'Ctrl+↵'}
-              </kbd>
             </>
           )}
         </button>

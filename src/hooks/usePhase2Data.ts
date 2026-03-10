@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Phase2Data, RootCauseOption } from '../types/phase2';
+import type { Phase2Data, RootCauseOption, TraceSpan } from '../types/phase2';
 import { transformSpans, getTraceId, getTotalDurationMs } from '../lib/spanTransform';
 import { generateLogsFromSpans } from '../lib/logGenerator';
 import { cases } from '../data/cases';
@@ -85,6 +85,25 @@ function getRootCauseOptions(caseId: string): RootCauseOption[] {
 }
 
 /**
+ * Merge user-added attributes from live spans into static synthetic spans.
+ * Static attributes take precedence to preserve the incident scenario.
+ */
+function mergeUserAttributes(
+  staticSpans: TraceSpan[],
+  rawUserSpans: RawOTelSpan[]
+): TraceSpan[] {
+  return staticSpans.map(staticSpan => {
+    const userSpan = rawUserSpans.find(u => u.name === staticSpan.name);
+    if (!userSpan) return staticSpan;
+    const userAttrs: Record<string, string> = {};
+    for (const [k, v] of Object.entries(userSpan.attributes ?? {})) {
+      userAttrs[k] = String(v);
+    }
+    return { ...staticSpan, attributes: { ...userAttrs, ...staticSpan.attributes } };
+  });
+}
+
+/**
  * React hook to transform raw OTel spans into Phase2Data format
  * 
  * This hook performs the bridge between Phase 1 (instrumentation) and Phase 2 (investigation):
@@ -115,8 +134,9 @@ export function usePhase2Data(rawSpans: RawOTelSpan[], caseId: string): Phase2Da
     // always use the registry — the user's live spans only proved Phase 1 works.
     const staticData = phase2Registry[caseId];
     if (staticData) {
+      const mergedSpans = mergeUserAttributes(staticData.spans, rawSpans);
       return {
-        data: staticData,
+        data: { ...staticData, spans: mergedSpans },
         error: null,
         hasData: true,
       };

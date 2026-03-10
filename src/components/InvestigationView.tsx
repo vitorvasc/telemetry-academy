@@ -15,14 +15,16 @@ interface InvestigationViewProps {
   currentCaseId: string;
   onCaseSolved: () => void;
   onAttempt?: () => void;
+  userOutput?: string[];
 }
 
-export const InvestigationView: React.FC<InvestigationViewProps> = ({ 
-  data, 
-  caseName, 
+export const InvestigationView: React.FC<InvestigationViewProps> = ({
+  data,
+  caseName,
   currentCaseId,
-  onCaseSolved, 
-  onAttempt 
+  onCaseSolved,
+  onAttempt,
+  userOutput,
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>('traces');
   const [solved, setSolved] = useState(false);
@@ -123,11 +125,12 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({
         
         {/* Logs Tab - with lifted filter state for persistence */}
         <div style={{ display: activeTab === 'logs' ? 'block' : 'none' }} className="h-full">
-          <LogViewer 
-            logs={data.logs} 
+          <LogViewer
+            logs={data.logs}
             highlightTraceId={data.traceId}
             filter={logFilter}
             onFilterChange={setLogFilter}
+            userOutput={userOutput}
           />
         </div>
         
