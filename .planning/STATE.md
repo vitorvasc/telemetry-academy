@@ -138,9 +138,10 @@ None yet.
 | 003 | UI improvements: keyboard shortcut hint on Check Code, Monaco cursor jump fix (uncontrolled defaultValue), phase switcher clarity + lock icon | 2026-03-10 | bfe89e8 | [3-ui-improvements-keyboard-shortcut-hint-o](./quick/3-ui-improvements-keyboard-shortcut-hint-o/) |
 | 004 | Keep InstructionsPanel visible in investigation phase — 25/75 resizable split layout on desktop, mobile unchanged | 2026-03-10 | 2611d92 | [4-keep-instructions-panel-visible-in-inves](./quick/4-keep-instructions-panel-visible-in-inves/) |
 | 005 | Fix markdown rendering in InstructionsPanel — ReactMarkdown with @tailwindcss/typography for descriptions and hints | 2026-03-10 | a54a8a5 | [5-fix-markdown-rendering-in-instructions-p](./quick/5-fix-markdown-rendering-in-instructions-p/) |
+| 006 | Investigation UX: collapsed spans, realistic generated trace ID with copy button, phaseUnlocked decoupled from appPhase | 2026-03-10 | fe6f622 | [6-1-when-in-the-investigation-phase-on-cas](./quick/6-1-when-in-the-investigation-phase-on-cas/) |
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:13:00Z
-Stopped at: Completed quick task 005 — Markdown rendering in InstructionsPanel
+Last session: 2026-03-10T14:14:00Z
+Stopped at: Completed quick task 006 — Investigation phase UX bug fixes
 Resume file: None
