@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { TraceSpan } from '../types/phase2';
-import { ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronRight, ChevronDown, Copy } from 'lucide-react';
 
 interface TraceViewerProps {
   spans: TraceSpan[];
@@ -33,7 +33,14 @@ function TimeRuler({ totalMs }: { totalMs: number }) {
 }
 
 export const TraceViewer: React.FC<TraceViewerProps> = ({ spans, totalDurationMs, traceId }) => {
-  const [openSpan, setOpenSpan] = useState<string | null>('span-002'); // open the slow one by default
+  const [openSpan, setOpenSpan] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyTraceId = () => {
+    navigator.clipboard.writeText(traceId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   const pct = (ms: number) => `${((ms / totalDurationMs) * 100).toFixed(2)}%`;
 
@@ -44,7 +51,20 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({ spans, totalDurationMs
         <div className="flex items-center gap-3">
           <div className="flex flex-col">
             <span className="text-[10px] text-slate-500 uppercase tracking-wider">Trace ID</span>
-            <span className="text-xs text-slate-300 font-mono">{traceId.slice(0, 16)}…</span>
+            <button
+              onClick={handleCopyTraceId}
+              className="cursor-pointer hover:text-sky-300 transition-colors flex items-center gap-1 text-xs text-slate-300 font-mono"
+              title="Click to copy trace ID"
+            >
+              {copied ? (
+                <span className="text-green-400">Copied!</span>
+              ) : (
+                <>
+                  <span>{traceId.slice(0, 16)}…</span>
+                  <Copy className="w-3 h-3 text-slate-500" />
+                </>
+              )}
+            </button>
           </div>
           <div className="w-px h-8 bg-slate-700" />
           <div className="flex flex-col">
