@@ -21,7 +21,7 @@ import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { validateSpans, validateYaml, type SpanValidationRule } from './lib/validation';
 import { cases } from './data/cases';
-import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, Search, LayoutPanelLeft, ChevronDown } from 'lucide-react';
+import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, Search, LayoutPanelLeft, ChevronDown, Lock } from 'lucide-react';
 import { Group, Panel, Separator, useGroupRef, useDefaultLayout } from 'react-resizable-panels';
 
 type AppPhase = 'instrumentation' | 'investigation' | 'solved';
@@ -317,10 +317,10 @@ function App() {
           {/* Back to home */}
           <button
             onClick={() => setLocation('/')}
-            className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors flex-shrink-0 px-2 py-1 rounded hover:bg-slate-700"
+            className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0 px-2 py-1 rounded hover:bg-slate-700/50 border border-slate-700"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Cases</span>
+            <ArrowLeft className="w-3 h-3" />
+            <span>Cases</span>
           </button>
 
           <div className="hidden sm:block w-px h-6 bg-slate-700 flex-shrink-0" />
@@ -347,24 +347,26 @@ function App() {
 
           {/* Phase Switcher */}
           {currentProgress.status !== 'locked' && (
-            <div className="flex items-center gap-0.5 bg-slate-900 rounded-lg p-0.5 flex-shrink-0">
+            <div className="flex items-center gap-0.5 bg-slate-950 rounded-lg p-0.5 border border-slate-700 flex-shrink-0">
               <button
                 onClick={() => setAppPhase('instrumentation')}
-                className={`px-2 sm:px-3 py-1 rounded text-xs font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-1.5 rounded text-xs font-medium transition-colors ${
                   appPhase === 'instrumentation' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <span className="hidden sm:inline">1 · </span>Instrument
+                1 · Instrument
               </button>
               <button
                 disabled={!phaseUnlocked}
                 onClick={() => phaseUnlocked && setAppPhase('investigation')}
-                className={`px-2 sm:px-3 py-1 rounded text-xs font-medium transition-colors ${
+                title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded text-xs font-medium transition-colors ${
                   appPhase === 'investigation' || appPhase === 'solved' ? 'bg-amber-600 text-white' :
                   phaseUnlocked ? 'text-slate-400 hover:text-slate-200' : 'text-slate-700 cursor-not-allowed'
                 }`}
               >
-                <span className="hidden sm:inline">2 · </span>Investigate
+                {!phaseUnlocked && <Lock className="w-3 h-3 opacity-50" />}
+                2 · Investigate
               </button>
             </div>
           )}
