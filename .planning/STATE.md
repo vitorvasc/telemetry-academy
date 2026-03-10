@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-07-PLAN.md — Word wrap localStorage persistence
-last_updated: "2026-03-10T13:43:10.221Z"
+stopped_at: Completed 05-06-PLAN.md — Panel size props from bare numbers to string percentages
+last_updated: "2026-03-10T13:43:25.381Z"
 last_activity: "2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests"
 progress:
   total_phases: 5
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | Phase 05 P04 | 4 | 2 tasks | 4 files |
 | Phase 05 P05 | 3 | 2 tasks | 5 files |
 | Phase 05 P07 | 3 | 1 tasks | 1 files |
+| Phase 05 P06 | 3 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,7 @@ Recent decisions affecting current work:
 - [Phase 05-05]: loading-stage handled in initWorker onmessage (not runCode messageHandler) — fires during init before runCode is called
 - [Phase 05-05]: CodeEditor named export remapped to default via .then(m => ({ default: m.CodeEditor })) for React.lazy compatibility
 - [Phase 05]: Word wrap state uses lazy initializer reading ta-editor-wordwrap, falling back to defaultWordWrap prop when no stored value
+- [Phase 05-06]: react-resizable-panels v4 Panel size props require string percentages — bare numbers are treated as pixel values (breaking change from v3)
 
 ### Pending Todos
 
@@ -136,6 +138,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:43:05.253Z
-Stopped at: Completed 05-07-PLAN.md — Word wrap localStorage persistence
+Last session: 2026-03-10T13:43:25.377Z
+Stopped at: Completed 05-06-PLAN.md — Panel size props from bare numbers to string percentages
 Resume file: None
