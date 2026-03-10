@@ -86,10 +86,30 @@ Plans:
 **Wave 2** (Depends on Wave 1):
 - [x] 04-03-PLAN.md — Wire ReviewModal for CaseSolvedScreen, add WelcomeModal, polish HomePage
 
+### Phase 5: UI Polish — resizable panels, navigation improvements, hint system, code editor tweaks, performance and visual enhancements
+
+**Goal:** The app feels professional and usable — users can resize panels to their preference, hints are always discoverable, switching cases on mobile is possible, and Pyodide loading is clearly communicated.
+**Requirements**: TBD
+**Depends on:** Phase 4
+**Plans:** 5 plans in 4 waves
+
+**Wave 1** (Parallel):
+- [ ] 05-01-PLAN.md — Install react-resizable-panels and replace fixed desktop panel layout with three draggable splits
+- [ ] 05-02-PLAN.md — Improve hint visibility: always-visible hints in InstructionsPanel, amber callout + Lightbulb in ValidationPanel
+
+**Wave 2** (Depends on Wave 1):
+- [ ] 05-03-PLAN.md — Code editor tweaks: font size control, word wrap toggle, Cmd/Ctrl+Enter shortcut, Monaco defaults
+
+**Wave 3** (Depends on Wave 2):
+- [ ] 05-04-PLAN.md — Navigation improvements: CaseSelector phase-aware progress indicators, MobileCaseDrawer for case switching
+
+**Wave 4** (Depends on Wave 3):
+- [ ] 05-05-PLAN.md — Performance: Pyodide loading stage labels, Monaco lazy load
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -97,3 +117,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Validation & Core Loop | 5/5 | Complete | 2026-03-03 |
 | 3. Visualization & Investigation | 3/3 | Complete | 2026-03-03 |
 | 4. Content & Polish | 3/3 | Complete | 2026-03-09 |
+| 5. UI Polish | 0/5 | In Progress | — |
