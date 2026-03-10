@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-04-PLAN.md — navigation improvements
-last_updated: "2026-03-10T12:56:52.747Z"
+stopped_at: Completed 05-05-PLAN.md — Pyodide loading stages and Monaco lazy load
+last_updated: "2026-03-10T13:01:11.939Z"
 last_activity: "2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 100
 ---
 
@@ -70,6 +70,7 @@ Progress: [██████████] 100%
 | Phase 05 P02 | 8 | 2 tasks | 3 files |
 | Phase 05 P03 | 4 | 2 tasks | 2 files |
 | Phase 05 P04 | 4 | 2 tasks | 4 files |
+| Phase 05 P05 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,8 @@ Recent decisions affecting current work:
 - [Phase 05]: ProgressDot inline in CaseSelector — small enough to keep co-located, avoids extra file
 - [Phase 05]: getPhaseStatus maps investigation and complete both to phase1done (amber) for consistent phase 1 completion signal
 - [Phase 05]: MobileCaseDrawer sm:hidden ensures drawer never shown on tablet/desktop — no extra conditional logic needed
+- [Phase 05-05]: loading-stage handled in initWorker onmessage (not runCode messageHandler) — fires during init before runCode is called
+- [Phase 05-05]: CodeEditor named export remapped to default via .then(m => ({ default: m.CodeEditor })) for React.lazy compatibility
 
 ### Pending Todos
 
@@ -131,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T12:56:52.714Z
-Stopped at: Completed 05-04-PLAN.md — navigation improvements
+Last session: 2026-03-10T13:01:11.935Z
+Stopped at: Completed 05-05-PLAN.md — Pyodide loading stages and Monaco lazy load
 Resume file: None
