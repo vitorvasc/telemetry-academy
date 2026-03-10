@@ -57,7 +57,7 @@ export function useCodeRunner(language: Language = 'python') {
     };
   }, [initWorker]);
 
-  const runCode = useCallback((code: string, timeoutMs = 5000): Promise<any> => {
+  const runCode = useCallback((code: string, timeoutMs = 5000): Promise<{ result: any; spans: any[] }> => {
     return new Promise((resolve, reject) => {
       if (!workerRef.current || !isReady) {
         reject(new Error('Worker is not ready'));
@@ -68,6 +68,7 @@ export function useCodeRunner(language: Language = 'python') {
       setOutput([]);
       setSpans([]);
 
+      const collectedSpans: any[] = [];
       const runId = Math.random().toString(36).substring(7);
 
       const timeoutId = setTimeout(() => {
@@ -99,6 +100,7 @@ export function useCodeRunner(language: Language = 'python') {
         }
 
         if (type === 'telemetry') {
+          collectedSpans.push(span);
           setSpans(prev => [...prev, span]);
           return;
         }
@@ -109,7 +111,7 @@ export function useCodeRunner(language: Language = 'python') {
           clearTimeout(timeoutId);
           workerRef.current?.removeEventListener('message', messageHandler);
           setIsRunning(false);
-          resolve(result);
+          resolve({ result, spans: collectedSpans });
         } else if (type === 'error') {
           clearTimeout(timeoutId);
           workerRef.current?.removeEventListener('message', messageHandler);

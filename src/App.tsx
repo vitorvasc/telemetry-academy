@@ -184,8 +184,10 @@ function App() {
     }
 
     // Python worker path
+    let runSpans: any[] = [];
     try {
-      await runCode(code);
+      const runResult = await runCode(code);
+      runSpans = runResult.spans;
     } catch (err: any) {
       setWorkerError(err.message || 'Unknown execution error');
     }
@@ -199,7 +201,7 @@ function App() {
     // Run real span-based validation
     const results = validateSpans(
       currentCase.phase1.validations as SpanValidationRule[],
-      { spans, attemptHistory: currentAttemptHistory }
+      { spans: runSpans, attemptHistory: currentAttemptHistory }
     );
 
     // Update attempt history for failed rules
