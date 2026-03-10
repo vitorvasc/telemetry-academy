@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 Phase: 4 of 4 (Content & Polish)
 Plan: 4 of 3 in current phase (all plans complete)
 Status: In Progress
-Last activity: 2026-03-10 - Completed quick task 4: keep instructions panel visible in investigation phase
+Last activity: 2026-03-10 - Completed quick task 5: fix markdown rendering in InstructionsPanel
 
 Progress: [██████████] 100%
 
@@ -137,9 +137,10 @@ None yet.
 | 002 | Fix DataCloneError in python.worker.ts — serialize PyProxy via toJs() before postMessage, add Vitest unit tests | 2026-03-10 | ca0896a | [2-fix-datacloneerror-in-python-worker-post](./quick/2-fix-datacloneerror-in-python-worker-post/) |
 | 003 | UI improvements: keyboard shortcut hint on Check Code, Monaco cursor jump fix (uncontrolled defaultValue), phase switcher clarity + lock icon | 2026-03-10 | bfe89e8 | [3-ui-improvements-keyboard-shortcut-hint-o](./quick/3-ui-improvements-keyboard-shortcut-hint-o/) |
 | 004 | Keep InstructionsPanel visible in investigation phase — 25/75 resizable split layout on desktop, mobile unchanged | 2026-03-10 | 2611d92 | [4-keep-instructions-panel-visible-in-inves](./quick/4-keep-instructions-panel-visible-in-inves/) |
+| 005 | Fix markdown rendering in InstructionsPanel — ReactMarkdown with @tailwindcss/typography for descriptions and hints | 2026-03-10 | a54a8a5 | [5-fix-markdown-rendering-in-instructions-p](./quick/5-fix-markdown-rendering-in-instructions-p/) |
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:10:00Z
-Stopped at: Completed quick task 004 — InstructionsPanel visible in investigation phase
+Last session: 2026-03-10T14:13:00Z
+Stopped at: Completed quick task 005 — Markdown rendering in InstructionsPanel
 Resume file: None
