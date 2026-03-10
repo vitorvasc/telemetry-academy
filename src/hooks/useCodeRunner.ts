@@ -18,6 +18,7 @@ export function useCodeRunner(language: Language = 'python') {
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<string[]>([]);
   const [spans, setSpans] = useState<any[]>([]);
+  const [loadingLabel, setLoadingLabel] = useState<string>('');
   const workerRef = useRef<Worker | null>(null);
 
   const initWorker = useCallback(() => {
@@ -34,6 +35,9 @@ export function useCodeRunner(language: Language = 'python') {
       const { type, error, id } = event.data;
       if (type === 'ready') {
         setIsReady(true);
+        setLoadingLabel('');
+      } else if (type === 'loading-stage') {
+        setLoadingLabel(`${event.data.label} (${event.data.stage}/${event.data.total})`);
       } else if (type === 'error' && !id) {  // run errors have an id; ignore them here
         console.error('Worker initialization error:', error);
         setInitError(error);
@@ -125,5 +129,5 @@ export function useCodeRunner(language: Language = 'python') {
     });
   }, [isReady, initWorker]);
 
-  return { isReady, initError, isRunning, output, spans, runCode };
+  return { isReady, initError, isRunning, output, spans, runCode, loadingLabel };
 }

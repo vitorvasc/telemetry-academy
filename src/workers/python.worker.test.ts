@@ -42,3 +42,9 @@ describe('serializeResult', () => {
     expect(serializeResult(() => {})).toBe(null);
   });
 });
+
+// Note: loading-stage postMessage emission during init is verified manually (integration test).
+// The worker emits { type: 'loading-stage', stage, total, label } before each major await in the
+// 'init' handler. These messages are handled by useCodeRunner's initWorker onmessage handler,
+// which updates the loadingLabel state. Unit-testing the worker's message emission requires
+// a full Web Worker environment (Pyodide), which is not available in Vitest's jsdom context.

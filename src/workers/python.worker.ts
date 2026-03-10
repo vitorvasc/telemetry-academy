@@ -35,16 +35,19 @@ self.onmessage = async (event: MessageEvent) => {
 
   if (type === 'init') {
     try {
+      self.postMessage({ type: 'loading-stage', stage: 1, total: 3, label: 'Loading Python runtime' });
       pyodide = await loadPyodide({
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
         // @ts-expect-error - cache option exists but types are outdated
         cache: true,
       });
 
+      self.postMessage({ type: 'loading-stage', stage: 2, total: 3, label: 'Installing packages' });
       await pyodide.loadPackage('micropip');
       const micropip = pyodide.pyimport('micropip');
       await micropip.install(['opentelemetry-api', 'opentelemetry-sdk']);
 
+      self.postMessage({ type: 'loading-stage', stage: 3, total: 3, label: 'Setting up sandbox' });
       await pyodide.runPythonAsync(setupScript);
 
       self.postMessage({ type: 'ready' });
