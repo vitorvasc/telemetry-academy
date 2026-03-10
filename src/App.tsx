@@ -5,6 +5,7 @@ import { InstructionsPanel } from './components/InstructionsPanel';
 import { ValidationPanel } from './components/ValidationPanel';
 import { InvestigationView } from './components/InvestigationView';
 import { CaseSelector } from './components/CaseSelector';
+import { MobileCaseDrawer } from './components/MobileCaseDrawer';
 import { CaseSolvedScreen } from './components/CaseSolvedScreen';
 import { HomePage } from './components/HomePage';
 import { OutputPanel } from './components/terminal/OutputPanel';
@@ -17,7 +18,7 @@ import type { Case, ValidationResult } from './types';
 import type { CaseProgress } from './types/progress';
 import { validateSpans, validateYaml, type SpanValidationRule } from './lib/validation';
 import { cases } from './data/cases';
-import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, Search, LayoutPanelLeft } from 'lucide-react';
+import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, Search, LayoutPanelLeft, ChevronDown } from 'lucide-react';
 import { Group, Panel, Separator, useGroupRef, useDefaultLayout } from 'react-resizable-panels';
 
 type AppPhase = 'instrumentation' | 'investigation' | 'solved';
@@ -65,6 +66,7 @@ function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showMobileDrawer, setShowMobileDrawer] = useState(false);
 
   const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode } = useCodeRunner('python');
   const [workerError, setWorkerError] = useState<string | null>(null);
@@ -330,10 +332,15 @@ function App() {
             />
           </div>
 
-          {/* Case name (mobile) */}
-          <div className="flex-1 min-w-0 sm:hidden">
-            <div className="text-sm font-semibold text-slate-200 truncate">{currentCase.name}</div>
-          </div>
+          {/* Case name (mobile) — tappable to open case switcher */}
+          <button
+            className="flex-1 min-w-0 sm:hidden text-left flex items-center gap-1.5"
+            onClick={() => setShowMobileDrawer(true)}
+            aria-label="Switch case"
+          >
+            <span className="text-sm font-semibold text-slate-200 truncate">{currentCase.name}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+          </button>
 
           {/* Phase Switcher */}
           {currentProgress.status !== 'locked' && (
@@ -437,6 +444,15 @@ function App() {
           />
         )}
         {showWelcome && <WelcomeModal onClose={handleWelcomeClose} />}
+        {showMobileDrawer && (
+          <MobileCaseDrawer
+            cases={cases}
+            progress={allProgress}
+            currentCaseId={currentCaseId}
+            onSelect={(id) => { switchCase(id); setLocation(`/case/${id}`); }}
+            onClose={() => setShowMobileDrawer(false)}
+          />
+        )}
 
         {appPhase === 'solved' ? (
           <div className="flex-1 overflow-hidden">
