@@ -1,25 +1,51 @@
 import Editor, { type OnMount } from '@monaco-editor/react';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
   language?: string;
-  filename?: string;   // NEW: overrides displayed filename, defaults to 'payment_service.py'
+  filename?: string;   // overrides displayed filename, defaults to 'payment_service.py'
+  onRunShortcut?: () => void;  // called by Cmd/Ctrl+Enter
+  defaultWordWrap?: boolean;   // true for YAML cases, false (default) for Python
 }
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
   value,
   onChange,
   language = 'python',
-  filename,            // NEW
+  filename,
+  onRunShortcut,
+  defaultWordWrap = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
 
-  const handleEditorDidMount: OnMount = (editor) => {
+  const [fontSize, setFontSize] = useState<number>(() => {
+    return Number(localStorage.getItem('ta-editor-fontsize')) || 14;
+  });
+
+  const [wordWrap, setWordWrap] = useState<boolean>(defaultWordWrap);
+
+  const decreaseFontSize = () => {
+    const next = Math.max(10, fontSize - 1);
+    setFontSize(next);
+    localStorage.setItem('ta-editor-fontsize', String(next));
+  };
+
+  const increaseFontSize = () => {
+    const next = Math.min(20, fontSize + 1);
+    setFontSize(next);
+    localStorage.setItem('ta-editor-fontsize', String(next));
+  };
+
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+      () => { onRunShortcut?.(); }
+    );
     if (containerRef.current) {
       observerRef.current = new ResizeObserver(() => {
         editor.layout();
@@ -42,6 +68,34 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           <span className="text-xs text-slate-400">Modified</span>
         </div>
         <div className="flex items-center gap-2">
+          {/* Font size controls */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={decreaseFontSize}
+              className="px-1.5 py-0.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded transition-colors font-mono"
+              title="Decrease font size"
+            >
+              A-
+            </button>
+            <span className="text-xs text-slate-500 tabular-nums w-5 text-center">{fontSize}</span>
+            <button
+              onClick={increaseFontSize}
+              className="px-1.5 py-0.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded transition-colors font-mono"
+              title="Increase font size"
+            >
+              A+
+            </button>
+          </div>
+          {/* Word wrap toggle */}
+          <button
+            onClick={() => setWordWrap(w => !w)}
+            className={`px-2 py-0.5 text-xs rounded transition-colors ${
+              wordWrap ? 'bg-sky-500/20 text-sky-400' : 'text-slate-500 hover:text-slate-300'
+            }`}
+            title={wordWrap ? 'Word wrap: on' : 'Word wrap: off'}
+          >
+            Wrap
+          </button>
           <span className="text-xs text-slate-400">{language.toUpperCase()}</span>
         </div>
       </div>
@@ -56,7 +110,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },
-            fontSize: 14,
+            fontSize: fontSize,
             lineNumbers: 'on',
             roundedSelection: false,
             scrollBeyondLastLine: false,
@@ -64,6 +118,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             automaticLayout: false,
             padding: { top: 16 },
             fontFamily: 'JetBrains Mono, Monaco, Consolas, monospace',
+            smoothScrolling: true,
+            tabSize: 4,
+            wordWrap: wordWrap ? 'on' : 'off',
           }}
         />
       </div>
