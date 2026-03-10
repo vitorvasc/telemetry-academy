@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 Phase: 4 of 4 (Content & Polish)
 Plan: 4 of 3 in current phase (all plans complete)
 Status: In Progress
-Last activity: 2026-03-10 - Completed quick task 001: Fix Pyodide threading error, rename case dirs to numbered format, add case slug routing
+Last activity: 2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests
 
 Progress: [██████████] 100%
 
@@ -108,9 +108,10 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 001 | Fix Pyodide threading error, rename case dirs to numbered format, add case slug routing | 2026-03-10 | 16fe670 | [001-fix-pyodide-threading-rename-dirs-slug-routing](./quick/001-fix-pyodide-threading-rename-dirs-slug-routing/) |
+| 002 | Fix DataCloneError in python.worker.ts — serialize PyProxy via toJs() before postMessage, add Vitest unit tests | 2026-03-10 | ca0896a | [2-fix-datacloneerror-in-python-worker-post](./quick/2-fix-datacloneerror-in-python-worker-post/) |
 
 ## Session Continuity
 
-Last session: 2026-03-09T16:00:47Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-03-10T10:02:40Z
+Stopped at: Completed quick-002
 Resume file: None
