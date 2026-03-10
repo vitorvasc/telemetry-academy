@@ -30,6 +30,8 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
   isWorkerReady = true, // Default to true for backward compatibility
   loadingLabel,
 }) => {
+  const isMac = navigator.platform.toUpperCase().includes('MAC');
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -72,6 +74,9 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
             <>
               <Play className="w-4 h-4" />
               Check Code
+              <kbd className="ml-1 text-[10px] font-mono opacity-60 hidden sm:inline-block px-1 py-0.5 bg-white/10 rounded border border-white/20">
+                {isMac ? '⌘↵' : 'Ctrl+↵'}
+              </kbd>
             </>
           )}
         </button>
