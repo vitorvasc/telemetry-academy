@@ -30,6 +30,8 @@ function initProgress(cases: Case[]): CaseProgress[] {
   }));
 }
 
+const INITIAL_PROGRESS = initProgress(cases);
+
 function App() {
   // Persistence hook - handles loading from and saving to localStorage
   const {
@@ -43,7 +45,7 @@ function App() {
     isLoaded,
     hasSeenWelcome,
     markWelcomeSeen,
-  } = useAcademyPersistence(initProgress(cases));
+  } = useAcademyPersistence(INITIAL_PROGRESS);
 
   const [showHome, setShowHome] = useState(true);
   const [currentCaseId, setCurrentCaseId] = useState(cases[0].id);
@@ -73,6 +75,8 @@ function App() {
   }, [isLoaded, hasSeenWelcome]);
   const [workerError, setWorkerError] = useState<string | null>(null);
   const initialLoadRef = useRef(true);
+  const getSavedCodeRef = useRef(getSavedCode);
+  getSavedCodeRef.current = getSavedCode;
 
   const currentCase = cases.find(c => c.id === currentCaseId) ?? cases[0];
   const currentIdx = cases.findIndex(c => c.id === currentCaseId);
@@ -81,15 +85,17 @@ function App() {
   const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
   const phaseUnlocked = appPhase === 'investigation' || appPhase === 'solved';
 
-  // Load persisted code when persistence is ready
+  // Load persisted code when persistence is ready or case switches.
+  // getSavedCode is intentionally accessed via ref so its changing reference
+  // (caused by caseCode updates on every keystroke) does not re-trigger this effect.
   useEffect(() => {
     if (isLoaded) {
-      const saved = getSavedCode(currentCaseId);
+      const saved = getSavedCodeRef.current(currentCaseId);
       if (saved) {
         setCode(saved);
       }
     }
-  }, [isLoaded, currentCaseId, getSavedCode]);
+  }, [isLoaded, currentCaseId]);
 
   // Code auto-save effect
   useEffect(() => {

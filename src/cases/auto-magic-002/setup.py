@@ -1,17 +1,5 @@
 import micropip
-await micropip.install('opentelemetry-sdk')
 await micropip.install('opentelemetry-instrumentation-urllib')
-
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
-
-# Set up tracer
-exporter = InMemorySpanExporter()
-provider = TracerProvider()
-provider.add_span_processor(SimpleSpanProcessor(exporter))
-trace.set_tracer_provider(provider)
 
 # TODO: Enable auto-instrumentation for urllib
 # Hint: Import URLLibInstrumentor and call .instrument()

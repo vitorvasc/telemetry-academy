@@ -1,4 +1,4 @@
-import Editor, { OnMount } from '@monaco-editor/react';
+import Editor, { type OnMount } from '@monaco-editor/react';
 import React, { useRef, useEffect } from 'react';
 
 interface CodeEditorProps {
