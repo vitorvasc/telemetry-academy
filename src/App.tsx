@@ -1,6 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useLocation, useRoute } from 'wouter';
-import { CodeEditor } from './components/CodeEditor';
+
+const CodeEditor = lazy(() =>
+  import('./components/CodeEditor').then(m => ({ default: m.CodeEditor }))
+);
 import { InstructionsPanel } from './components/InstructionsPanel';
 import { ValidationPanel } from './components/ValidationPanel';
 import { InvestigationView } from './components/InvestigationView';
@@ -68,7 +71,7 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
 
-  const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode } = useCodeRunner('python');
+  const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode, loadingLabel } = useCodeRunner('python');
   const [workerError, setWorkerError] = useState<string | null>(null);
 
   // Clear validation results when code changes (prevents stale state)
@@ -490,14 +493,16 @@ function App() {
                   onLayoutChanged={rightLayout.onLayoutChanged}
                 >
                   <Panel id="ta-editor" defaultSize={70} minSize={25} className="overflow-hidden p-4">
-                    <CodeEditor
-                      value={code}
-                      onChange={setCode}
-                      language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
-                      filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
-                      onRunShortcut={handleValidate}
-                      defaultWordWrap={(currentCase as any).type === 'yaml-config'}
-                    />
+                    <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
+                      <CodeEditor
+                        value={code}
+                        onChange={setCode}
+                        language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
+                        filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
+                        onRunShortcut={handleValidate}
+                        defaultWordWrap={(currentCase as any).type === 'yaml-config'}
+                      />
+                    </Suspense>
                   </Panel>
                   <Separator className="h-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-row-resize flex-shrink-0" />
                   <Panel id="ta-bottom" defaultSize={30} minSize={15} className="overflow-hidden bg-slate-800 border-t border-slate-700">
@@ -512,6 +517,7 @@ function App() {
                           results={validationResults}
                           isValidating={isValidating}
                           isWorkerReady={isWorkerReady}
+                          loadingLabel={loadingLabel}
                           onValidate={handleValidate}
                           phaseUnlocked={phaseUnlocked}
                           onStartInvestigation={() => setAppPhase('investigation')}
@@ -545,14 +551,16 @@ function App() {
               )}
               {mobileTab === 'code' && (
                 <div className="flex-1 p-3 overflow-hidden">
-                <CodeEditor
-                  value={code}
-                  onChange={setCode}
-                  language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
-                  filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
-                  onRunShortcut={handleValidate}
-                  defaultWordWrap={(currentCase as any).type === 'yaml-config'}
-                />
+                  <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
+                    <CodeEditor
+                      value={code}
+                      onChange={setCode}
+                      language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
+                      filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
+                      onRunShortcut={handleValidate}
+                      defaultWordWrap={(currentCase as any).type === 'yaml-config'}
+                    />
+                  </Suspense>
                 </div>
               )}
               {mobileTab === 'output' && (
@@ -562,6 +570,7 @@ function App() {
                       results={validationResults}
                       isValidating={isValidating}
                       isWorkerReady={isWorkerReady}
+                      loadingLabel={loadingLabel}
                       onValidate={handleValidate}
                       phaseUnlocked={phaseUnlocked}
                       onStartInvestigation={() => { setAppPhase('investigation'); }}

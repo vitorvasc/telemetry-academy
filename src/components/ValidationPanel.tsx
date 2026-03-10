@@ -18,6 +18,7 @@ interface ValidationPanelProps {
   phaseUnlocked: boolean;
   onStartInvestigation?: () => void;
   isWorkerReady?: boolean; // Add to distinguish init vs execution
+  loadingLabel?: string; // Progressive loading stage label from useCodeRunner
 }
 
 export const ValidationPanel: React.FC<ValidationPanelProps> = ({
@@ -27,6 +28,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
   phaseUnlocked,
   onStartInvestigation,
   isWorkerReady = true, // Default to true for backward compatibility
+  loadingLabel,
 }) => {
   return (
     <div className="h-full flex flex-col">
@@ -54,7 +56,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
           {!isWorkerReady ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Loading Python...
+              <span className="text-xs">{loadingLabel || 'Loading Python...'}</span>
             </>
           ) : isValidating ? (
             <>
