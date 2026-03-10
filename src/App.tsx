@@ -479,6 +479,8 @@ function App() {
                       onChange={setCode}
                       language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
                       filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
+                      onRunShortcut={handleValidate}
+                      defaultWordWrap={(currentCase as any).type === 'yaml-config'}
                     />
                   </Panel>
                   <Separator className="h-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-row-resize flex-shrink-0" />
@@ -532,6 +534,8 @@ function App() {
                   onChange={setCode}
                   language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
                   filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
+                  onRunShortcut={handleValidate}
+                  defaultWordWrap={(currentCase as any).type === 'yaml-config'}
                 />
                 </div>
               )}
