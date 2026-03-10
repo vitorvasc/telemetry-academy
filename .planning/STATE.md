@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 Phase: 4 of 4 (Content & Polish)
 Plan: 4 of 3 in current phase (all plans complete)
 Status: In Progress
-Last activity: 2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests
+Last activity: 2026-03-10 - Completed quick task 003: UI improvements — keyboard shortcut hint, Monaco cursor fix, phase switcher clarity
 
 Progress: [██████████] 100%
 
@@ -135,9 +135,10 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 001 | Fix Pyodide threading error, rename case dirs to numbered format, add case slug routing | 2026-03-10 | 16fe670 | [001-fix-pyodide-threading-rename-dirs-slug-routing](./quick/001-fix-pyodide-threading-rename-dirs-slug-routing/) |
 | 002 | Fix DataCloneError in python.worker.ts — serialize PyProxy via toJs() before postMessage, add Vitest unit tests | 2026-03-10 | ca0896a | [2-fix-datacloneerror-in-python-worker-post](./quick/2-fix-datacloneerror-in-python-worker-post/) |
+| 003 | UI improvements: keyboard shortcut hint on Check Code, Monaco cursor jump fix (uncontrolled defaultValue), phase switcher clarity + lock icon | 2026-03-10 | bfe89e8 | [3-ui-improvements-keyboard-shortcut-hint-o](./quick/3-ui-improvements-keyboard-shortcut-hint-o/) |
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:43:25.377Z
-Stopped at: Completed 05-06-PLAN.md — Panel size props from bare numbers to string percentages
+Last session: 2026-03-10T13:59:29Z
+Stopped at: Completed quick task 003 — UI improvements: keyboard shortcut, Monaco cursor fix, phase switcher
 Resume file: None
