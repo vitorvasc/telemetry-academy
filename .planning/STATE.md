@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 Phase: 4 of 4 (Content & Polish)
 Plan: 4 of 3 in current phase (all plans complete)
 Status: In Progress
-Last activity: 2026-03-10 - Completed quick task 003: UI improvements — keyboard shortcut hint, Monaco cursor fix, phase switcher clarity
+Last activity: 2026-03-10 - Completed quick task 4: keep instructions panel visible in investigation phase
 
 Progress: [██████████] 100%
 
