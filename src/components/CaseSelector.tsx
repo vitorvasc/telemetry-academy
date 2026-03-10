@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Case } from '../types';
 import type { CaseProgress } from '../types/progress';
-import { Lock, CheckCircle2, Circle } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 interface CaseSelectorProps {
   cases: Case[];
@@ -9,6 +9,24 @@ interface CaseSelectorProps {
   currentCaseId: string;
   onSelect: (id: string) => void;
 }
+
+type PhaseStatus = 'solved' | 'phase1done' | 'active' | 'available' | 'locked';
+
+const getPhaseStatus = (prog: CaseProgress): PhaseStatus => {
+  if (prog.status === 'solved') return 'solved';
+  if (prog.phase === 'investigation' || prog.phase === 'complete') return 'phase1done';
+  if (prog.status === 'in-progress') return 'active';
+  if (prog.status === 'available') return 'available';
+  return 'locked';
+};
+
+const ProgressDot: React.FC<{ status: PhaseStatus }> = ({ status }) => {
+  if (status === 'solved') return <div className="w-2.5 h-2.5 rounded-full bg-green-400 flex-shrink-0" />;
+  if (status === 'phase1done') return <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60 border border-amber-400 flex-shrink-0" />;
+  if (status === 'active') return <div className="w-2.5 h-2.5 rounded-full border-2 border-sky-400 flex-shrink-0" />;
+  if (status === 'available') return <div className="w-2.5 h-2.5 rounded-full border border-slate-500 flex-shrink-0" />;
+  return <Lock className="w-2.5 h-2.5 text-slate-700 flex-shrink-0" />;
+};
 
 const DIFFICULTY_COLOR = {
   rookie: 'text-green-400',
@@ -53,14 +71,8 @@ export const CaseSelector: React.FC<CaseSelectorProps> = ({
               }
             `}
           >
-            {/* Status Icon */}
-            {isSolved ? (
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
-            ) : isLocked ? (
-              <Lock className="w-3 h-3 text-slate-700 flex-shrink-0" />
-            ) : (
-              <Circle className={`w-3.5 h-3.5 flex-shrink-0 ${isCurrent ? 'text-sky-400' : 'text-slate-600'}`} />
-            )}
+            {/* Phase-aware progress indicator */}
+            {prog && <ProgressDot status={getPhaseStatus(prog)} />}
 
             {/* Number + Name */}
             <span>
