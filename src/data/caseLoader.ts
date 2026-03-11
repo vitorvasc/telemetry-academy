@@ -12,12 +12,12 @@ import type { Case } from '../types';
 
 // Auto-discover all case YAMLs and Python setup files
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const caseYamls = import.meta.glob('../cases/*/case.yaml', { eager: true }) as Record<string, any>;
+const caseYamls: Record<string, any> = import.meta.glob('../cases/*/case.yaml', { eager: true });
 const caseSetups = import.meta.glob('../cases/*/setup.py', {
   eager: true,
   query: '?raw',
   import: 'default',
-}) as Record<string, string>;
+});
 
 function getCaseId(path: string): string {
   // '../cases/001-hello-span/case.yaml' -> '001-hello-span'
@@ -26,6 +26,7 @@ function getCaseId(path: string): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildCase(yamlData: any, setupCode: string): Case {
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
   return {
     ...yamlData,
     phase1: {
@@ -33,6 +34,7 @@ function buildCase(yamlData: any, setupCode: string): Case {
       initialCode: setupCode,
     },
   } as Case;
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 }
 
 export function loadCases(): Case[] {
@@ -42,6 +44,7 @@ export function loadCases(): Case[] {
     const id = getCaseId(path);
     const entry = caseMap.get(id) ?? { yaml: null, code: '' };
     // vite-plugin-yaml exports default or the object directly
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     entry.yaml = module?.default ?? module;
     caseMap.set(id, entry);
   }
@@ -49,7 +52,7 @@ export function loadCases(): Case[] {
   for (const [path, code] of Object.entries(caseSetups)) {
     const id = getCaseId(path);
     const entry = caseMap.get(id) ?? { yaml: null, code: '' };
-    entry.code = code;
+    entry.code = code as string;
     caseMap.set(id, entry);
   }
 

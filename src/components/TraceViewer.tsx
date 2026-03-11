@@ -37,7 +37,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({ spans, totalDurationMs
   const [copied, setCopied] = useState(false);
 
   const handleCopyTraceId = () => {
-    navigator.clipboard.writeText(traceId);
+    void navigator.clipboard.writeText(traceId);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };

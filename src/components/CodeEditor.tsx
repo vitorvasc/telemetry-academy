@@ -6,7 +6,7 @@ interface CodeEditorProps {
   onChange: (value: string) => void;
   language?: string;
   filename?: string;   // overrides displayed filename, defaults to 'payment_service.py'
-  onRunShortcut?: () => void;  // called by Cmd/Ctrl+Enter
+  onRunShortcut?: () => void | Promise<void>;  // called by Cmd/Ctrl+Enter
   defaultWordWrap?: boolean;   // true for YAML cases, false (default) for Python
   caseKey?: string;            // pass currentCaseId; changes trigger imperative setValue to reset editor
 }
@@ -21,6 +21,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   caseKey,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const latestValueRef = useRef(value);
@@ -50,13 +51,17 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     editorRef.current = editor;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     editor.addCommand(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
-      () => { onRunShortcut?.(); }
+      () => { void onRunShortcut?.(); }
     );
     if (containerRef.current) {
       observerRef.current = new ResizeObserver(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         editor.layout();
       });
       observerRef.current.observe(containerRef.current);
@@ -73,9 +78,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   // and cursor without relying on the controlled value prop (which causes cursor jumps).
   useEffect(() => {
     if (editorRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const model = editorRef.current.getModel();
       if (model) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         model.setValue(latestValueRef.current);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         editorRef.current.setPosition({ lineNumber: 1, column: 1 });
       }
     }

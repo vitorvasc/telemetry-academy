@@ -3,12 +3,26 @@ import setupScript from '../workers/python/setup_telemetry.py?raw';
 
 export type Language = 'python';
 
+interface WorkerMessage {
+  type: string;
+  id?: string;
+  error?: string;
+  label?: string;
+  stage?: number;
+  total?: number;
+  message?: string;
+  span?: Record<string, unknown>;
+  result?: unknown;
+}
+
 function createWorker(language: Language): Worker {
   // Static URL patterns required for Vite to detect and bundle worker files.
   // Each language branch must use a literal string in new URL().
   if (language === 'python') {
     return new Worker(new URL('../workers/python.worker.ts', import.meta.url), { type: 'module' });
   }
+  // language is narrowed to never here; cast to string for the error message
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   throw new Error(`Unsupported language: ${language}`);
 }
 
@@ -31,20 +45,22 @@ export function useCodeRunner(language: Language = 'python') {
     setIsReady(false);
     setInitError(null);
 
-    worker.onmessage = (event) => {
+    worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       const { type, error, id } = event.data;
       if (type === 'ready') {
         setIsReady(true);
         setLoadingLabel('');
       } else if (type === 'loading-stage') {
-        setLoadingLabel(`${event.data.label} (${event.data.stage}/${event.data.total})`);
+        setLoadingLabel(`${event.data.label ?? ''} (${event.data.stage ?? 0}/${event.data.total ?? 0})`);
       } else if (type === 'error' && !id) {  // run errors have an id; ignore them here
+        // eslint-disable-next-line no-console
         console.error('Worker initialization error:', error);
-        setInitError(error);
+        setInitError(error ?? null);
       }
     };
 
     worker.onerror = (error) => {
+      // eslint-disable-next-line no-console
       console.error('Worker global error:', error);
       setInitError(String(error.message || 'Worker global error'));
     };
@@ -86,27 +102,21 @@ export function useCodeRunner(language: Language = 'python') {
         reject(new Error(`Execution timed out after ${timeoutMs}ms`));
       }, timeoutMs);
 
-      const messageHandler = (event: MessageEvent) => {
-        let data = event.data;
-
-        if (typeof data === 'string') {
-          try {
-            data = JSON.parse(data);
-          } catch {
-            return;
-          }
-        }
+      const messageHandler = (event: MessageEvent<WorkerMessage>) => {
+        const data = event.data;
 
         const { type, id, result, error, message, span } = data;
 
         if (type === 'stdout') {
-          setOutput(prev => [...prev, message]);
+          setOutput(prev => [...prev, message ?? '']);
           return;
         }
 
         if (type === 'telemetry') {
-          collectedSpans.push(span);
-          setSpans(prev => [...prev, span]);
+          if (span) {
+            collectedSpans.push(span);
+            setSpans(prev => [...prev, span]);
+          }
           return;
         }
 

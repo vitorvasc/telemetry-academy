@@ -14,7 +14,7 @@ import {
 interface ValidationPanelProps {
   results: ValidationResult[];
   isValidating: boolean;
-  onValidate: () => void;
+  onValidate: () => void | Promise<void>;
   phaseUnlocked: boolean;
   onStartInvestigation?: () => void;
   isWorkerReady?: boolean; // Add to distinguish init vs execution
@@ -45,7 +45,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
         </div>
         
         <button
-          onClick={onValidate}
+          onClick={() => { void onValidate(); }}
           title={buttonTitle}
           disabled={!isWorkerReady || isValidating || phaseUnlocked}
           className={`

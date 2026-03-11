@@ -120,7 +120,10 @@ export function normalizeAttributes(attributes: Record<string, unknown>): Record
       normalized[key] = '';
     } else if (Array.isArray(value)) {
       normalized[key] = value.join(', ');
+    } else if (typeof value === 'object') {
+      normalized[key] = JSON.stringify(value);
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       normalized[key] = String(value);
     }
   }

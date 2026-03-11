@@ -58,6 +58,7 @@ export function useAcademyPersistence(
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const parsed: PersistedState = JSON.parse(stored);
 
         // Check version for schema migration
@@ -68,6 +69,7 @@ export function useAcademyPersistence(
           setHasSeenWelcome(parsed.hasSeenWelcome ?? false);
         } else {
           // Version mismatch - clear and use initial values
+          // eslint-disable-next-line no-console
           console.warn(`Schema version mismatch: stored=${parsed.version}, expected=${SCHEMA_VERSION}. Clearing localStorage.`);
           localStorage.removeItem(STORAGE_KEY);
           setProgress(initialProgress);
@@ -76,6 +78,7 @@ export function useAcademyPersistence(
         }
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to load from localStorage:', error);
       // On error, use initial values
       setProgress(initialProgress);
@@ -111,8 +114,10 @@ export function useAcademyPersistence(
       } catch (error) {
         // Handle quota exceeded error
         if (error instanceof Error && error.name === 'QuotaExceededError') {
+          // eslint-disable-next-line no-console
           console.warn('localStorage quota exceeded. Progress not saved.');
         } else {
+          // eslint-disable-next-line no-console
           console.error('Failed to save to localStorage:', error);
         }
       }

@@ -385,6 +385,7 @@ export function evaluateGuess(
     };
   } catch (error) {
     // Graceful degradation if evaluation fails
+    // eslint-disable-next-line no-console
     console.error('Error evaluating guess:', error);
     return {
       correct: false,

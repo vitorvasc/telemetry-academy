@@ -92,7 +92,7 @@ function createErrorLog(span: TraceSpan): LogEvent | null {
   if (span.status !== 'error') return null;
 
   const attrs = span.attributes;
-  let message: string | null = null;
+  let message: string | null;
   const timestamp = span.offsetMs + span.durationMs - 5; // Near end
 
   // Check for error message
