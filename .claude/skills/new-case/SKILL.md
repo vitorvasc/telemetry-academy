@@ -172,3 +172,20 @@ Run these checks before declaring done:
 5. Does `setup.py` leave exactly the right gap for the user to fill?
 
 Run: `npm run dev` and load the case in browser to confirm no console errors.
+
+## Step 7: Update sitemap.xml
+
+File: `public/sitemap.xml`
+
+Add the new case URL to the sitemap so Google indexes it:
+
+```xml
+<url>
+  <loc>https://telemetry.academy/case/<id></loc>
+  <lastmod>YYYY-MM-DD</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+```
+
+Use today's date for `lastmod`. Place it after the last existing `<url>` block, before `</urlset>`.
