@@ -1,11 +1,8 @@
-# Telemetry Academy 🎓
+# Telemetry Academy
 
-> Learn OpenTelemetry by instrumenting real systems and investigating real incidents.
+> Learn OpenTelemetry by doing — instrument real systems, then investigate real incidents.
 
-A gamified learning platform that combines **zero-to-hero OpenTelemetry education** with **incident investigation gameplay**. Each case has two phases that mirror real SRE workflows:
-
-1. **Phase 1: Instrumentation** — Add telemetry to a blind system
-2. **Phase 2: Investigation** — Use the data to find root causes
+**Live:** [telemetry.academy](https://telemetry.academy) &nbsp;·&nbsp; **GitHub:** [vitorvasc/telemetry-academy](https://github.com/vitorvasc/telemetry-academy)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)
@@ -14,151 +11,101 @@ A gamified learning platform that combines **zero-to-hero OpenTelemetry educatio
 
 ---
 
-## 🚀 Quick Start
+## What It Is
+
+A gamified, browser-based OTel learning platform. Each case has two phases that mirror real SRE workflows:
+
+1. **Phase 1 — Instrumentation:** Add telemetry to a blind system (Python runs in-browser via Pyodide WASM)
+2. **Phase 2 — Investigation:** Use the data you created to find the root cause of a synthetic incident
+
+No backend required. No account needed. Everything runs in your browser.
+
+---
+
+## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
-
-# Build for production
-npm run build
 ```
 
-Open http://localhost:5173 to view the application.
+Open [http://localhost:5173](http://localhost:5173).
 
 ---
 
-## 🎮 How It Works
+## Case Progression
 
-### Phase 1: Instrumentation
-
-The system starts "blind" — no telemetry is flowing. Your mission is to:
-
-- Add manual spans using the OpenTelemetry API
-- Configure auto-instrumentation
-- Set up the Collector pipeline
-- Export telemetry to the backend
-
-**Example:**
-```python
-from opentelemetry import trace
-
-tracer = trace.get_tracer(__name__)
-
-def process_order(order_id):
-    with tracer.start_as_current_span("process_order") as span:
-        span.set_attribute("order_id", order_id)
-        # Your logic here
-```
-
-### Phase 2: Investigation
-
-Once telemetry flows, investigate incidents using:
-
-- **Trace Explorer** — Visualize request flows
-- **Log Search** — Correlate logs with traces using `trace_id`
-- **Metrics Dashboard** — Identify anomalies
-
-Find the root cause and propose the fix!
+| # | Case | Concept | Difficulty | Status |
+|---|------|---------|------------|--------|
+| 1 | Hello, Span | Manual instrumentation | Rookie | ✅ Done |
+| 2 | Auto-magic | Auto-instrumentation | Rookie | ✅ Done |
+| 3 | The Collector | Collector pipeline / YAML | Junior | Planned |
+| 4 | Broken Context | Context propagation | Junior | Planned |
+| 5 | The Baggage | Baggage attributes | Senior | Planned |
+| 6 | Metrics Meet Traces | Signal correlation | Senior | Planned |
+| 7 | Log Detective | Logs in traces | Staff | Planned |
+| 8 | Sampling Sleuth | Head/tail sampling | Staff | Planned |
+| 9 | The Perfect Storm | Everything together | Expert | Planned |
 
 ---
 
-## 📚 Case Progression
+## Architecture
 
-| Case | Concept | Difficulty |
-|------|---------|------------|
-| Hello, Span | Manual instrumentation | Rookie |
-| Auto-magic | Auto-instrumentation | Rookie |
-| The Collector | Collector pipeline | Junior |
-| Broken Context | Context propagation | Junior |
-| The Baggage | Baggage attributes | Senior |
-| Metrics Meet Traces | Signal correlation | Senior |
-| Log Detective | Logs in traces | Staff |
-| Sampling Sleuth | Head/tail sampling | Staff |
-| The Perfect Storm | Everything together | Expert |
-
----
-
-## 🏗️ Project Structure
+- **Runtime:** Python executes in a Pyodide Web Worker (WASM) — zero backend
+- **OTel bridge:** Custom `JSSpanExporter` posts spans from Python → JavaScript via `postMessage`
+- **Validation:** 8 declarative check types evaluate spans in real time
+- **Investigation:** Synthetic traces, logs, and a rules-based root cause engine
+- **Persistence:** `localStorage` only — no auth, no accounts
 
 ```
 src/
-├── components/          # React components
-│   ├── CodeEditor.tsx   # Monaco Editor wrapper
-│   ├── InstructionsPanel.tsx  # Case instructions & hints
-│   └── ValidationPanel.tsx    # Validation results UI
-├── data/
-│   └── cases.ts         # Case definitions
-├── types.ts             # TypeScript interfaces
-├── App.tsx              # Main application
-└── main.tsx             # Entry point
+├── cases/<id>/          # case.yaml + setup.py (auto-discovered)
+├── components/          # React UI (TraceViewer, LogViewer, CodeEditor…)
+├── data/                # caseLoader.ts, phase2.ts
+├── hooks/               # useCodeRunner, useAcademyPersistence
+├── lib/                 # validation.ts, rootCauseEngine.ts, spanTransform.ts
+├── types/               # TypeScript interfaces
+└── workers/             # python.worker.ts + setup_telemetry.py
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Frontend:** React 19 + TypeScript + Vite
-- **Styling:** Tailwind CSS v4
-- **Editor:** Monaco Editor (@monaco-editor/react)
-- **Icons:** Lucide React
-
----
-
-## 🎯 Current Status
-
-This is a **Phase 1 prototype** (frontend mock):
-
-- ✅ Monaco Editor with Python syntax
-- ✅ Case instructions and hints panel
-- ✅ Mock validation (simple string matching)
-- ✅ Phase unlock flow
-- 🚧 Real code execution (WIP)
-- 🚧 Trace visualization (WIP)
-- 🚧 Phase 2 investigation UI (WIP)
+| Layer | Tech |
+|-------|------|
+| Frontend | React 19 + TypeScript + Vite |
+| Styling | Tailwind CSS v4 |
+| Editor | Monaco Editor (`@monaco-editor/react`) |
+| Python runtime | Pyodide 0.29.3 (WASM) |
+| OTel SDK | `opentelemetry-api` + `opentelemetry-sdk` (via micropip) |
+| Icons | Lucide React |
 
 ---
 
-## 📝 Case Definition Format
+## Contributing
 
-Cases are defined in YAML-like TypeScript:
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
-```typescript
-{
-  id: 'hello-span-001',
-  name: 'Hello, Span',
-  difficulty: 'rookie',
-  concepts: ['manual_instrumentation', 'spans'],
-  phase1: {
-    description: '...',
-    initialCode: '...',
-    validations: [
-      {
-        type: 'span_exists',
-        description: 'A span must be created',
-        successMessage: '✓ Span created!',
-        errorMessage: '✗ No span found'
-      }
-    ]
-  }
-}
-```
+Development follows the **GSD (Get Shit Done)** workflow: Research → CONTEXT.md → PLAN.md → Execute → VERIFICATION.md. All planning artifacts live in `.planning/`.
+
+The fastest way to contribute is to **author a new case** — see [docs/adding_cases.md](docs/adding_cases.md).
 
 ---
 
-## 🤝 Contributing
+## Related Projects
 
-This project is in early development. Ideas, feedback, and contributions welcome!
-
----
-
-## 📄 License
-
-MIT License — see LICENSE for details.
+- [SDPD](https://sdpd.live) — System Design Police Department (inspiration for investigation mechanics)
+- [SQLPD](https://sqlpd.com) — SQL Police Department (original detective game format)
+- [Quest World](https://github.com/grafana/adventure) — Grafana's observability adventure game
+- [OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo) — Official OTel reference application
 
 ---
 
-*Built with 💡 by Vitor Vasconcellos and Lumen*
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
+
+---
+
+*Built by [Vitor Vasconcellos](https://github.com/vitorvasc)*
