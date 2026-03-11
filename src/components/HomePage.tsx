@@ -44,8 +44,8 @@ function CaseList({ progress, solvedCount, clearancePct, onSelect }: CaseListPro
     <div className="flex flex-col">
       <div className="px-4 py-3 border-b border-slate-800">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] uppercase tracking-widest text-slate-500">Clearance</span>
-          <span className="text-[10px] text-slate-400">{solvedCount}/{cases.length}</span>
+          <span className="text-[10px] xl:text-xs uppercase tracking-widest text-slate-500">Clearance</span>
+          <span className="text-[10px] xl:text-xs text-slate-400">{solvedCount}/{cases.length}</span>
         </div>
         <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
           <div
@@ -67,7 +67,7 @@ function CaseList({ progress, solvedCount, clearancePct, onSelect }: CaseListPro
             `}
           >
             <StatusDot status={status} />
-            <span className={`text-xs truncate ${status === 'solved' ? 'text-slate-500 line-through' : status !== 'locked' ? 'text-slate-300' : 'text-slate-500'}`}>
+            <span className={`text-xs xl:text-sm truncate ${status === 'solved' ? 'text-slate-500 line-through' : status !== 'locked' ? 'text-slate-300' : 'text-slate-500'}`}>
               {String(i + 1).padStart(2, '0')} — {c.name}
             </span>
           </button>
@@ -109,13 +109,13 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center flex-shrink-0">
               <Shield className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-sm font-bold text-slate-200 tracking-wide">Telemetry Academy</span>
+            <span className="text-sm xl:text-base 2xl:text-lg font-bold text-slate-200 tracking-wide">Telemetry Academy</span>
           </div>
 
           <div className="flex-1" />
 
           {/* Stats */}
-          <div className="flex items-center divide-x divide-slate-800 text-[11px]">
+          <div className="flex items-center divide-x divide-slate-800 text-[11px] xl:text-xs 2xl:text-sm">
             <div className="flex items-center gap-1 pr-3 md:flex hidden">
               <span className="text-slate-500 uppercase tracking-wider">Rank</span>
               <span className="font-bold text-sky-400">{rank}</span>
@@ -168,14 +168,14 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center mb-5 shadow-xl shadow-sky-500/20">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
+            <h1 className="text-2xl sm:text-3xl xl:text-4xl 2xl:text-5xl font-black tracking-tight text-white mb-2">
               TELEMETRY ACADEMY
             </h1>
-            <p className="text-slate-500 text-sm mb-8 max-w-xs">
+            <p className="text-slate-500 text-sm xl:text-base 2xl:text-lg mb-8 max-w-xs">
               Learn OpenTelemetry by instrumenting real systems and investigating real incidents.
             </p>
             {/* How it works teaser */}
-            <div className="flex items-center gap-4 text-xs text-slate-500 mb-6">
+            <div className="flex items-center gap-4 text-xs xl:text-sm 2xl:text-base text-slate-500 mb-6">
               <span>Instrument</span>
               <span className="text-slate-700">→</span>
               <span>Investigate</span>
@@ -190,8 +190,8 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                 { label: 'CLEARED', value: `${clearancePct}%`, color: 'text-violet-400' },
               ].map(({ label, value, color }, i, arr) => (
                 <div key={label} className={`flex-1 flex flex-col items-center py-4 ${i < arr.length - 1 ? 'border-r border-slate-800' : ''}`}>
-                  <span className={`text-xl font-black ${color}`}>{value}</span>
-                  <span className="text-[9px] uppercase tracking-widest text-slate-500 mt-1">{label}</span>
+                  <span className={`text-xl xl:text-2xl 2xl:text-3xl font-black ${color}`}>{value}</span>
+                  <span className="text-[9px] xl:text-[10px] 2xl:text-xs uppercase tracking-widest text-slate-500 mt-1">{label}</span>
                 </div>
               ))}
             </div>
@@ -201,9 +201,9 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
           <div className="px-4 sm:px-8 py-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-0.5 h-4 bg-gradient-to-b from-sky-500 to-violet-600 rounded-full" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Incidents</span>
+              <span className="text-xs xl:text-sm font-bold uppercase tracking-widest text-slate-300">Incidents</span>
               <div className="flex-1 h-px bg-slate-800" />
-              <span className="text-xs text-slate-600">{solvedCount}/{cases.length} cleared</span>
+              <span className="text-xs xl:text-sm text-slate-600">{solvedCount}/{cases.length} cleared</span>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -240,25 +240,25 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                       {/* Text */}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                          <span className="font-bold text-sm text-slate-100">{c.name}</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide ${getDifficultyColor(c.difficulty)}`}>
+                          <span className="font-bold text-sm xl:text-base text-slate-100">{c.name}</span>
+                          <span className={`text-[10px] xl:text-xs font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide ${getDifficultyColor(c.difficulty)}`}>
                             {c.difficulty}
                           </span>
                           {isSolved && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-green-800/50 text-green-400 bg-green-950/40 uppercase">
+                            <span className="text-[10px] xl:text-xs font-bold px-1.5 py-0.5 rounded border border-green-800/50 text-green-400 bg-green-950/40 uppercase">
                               Cleared
                             </span>
                           )}
                         </div>
                         <div className="flex flex-wrap gap-1 mb-2">
                           {c.concepts.map(concept => (
-                            <span key={concept} className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                            <span key={concept} className="text-[10px] xl:text-xs px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
                               {concept.replace(/_/g, ' ')}
                             </span>
                           ))}
                         </div>
                         {!isLocked && (
-                          <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                          <p className="text-xs xl:text-sm text-slate-500 line-clamp-2 leading-relaxed">
                             {c.phase1.description.replace(/\*\*/g, '').replace(/#+\s/g, '').trim().split('\n').filter(Boolean)[0]}
                           </p>
                         )}
@@ -268,7 +268,7 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                     {/* CTA */}
                     {!isLocked && (
                       <div className="mt-3 flex justify-end">
-                        <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold
+                        <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs xl:text-sm font-bold
                           ${isSolved
                             ? 'bg-slate-800 text-slate-400 border border-slate-700'
                             : 'bg-gradient-to-r from-sky-500 to-violet-600 text-white shadow-lg shadow-sky-500/20'
