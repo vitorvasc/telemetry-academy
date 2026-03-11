@@ -39,7 +39,7 @@ describe('InstructionsPanel', () => {
     );
     // There should be no button element with "Hints" text (it's always visible now)
     const buttons = screen.queryAllByRole('button');
-    const hintsButton = buttons.find((btn) => btn.textContent?.includes('Hints'));
+    const hintsButton = buttons.find((btn: HTMLElement) => btn.textContent?.includes('Hints'));
     expect(hintsButton).toBeUndefined();
   });
 

@@ -238,7 +238,7 @@ function App() {
     }
 
     // Python worker path
-    let runSpans: Record<string, unknown>[] = [];
+    let runSpans: typeof spans = [];
     try {
       const runResult = await runCode(code);
       runSpans = runResult.spans;

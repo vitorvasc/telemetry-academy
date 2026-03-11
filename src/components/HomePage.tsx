@@ -157,7 +157,7 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
 
         {/* Desktop sidebar */}
         <aside className="hidden md:flex flex-col w-56 flex-shrink-0 border-r border-slate-800 sticky top-[49px] self-start h-[calc(100vh-49px)] overflow-y-auto">
-          <CaseList />
+          <CaseList progress={progress} solvedCount={solvedCount} clearancePct={clearancePct} onSelect={handleSelect} />
         </aside>
 
         {/* Content */}

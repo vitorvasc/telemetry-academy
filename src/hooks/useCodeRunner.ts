@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import setupScript from '../workers/python/setup_telemetry.py?raw';
+import type { RawOTelSpan } from './usePhase2Data';
 
 export type Language = 'python';
 
@@ -31,7 +32,7 @@ export function useCodeRunner(language: Language = 'python') {
   const [initError, setInitError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<string[]>([]);
-  const [spans, setSpans] = useState<Record<string, unknown>[]>([]);
+  const [spans, setSpans] = useState<RawOTelSpan[]>([]);
   const [loadingLabel, setLoadingLabel] = useState<string>('');
   const workerRef = useRef<Worker | null>(null);
 
@@ -78,7 +79,7 @@ export function useCodeRunner(language: Language = 'python') {
     };
   }, [initWorker]);
 
-  const runCode = useCallback((code: string, timeoutMs = 5000): Promise<{ result: unknown; spans: Record<string, unknown>[] }> => {
+  const runCode = useCallback((code: string, timeoutMs = 5000): Promise<{ result: unknown; spans: RawOTelSpan[] }> => {
     return new Promise((resolve, reject) => {
       if (!workerRef.current || !isReady) {
         reject(new Error('Worker is not ready'));
@@ -89,7 +90,7 @@ export function useCodeRunner(language: Language = 'python') {
       setOutput([]);
       setSpans([]);
 
-      const collectedSpans: Record<string, unknown>[] = [];
+      const collectedSpans: RawOTelSpan[] = [];
       const runId = Math.random().toString(36).substring(7);
 
       const timeoutId = setTimeout(() => {
@@ -114,8 +115,9 @@ export function useCodeRunner(language: Language = 'python') {
 
         if (type === 'telemetry') {
           if (span) {
-            collectedSpans.push(span);
-            setSpans(prev => [...prev, span]);
+            const rawSpan = span as unknown as RawOTelSpan;
+            collectedSpans.push(rawSpan);
+            setSpans(prev => [...prev, rawSpan]);
           }
           return;
         }

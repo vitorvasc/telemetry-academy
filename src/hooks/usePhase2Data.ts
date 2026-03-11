@@ -8,7 +8,7 @@ import { phase2Registry } from '../data/phase2';
 /**
  * Raw OTel span format from the Python worker telemetry
  */
-interface RawOTelSpan {
+export interface RawOTelSpan {
   name: string;
   context: { span_id: string; trace_id: string };
   parent_id?: string;

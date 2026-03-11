@@ -163,7 +163,7 @@ export function transformSpans(rawSpans: RawOTelSpan[]): TraceSpan[] {
     return {
       id: span.context.span_id,
       name: span.name,
-      service: span.attributes?.['service.name'] || 'unknown-service',
+      service: typeof span.attributes?.['service.name'] === 'string' ? span.attributes['service.name'] : 'unknown-service',
       durationMs,
       offsetMs,
       status: deriveStatus(span),
