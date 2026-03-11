@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 Phase: 4 of 4 (Content & Polish)
 Plan: 4 of 3 in current phase (all plans complete)
 Status: In Progress
-Last activity: 2026-03-10 - Completed quick task 5: fix markdown rendering in InstructionsPanel
+Last activity: 2026-03-11 - Completed quick task 7: fix font size scaling on 2K resolution, especially homepage
 
 Progress: [██████████] 100%
 
@@ -139,6 +139,7 @@ None yet.
 | 004 | Keep InstructionsPanel visible in investigation phase — 25/75 resizable split layout on desktop, mobile unchanged | 2026-03-10 | 2611d92 | [4-keep-instructions-panel-visible-in-inves](./quick/4-keep-instructions-panel-visible-in-inves/) |
 | 005 | Fix markdown rendering in InstructionsPanel — ReactMarkdown with @tailwindcss/typography for descriptions and hints | 2026-03-10 | a54a8a5 | [5-fix-markdown-rendering-in-instructions-p](./quick/5-fix-markdown-rendering-in-instructions-p/) |
 | 006 | Investigation UX: collapsed spans, realistic generated trace ID with copy button, phaseUnlocked decoupled from appPhase | 2026-03-10 | fe6f622 | [6-1-when-in-the-investigation-phase-on-cas](./quick/6-1-when-in-the-investigation-phase-on-cas/) |
+| 007 | fix font size scaling on 2K resolution, especially homepage | 2026-03-11 | f0091f3 | [7-fix-font-size-scaling-on-2k-resolution-e](./quick/7-fix-font-size-scaling-on-2k-resolution-e/) |
 
 ## Session Continuity
 
