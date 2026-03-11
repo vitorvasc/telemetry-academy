@@ -22,15 +22,46 @@
     <meta property="og:image" content="https://telemetry.academy/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Telemetry Academy — Learn OpenTelemetry Hands-On" />
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Telemetry Academy — Learn OpenTelemetry Hands-On" />
     <meta name="twitter:description" content="Learn OpenTelemetry by instrumenting real systems and investigating real incidents. Gamified, browser-based learning for developers." />
     <meta name="twitter:image" content="https://telemetry.academy/og-image.png" />
+    <meta name="twitter:image:alt" content="Telemetry Academy — Learn OpenTelemetry Hands-On" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://telemetry.academy/" />
+
+    <!-- Robots -->
+    <meta name="robots" content="index, follow" />
 
     <!-- Theme -->
     <meta name="theme-color" content="#0f172a" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://telemetry.academy/#website",
+          "url": "https://telemetry.academy/",
+          "name": "Telemetry Academy",
+          "description": "Learn OpenTelemetry by instrumenting real systems and investigating real incidents."
+        },
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://telemetry.academy/#organization",
+          "name": "Telemetry Academy",
+          "url": "https://telemetry.academy/",
+          "description": "Gamified, browser-based OpenTelemetry learning for developers — from zero to hero."
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
