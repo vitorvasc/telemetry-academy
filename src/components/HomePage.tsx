@@ -109,13 +109,13 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center flex-shrink-0">
               <Shield className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-sm xl:text-base 2xl:text-lg font-bold text-slate-200 tracking-wide">Telemetry Academy</span>
+            <span className="text-sm xl:text-base font-bold text-slate-200 tracking-wide">Telemetry Academy</span>
           </div>
 
           <div className="flex-1" />
 
           {/* Stats */}
-          <div className="flex items-center divide-x divide-slate-800 text-[11px] xl:text-xs 2xl:text-sm">
+          <div className="flex items-center divide-x divide-slate-800 text-[11px] xl:text-xs">
             <div className="flex items-center gap-1 pr-3 md:flex hidden">
               <span className="text-slate-500 uppercase tracking-wider">Rank</span>
               <span className="font-bold text-sky-400">{rank}</span>
@@ -168,14 +168,14 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center mb-5 shadow-xl shadow-sky-500/20">
               <Shield className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl xl:text-4xl 2xl:text-5xl font-black tracking-tight text-white mb-2">
+            <h1 className="text-2xl sm:text-3xl xl:text-4xl font-black tracking-tight text-white mb-2">
               TELEMETRY ACADEMY
             </h1>
-            <p className="text-slate-500 text-sm xl:text-base 2xl:text-lg mb-8 max-w-xs">
+            <p className="text-slate-500 text-sm xl:text-base mb-8 max-w-xs">
               Learn OpenTelemetry by instrumenting real systems and investigating real incidents.
             </p>
             {/* How it works teaser */}
-            <div className="flex items-center gap-4 text-xs xl:text-sm 2xl:text-base text-slate-500 mb-6">
+            <div className="flex items-center gap-4 text-xs xl:text-sm text-slate-500 mb-6">
               <span>Instrument</span>
               <span className="text-slate-700">→</span>
               <span>Investigate</span>
@@ -190,8 +190,8 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                 { label: 'CLEARED', value: `${clearancePct}%`, color: 'text-violet-400' },
               ].map(({ label, value, color }, i, arr) => (
                 <div key={label} className={`flex-1 flex flex-col items-center py-4 ${i < arr.length - 1 ? 'border-r border-slate-800' : ''}`}>
-                  <span className={`text-xl xl:text-2xl 2xl:text-3xl font-black ${color}`}>{value}</span>
-                  <span className="text-[9px] xl:text-[10px] 2xl:text-xs uppercase tracking-widest text-slate-500 mt-1">{label}</span>
+                  <span className={`text-xl xl:text-2xl font-black ${color}`}>{value}</span>
+                  <span className="text-[9px] xl:text-[10px] uppercase tracking-widest text-slate-500 mt-1">{label}</span>
                 </div>
               ))}
             </div>
