@@ -35,6 +35,7 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({
 
   // Reset evaluation when trace data changes (user re-ran code)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEvaluationResult(null);
   }, [data.traceId]);
 

@@ -32,19 +32,15 @@ function StatusDot({ status }: { status: CaseProgress['status'] }) {
   return <Lock className="w-3 h-3 text-slate-600 flex-shrink-0" />;
 }
 
-export function HomePage({ progress, onSelectCase }: HomePageProps) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+interface CaseListProps {
+  progress: CaseProgress[];
+  solvedCount: number;
+  clearancePct: number;
+  onSelect: (id: string) => void;
+}
 
-  const solvedCount = progress.filter(p => p.status === 'solved').length;
-  const clearancePct = Math.round((solvedCount / cases.length) * 100);
-  const rank = getRank(solvedCount);
-
-  const handleSelect = (id: string) => {
-    setDrawerOpen(false);
-    onSelectCase(id);
-  };
-
-  const CaseList = () => (
+function CaseList({ progress, solvedCount, clearancePct, onSelect }: CaseListProps) {
+  return (
     <div className="flex flex-col">
       <div className="px-4 py-3 border-b border-slate-800">
         <div className="flex items-center justify-between mb-2">
@@ -65,7 +61,7 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
           <button
             key={c.id}
             disabled={status === 'locked'}
-            onClick={() => status !== 'locked' && handleSelect(c.id)}
+            onClick={() => status !== 'locked' && onSelect(c.id)}
             className={`flex items-center gap-2.5 px-4 py-2.5 text-left w-full transition-colors
               ${status === 'locked' ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-800/50 cursor-pointer'}
             `}
@@ -79,6 +75,19 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
       })}
     </div>
   );
+}
+
+export function HomePage({ progress, onSelectCase }: HomePageProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const solvedCount = progress.filter(p => p.status === 'solved').length;
+  const clearancePct = Math.round((solvedCount / cases.length) * 100);
+  const rank = getRank(solvedCount);
+
+  const handleSelect = (id: string) => {
+    setDrawerOpen(false);
+    onSelectCase(id);
+  };
 
   return (
     <div className="bg-slate-950 text-slate-50 min-h-screen flex flex-col">
@@ -138,7 +147,7 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <CaseList />
+            <CaseList progress={progress} solvedCount={solvedCount} clearancePct={clearancePct} onSelect={handleSelect} />
           </div>
         </div>
       )}

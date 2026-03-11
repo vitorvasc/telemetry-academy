@@ -29,6 +29,7 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({
   // Reset state when evaluation result is cleared (new telemetry data)
   useEffect(() => {
     if (evaluationResult === null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubmitted(false);
       setSelected(null);
     }

@@ -24,7 +24,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const observerRef = useRef<ResizeObserver | null>(null);
   const latestValueRef = useRef(value);
-  latestValueRef.current = value;
+  useEffect(() => {
+    latestValueRef.current = value;
+  });
 
   const [fontSize, setFontSize] = useState<number>(() => {
     return Number(localStorage.getItem('ta-editor-fontsize')) || 14;

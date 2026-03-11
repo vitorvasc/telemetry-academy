@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { Phase2Data, RootCauseOption, TraceSpan } from '../types/phase2';
 import { transformSpans, getTraceId, getTotalDurationMs } from '../lib/spanTransform';
 import { generateLogsFromSpans } from '../lib/logGenerator';
@@ -14,9 +14,9 @@ interface RawOTelSpan {
   parent_id?: string;
   start_time: number;
   end_time: number;
-  attributes: Record<string, any>;
+  attributes: Record<string, unknown>;
   status?: { status_code: string; description?: string };
-  events?: Array<{ name: string; timestamp: number; attributes?: Record<string, any> }>;
+  events?: Array<{ name: string; timestamp: number; attributes?: Record<string, unknown> }>;
 }
 
 /**
@@ -128,7 +128,12 @@ function mergeUserAttributes(
  * ```
  */
 export function usePhase2Data(rawSpans: RawOTelSpan[], caseId: string): Phase2DataState {
+  // Stable reference to "now" — initialized once at mount, not re-evaluated on re-render
+  // eslint-disable-next-line react-hooks/purity
+  const nowRef = useRef<number>(Date.now());
+
   return useMemo(() => {
+    const now = nowRef.current;
     // Use static Phase 2 data from registry if available for this case.
     // Cases with pre-built investigation scenarios (synthetic traces, logs, root cause options)
     // always use the registry — the user's live spans only proved Phase 1 works.
@@ -175,7 +180,7 @@ export function usePhase2Data(rawSpans: RawOTelSpan[], caseId: string): Phase2Da
       const caseDef = getCase(caseId);
 
       // Generate synthetic logs from spans
-      const traceStartMs = Date.now() - totalDurationMs;
+      const traceStartMs = now - totalDurationMs;
       const logs = generateLogsFromSpans(spans, traceId, traceStartMs);
 
       // Build Phase2Data object

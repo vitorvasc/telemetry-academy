@@ -8,7 +8,6 @@ let pyodide: any = null;
  * JS value before postMessage. Without this, postMessage throws DataCloneError
  * because PyProxy objects are not structured-cloneable.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function serializeResult(result: unknown): unknown {
   if (result === null || result === undefined) return null;
   // Primitive JS values are structured-cloneable as-is

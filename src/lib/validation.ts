@@ -15,7 +15,7 @@ export interface SpanValidationRule {
   type: ValidationCheckType;
   spanName?: string;
   attributeKey?: string;
-  attributeValue?: any;
+  attributeValue?: unknown;
   minCount?: number;
   description: string;
   successMessage: string;
@@ -28,7 +28,7 @@ export interface SpanValidationRule {
 }
 
 export interface ValidationContext {
-  spans: any[];
+  spans: Record<string, unknown>[];
   attemptHistory: Record<string, number>; // rule description -> attempt count
 }
 
@@ -68,7 +68,7 @@ export function validateSpans(
 /**
  * Runs the appropriate check based on rule type.
  */
-function runCheck(rule: SpanValidationRule, spans: any[]): boolean {
+function runCheck(rule: SpanValidationRule, spans: Record<string, unknown>[]): boolean {
   switch (rule.type) {
     case 'span_exists':
       return checkSpanExists(spans, rule.spanName);
@@ -88,8 +88,8 @@ function runCheck(rule: SpanValidationRule, spans: any[]): boolean {
     case 'error_handling':
       // Check for error status or error attributes in spans
       return spans.some(span => {
-        const status = span.status || {};
-        const attributes = span.attributes || {};
+        const status = (span.status as Record<string, unknown>) || {};
+        const attributes = (span.attributes as Record<string, unknown>) || {};
         const hasErrorStatus = (status.status_code || status.code) === 'ERROR';
         const hasErrorAttributes = 'error.type' in attributes || 'error.message' in attributes;
         return hasErrorStatus || hasErrorAttributes;
@@ -127,7 +127,7 @@ function selectMessage(
  * Checks if a span with the given name exists.
  * If no name is provided, checks if any spans exist.
  */
-export function checkSpanExists(spans: any[], spanName?: string): boolean {
+export function checkSpanExists(spans: Record<string, unknown>[], spanName?: string): boolean {
   if (!spans || spans.length === 0) {
     return false;
   }
@@ -136,7 +136,7 @@ export function checkSpanExists(spans: any[], spanName?: string): boolean {
     return spans.length > 0;
   }
   
-  return spans.some(span => span.name === spanName);
+  return spans.some(span => (span.name as string) === spanName);
 }
 
 /**
@@ -144,20 +144,20 @@ export function checkSpanExists(spans: any[], spanName?: string): boolean {
  * Looks in span.attributes object per OpenTelemetry structure.
  */
 export function checkAttributeExists(
-  spans: any[], 
-  spanName?: string, 
+  spans: Record<string, unknown>[],
+  spanName?: string,
   attributeKey?: string
 ): boolean {
   if (!spans || spans.length === 0 || !attributeKey) {
     return false;
   }
-  
-  const spansToCheck = spanName 
-    ? spans.filter(span => span.name === spanName)
+
+  const spansToCheck = spanName
+    ? spans.filter(span => (span.name as string) === spanName)
     : spans;
-  
+
   return spansToCheck.some(span => {
-    const attributes = span.attributes || {};
+    const attributes = (span.attributes as Record<string, unknown>) || {};
     return attributeKey in attributes;
   });
 }
@@ -166,21 +166,21 @@ export function checkAttributeExists(
  * Checks if an attribute has a specific value.
  */
 export function checkAttributeValue(
-  spans: any[],
+  spans: Record<string, unknown>[],
   spanName?: string,
   attributeKey?: string,
-  attributeValue?: any
+  attributeValue?: unknown
 ): boolean {
   if (!spans || spans.length === 0 || !attributeKey || attributeValue === undefined) {
     return false;
   }
-  
-  const spansToCheck = spanName 
-    ? spans.filter(span => span.name === spanName)
+
+  const spansToCheck = spanName
+    ? spans.filter(span => (span.name as string) === spanName)
     : spans;
-  
+
   return spansToCheck.some(span => {
-    const attributes = span.attributes || {};
+    const attributes = (span.attributes as Record<string, unknown>) || {};
     return attributes[attributeKey] === attributeValue;
   });
 }
@@ -188,7 +188,7 @@ export function checkAttributeValue(
 /**
  * Checks if the number of spans meets the minimum count.
  */
-export function checkSpanCount(spans: any[], minCount?: number): boolean {
+export function checkSpanCount(spans: Record<string, unknown>[], minCount?: number): boolean {
   if (minCount === undefined) {
     return spans && spans.length > 0;
   }
@@ -200,7 +200,7 @@ export function checkSpanCount(spans: any[], minCount?: number): boolean {
  * Checks status.status_code field per OpenTelemetry structure.
  */
 export function checkStatus(
-  spans: any[],
+  spans: Record<string, unknown>[],
   spanName?: string,
   statusCode?: string
 ): boolean {
@@ -209,11 +209,11 @@ export function checkStatus(
   }
 
   const spansToCheck = spanName
-    ? spans.filter(span => span.name === spanName)
+    ? spans.filter(span => (span.name as string) === spanName)
     : spans;
 
   return spansToCheck.some(span => {
-    const status = span.status || {};
+    const status = (span.status as Record<string, unknown>) || {};
     const actualStatusCode = status.status_code || status.code;
     return actualStatusCode === statusCode;
   });
@@ -253,15 +253,15 @@ function checkYamlKeyExists(
 ): boolean {
   if (!path) return false;
   try {
-    const doc = yaml.load(yamlContent) as Record<string, any>;
+    const doc = yaml.load(yamlContent) as Record<string, unknown>;
     if (!doc || typeof doc !== 'object') return false;
     const keys = path.split('.');
-    let current: any = doc;
+    let current: unknown = doc;
     for (const key of keys) {
       if (current === null || typeof current !== 'object' || !(key in current)) {
         return false;
       }
-      current = current[key];
+      current = (current as Record<string, unknown>)[key];
     }
     if (expectedValue !== undefined) {
       return String(current) === String(expectedValue);

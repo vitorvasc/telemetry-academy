@@ -9,9 +9,9 @@ interface RawOTelSpan {
   parent_id?: string;
   start_time: number;      // Unix nanoseconds
   end_time: number;        // Unix nanoseconds
-  attributes: Record<string, any>;
+  attributes: Record<string, unknown>;
   status?: { status_code: string; description?: string };
-  events?: Array<{ name: string; timestamp: number; attributes?: Record<string, any> }>;
+  events?: Array<{ name: string; timestamp: number; attributes?: Record<string, unknown> }>;
 }
 
 /**
@@ -112,7 +112,7 @@ export function calculateDepth(
  * @param attributes - Raw attributes from OTel span
  * @returns Normalized attributes with all string values
  */
-export function normalizeAttributes(attributes: Record<string, any>): Record<string, string> {
+export function normalizeAttributes(attributes: Record<string, unknown>): Record<string, string> {
   const normalized: Record<string, string> = {};
   
   for (const [key, value] of Object.entries(attributes)) {

@@ -50,6 +50,7 @@ export function useAcademyPersistence(
   // Load from localStorage on mount (client-side only)
   useEffect(() => {
     if (typeof window === 'undefined') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoaded(true);
       return;
     }
@@ -123,7 +124,7 @@ export function useAcademyPersistence(
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [progress, caseCode, attemptHistory, isLoaded]);
+  }, [progress, caseCode, attemptHistory, hasSeenWelcome, isLoaded]);
 
   // Update attempt count for a specific case and rule
   const updateAttemptHistory = useCallback((caseId: string, ruleDescription: string) => {

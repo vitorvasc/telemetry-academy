@@ -39,7 +39,7 @@ export interface ValidationRule {
   // Optional params for specific validations
   spanName?: string;
   attributeKey?: string;
-  attributeValue?: any;
+  attributeValue?: unknown;
   minCount?: number;
   yamlPath?: string;      // NEW: for yaml_key_exists
   expectedValue?: string; // NEW: for yaml_key_exists

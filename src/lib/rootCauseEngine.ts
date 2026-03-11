@@ -324,7 +324,7 @@ export function createDefaultRules(caseId: string): Map<string, RootCauseRule> {
 /**
  * Get a hint for an incorrect guess
  */
-function getHintForGuess(guessId: string, _data: Phase2Data): string | undefined {
+function getHintForGuess(guessId: string): string | undefined {
   switch (guessId) {
     case 'a': // Missing index
       return '💡 Hint: Look at db.connection_pool.wait_ms — is the time spent waiting or querying?';
@@ -381,7 +381,7 @@ export function evaluateGuess(
       explanation: isCorrect
         ? rule.explainCorrect(data)
         : rule.explainIncorrect(data, guessId),
-      hint: isCorrect ? undefined : getHintForGuess(guessId, data),
+      hint: isCorrect ? undefined : getHintForGuess(guessId),
     };
   } catch (error) {
     // Graceful degradation if evaluation fails

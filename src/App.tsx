@@ -204,10 +204,11 @@ function App() {
     setWorkerError(null);
 
     // Mark in-progress
+    // eslint-disable-next-line react-hooks/purity
     updateProgress(currentCaseId, { status: 'in-progress', timeStartedMs: Date.now() });
 
     // YAML-mode branch: The Collector case validates YAML directly, no Python worker
-    if ((currentCase as any).type === 'yaml-config') {
+    if (currentCase.type === 'yaml-config') {
       const currentAttemptHistory: Record<string, number> = {};
       currentCase.phase1.validations.forEach(rule => {
         currentAttemptHistory[rule.description] = getAttemptCount(currentCaseId, rule.description);
@@ -237,12 +238,12 @@ function App() {
     }
 
     // Python worker path
-    let runSpans: any[] = [];
+    let runSpans: Record<string, unknown>[] = [];
     try {
       const runResult = await runCode(code);
       runSpans = runResult.spans;
-    } catch (err: any) {
-      setWorkerError(err.message || 'Unknown execution error');
+    } catch (err: unknown) {
+      setWorkerError((err instanceof Error ? err.message : null) || 'Unknown execution error');
     }
 
     // Get attempt history for current case
@@ -507,10 +508,10 @@ function App() {
                       <CodeEditor
                         value={code}
                         onChange={setCode}
-                        language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
-                        filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
+                        language={currentCase.type === 'yaml-config' ? 'yaml' : 'python'}
+                        filename={currentCase.type === 'yaml-config' ? 'collector.yaml' : undefined}
                         onRunShortcut={handleValidate}
-                        defaultWordWrap={(currentCase as any).type === 'yaml-config'}
+                        defaultWordWrap={currentCase.type === 'yaml-config'}
                         caseKey={currentCaseId}
                       />
                     </Suspense>
@@ -567,10 +568,10 @@ function App() {
                     <CodeEditor
                       value={code}
                       onChange={setCode}
-                      language={(currentCase as any).type === 'yaml-config' ? 'yaml' : 'python'}
-                      filename={(currentCase as any).type === 'yaml-config' ? 'collector.yaml' : undefined}
+                      language={currentCase.type === 'yaml-config' ? 'yaml' : 'python'}
+                      filename={currentCase.type === 'yaml-config' ? 'collector.yaml' : undefined}
                       onRunShortcut={handleValidate}
-                      defaultWordWrap={(currentCase as any).type === 'yaml-config'}
+                      defaultWordWrap={currentCase.type === 'yaml-config'}
                       caseKey={currentCaseId}
                     />
                   </Suspense>

@@ -52,7 +52,7 @@ function createWarningLog(span: TraceSpan): LogEvent | null {
 
   const attrs = span.attributes;
   let message: string | null = null;
-  let timestamp = span.offsetMs + 10; // Shortly after start
+  const timestamp = span.offsetMs + 10; // Shortly after start
 
   // Check for connection pool wait
   if (attrs['db.connection_pool.wait_ms']) {
@@ -93,7 +93,7 @@ function createErrorLog(span: TraceSpan): LogEvent | null {
 
   const attrs = span.attributes;
   let message: string | null = null;
-  let timestamp = span.offsetMs + span.durationMs - 5; // Near end
+  const timestamp = span.offsetMs + span.durationMs - 5; // Near end
 
   // Check for error message
   if (attrs['error.message']) {

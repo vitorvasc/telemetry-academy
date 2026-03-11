@@ -17,7 +17,7 @@ export function useCodeRunner(language: Language = 'python') {
   const [initError, setInitError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<string[]>([]);
-  const [spans, setSpans] = useState<any[]>([]);
+  const [spans, setSpans] = useState<Record<string, unknown>[]>([]);
   const [loadingLabel, setLoadingLabel] = useState<string>('');
   const workerRef = useRef<Worker | null>(null);
 
@@ -53,6 +53,7 @@ export function useCodeRunner(language: Language = 'python') {
   }, [language]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     initWorker();
     return () => {
       if (workerRef.current) {
@@ -61,7 +62,7 @@ export function useCodeRunner(language: Language = 'python') {
     };
   }, [initWorker]);
 
-  const runCode = useCallback((code: string, timeoutMs = 5000): Promise<{ result: any; spans: any[] }> => {
+  const runCode = useCallback((code: string, timeoutMs = 5000): Promise<{ result: unknown; spans: Record<string, unknown>[] }> => {
     return new Promise((resolve, reject) => {
       if (!workerRef.current || !isReady) {
         reject(new Error('Worker is not ready'));
@@ -72,7 +73,7 @@ export function useCodeRunner(language: Language = 'python') {
       setOutput([]);
       setSpans([]);
 
-      const collectedSpans: any[] = [];
+      const collectedSpans: Record<string, unknown>[] = [];
       const runId = Math.random().toString(36).substring(7);
 
       const timeoutId = setTimeout(() => {
@@ -91,7 +92,7 @@ export function useCodeRunner(language: Language = 'python') {
         if (typeof data === 'string') {
           try {
             data = JSON.parse(data);
-          } catch (e) {
+          } catch {
             return;
           }
         }
