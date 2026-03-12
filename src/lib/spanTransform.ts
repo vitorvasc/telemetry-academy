@@ -1,18 +1,5 @@
 import type { TraceSpan } from '../types/phase2';
-
-/**
- * Raw OTel span format from the Python worker telemetry
- */
-interface RawOTelSpan {
-  name: string;
-  context: { span_id: string; trace_id: string };
-  parent_id?: string;
-  start_time: number;      // Unix nanoseconds
-  end_time: number;        // Unix nanoseconds
-  attributes: Record<string, unknown>;
-  status?: { status_code: string; description?: string };
-  events?: Array<{ name: string; timestamp: number; attributes?: Record<string, unknown> }>;
-}
+import type { RawOTelSpan } from '../hooks/usePhase2Data';
 
 /**
  * SLOW threshold in milliseconds

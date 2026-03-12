@@ -1,7 +1,7 @@
 import { loadPyodide } from 'pyodide';
+import type { PyodideInterface } from 'pyodide';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let pyodide: any = null;
+let pyodide: PyodideInterface | null = null;
 
 /**
  * Converts a Pyodide PyProxy (or any value) to a plain, structured-cloneable
@@ -35,6 +35,8 @@ self.onmessage = async (event: MessageEvent) => {
   if (type === 'init') {
     try {
       self.postMessage({ type: 'loading-stage', stage: 1, total: 3, label: 'Loading Python runtime' });
+      // NOTE: Keep this version in sync with the "pyodide" entry in package.json.
+      // When upgrading pyodide, update the version segment in this URL to match.
       pyodide = await loadPyodide({
         indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
         // @ts-expect-error - cache option exists but types are outdated

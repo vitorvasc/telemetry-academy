@@ -1,3 +1,5 @@
+export type { RootCauseOption } from './types/phase2';
+
 export interface Case {
   id: string;
   name: string;
@@ -13,13 +15,6 @@ export interface Phase1Config {
   hints: string[];
   initialCode: string;
   validations: ValidationRule[];
-}
-
-export interface RootCauseOption {
-  id: string;
-  label: string;
-  correct: boolean;
-  explanation: string;
 }
 
 export interface Phase2Config {
@@ -51,23 +46,3 @@ export interface ValidationResult extends ValidationRule {
   attemptsOnThisRule: number;
 }
 
-export interface TraceSpan {
-  id: string;
-  name: string;
-  service: string;
-  duration: number;
-  startTime: number;
-  attributes: Record<string, string>;
-  status: 'ok' | 'error';
-  parentId?: string;
-  children?: TraceSpan[];
-}
-
-export interface LogEntry {
-  timestamp: number;
-  level: 'info' | 'warn' | 'error' | 'debug';
-  message: string;
-  traceId?: string;
-  spanId?: string;
-  service: string;
-}
