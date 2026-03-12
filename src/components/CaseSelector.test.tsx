@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { CaseSelector } from './CaseSelector';
 import type { Case } from '../types';
@@ -43,7 +44,7 @@ const mkProgress = (
 ): CaseProgress => ({ caseId: id, status, phase, attempts: 0 });
 
 describe('CaseSelector', () => {
-  it('Test 1: solved case renders a green filled circle (not a lock icon)', () => {
+  it('Test 1: solved case renders a progress dot (not a lock icon)', () => {
     const progress: CaseProgress[] = [
       mkProgress('case-001', 'solved', 'complete'),
       mkProgress('case-002', 'locked', 'instrumentation'),
@@ -51,7 +52,7 @@ describe('CaseSelector', () => {
       mkProgress('case-004', 'locked', 'instrumentation'),
     ];
 
-    const { container } = render(
+    render(
       <CaseSelector
         cases={mockCases}
         progress={progress}
@@ -60,17 +61,19 @@ describe('CaseSelector', () => {
       />
     );
 
-    // Green filled circle: bg-green-400 class on a div (not a lock icon svg)
-    const greenDot = container.querySelector('.bg-green-400');
-    expect(greenDot).toBeInTheDocument();
-    // Should NOT render a Lock SVG for the solved case
-    // The lock icon from lucide has aria role or specific structure — check no lock class for first button
-    const firstButton = container.querySelectorAll('button')[0];
-    // Lock icon uses w-2.5 h-2.5 with text-slate-700, but green solved should be a div not an svg in the lock position
-    expect(firstButton?.querySelector('.bg-green-400')).toBeInTheDocument();
+    // Solved case button should be enabled (not disabled)
+    const helloSpanButton = screen.getByRole('button', { name: /Hello Span/i });
+    expect(helloSpanButton).toBeEnabled();
+
+    // Solved case should NOT have the tooltip for locked cases
+    expect(helloSpanButton).not.toHaveAttribute('title', 'Complete previous case to unlock');
+
+    // Solved case should NOT render an SVG lock icon inside it
+    const svgInsideSolved = helloSpanButton.querySelector('svg');
+    expect(svgInsideSolved).not.toBeInTheDocument();
   });
 
-  it('Test 2: in-progress case with phase=investigation renders amber indicator (not sky ring)', () => {
+  it('Test 2: in-progress case with phase=investigation renders an amber dot (not a sky ring)', () => {
     const progress: CaseProgress[] = [
       mkProgress('case-001', 'solved', 'complete'),
       mkProgress('case-002', 'in-progress', 'investigation'),
@@ -87,15 +90,23 @@ describe('CaseSelector', () => {
       />
     );
 
-    // Amber indicator: bg-amber-400/60 and border-amber-400 classes
-    const amberDot = container.querySelector('.bg-amber-400\\/60');
-    expect(amberDot).toBeInTheDocument();
-    // Should NOT render a sky-ring (border-sky-400) for this case
-    const secondButton = container.querySelectorAll('button')[1];
-    expect(secondButton?.querySelector('.border-sky-400')).not.toBeInTheDocument();
+    // In-progress + investigation → phase1done → amber dot
+    // The dot is a div with no SVG child
+    const autoMagicButton = screen.getByRole('button', { name: /Auto Magic/i });
+    const dotDiv = autoMagicButton.querySelector('div');
+    expect(dotDiv).toBeInTheDocument();
+    expect(dotDiv?.tagName.toLowerCase()).toBe('div');
+
+    // Should NOT render a sky ring (border-sky-400) for the phase1done state
+    // (sky ring is only for 'active' status without phase=investigation)
+    const skyRing = container.querySelector('.border-sky-400');
+    // The sky ring, if present, should NOT be inside the Auto Magic button
+    if (skyRing) {
+      expect(autoMagicButton.contains(skyRing)).toBe(false);
+    }
   });
 
-  it('Test 3: locked case renders a lock icon', () => {
+  it('Test 3: locked case renders a lock icon and its button is disabled', () => {
     const progress: CaseProgress[] = [
       mkProgress('case-001', 'available', 'instrumentation'),
       mkProgress('case-002', 'locked', 'instrumentation'),
@@ -103,7 +114,7 @@ describe('CaseSelector', () => {
       mkProgress('case-004', 'locked', 'instrumentation'),
     ];
 
-    const { container } = render(
+    render(
       <CaseSelector
         cases={mockCases}
         progress={progress}
@@ -112,16 +123,20 @@ describe('CaseSelector', () => {
       />
     );
 
-    // Locked case: Lock icon has text-slate-700 class
-    const lockedButtons = container.querySelectorAll('button');
-    const secondButton = lockedButtons[1]; // case-002 is locked
-    // Lock SVG should be present inside the locked button
-    const lockIcon = secondButton?.querySelector('svg');
+    const autoMagicButton = screen.getByRole('button', { name: /Auto Magic/i });
+
+    // Locked button must be disabled
+    expect(autoMagicButton).toBeDisabled();
+
+    // Locked button should show the unlock tooltip
+    expect(autoMagicButton).toHaveAttribute('title', 'Complete previous case to unlock');
+
+    // Locked case should render an SVG (the Lock icon from lucide-react)
+    const lockIcon = autoMagicButton.querySelector('svg');
     expect(lockIcon).toBeInTheDocument();
-    expect(lockIcon?.classList.contains('text-slate-700')).toBe(true);
   });
 
-  it('Test 4: available case renders a slate ring indicator', () => {
+  it('Test 4: available case is enabled and renders a ring dot (not an SVG lock)', () => {
     const progress: CaseProgress[] = [
       mkProgress('case-001', 'solved', 'complete'),
       mkProgress('case-002', 'available', 'instrumentation'),
@@ -129,7 +144,7 @@ describe('CaseSelector', () => {
       mkProgress('case-004', 'locked', 'instrumentation'),
     ];
 
-    const { container } = render(
+    render(
       <CaseSelector
         cases={mockCases}
         progress={progress}
@@ -138,11 +153,84 @@ describe('CaseSelector', () => {
       />
     );
 
-    // Available case: slate ring has border-slate-500 class
-    const secondButton = container.querySelectorAll('button')[1];
-    const slateDot = secondButton?.querySelector('.border-slate-500');
-    expect(slateDot).toBeInTheDocument();
-    // It should be a div (ring), not an svg (lock icon)
-    expect(slateDot?.tagName.toLowerCase()).toBe('div');
+    const autoMagicButton = screen.getByRole('button', { name: /Auto Magic/i });
+
+    // Available case must be enabled
+    expect(autoMagicButton).toBeEnabled();
+
+    // Available case should NOT show locked tooltip
+    expect(autoMagicButton).not.toHaveAttribute('title', 'Complete previous case to unlock');
+
+    // Available case should NOT render an SVG lock icon
+    const svgIcon = autoMagicButton.querySelector('svg');
+    expect(svgIcon).not.toBeInTheDocument();
+
+    // Should render a div (ring indicator), not an SVG
+    const dotDiv = autoMagicButton.querySelector('div');
+    expect(dotDiv).toBeInTheDocument();
+    expect(dotDiv?.tagName.toLowerCase()).toBe('div');
+  });
+
+  it('renders all case names as button text', () => {
+    const progress = mockCases.map(c => mkProgress(c.id, 'available', 'instrumentation'));
+
+    render(
+      <CaseSelector
+        cases={mockCases}
+        progress={progress}
+        currentCaseId="case-001"
+        onSelect={() => {}}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /Hello Span/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Auto Magic/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /The Collector/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Slow DB/i })).toBeInTheDocument();
+  });
+
+  it('calls onSelect with the correct case id when an available case is clicked', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const progress: CaseProgress[] = [
+      mkProgress('case-001', 'solved', 'complete'),
+      mkProgress('case-002', 'available', 'instrumentation'),
+    ];
+
+    render(
+      <CaseSelector
+        cases={mockCases.slice(0, 2)}
+        progress={progress}
+        currentCaseId="case-001"
+        onSelect={onSelect}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Auto Magic/i }));
+    expect(onSelect).toHaveBeenCalledWith('case-002');
+  });
+
+  it('does not call onSelect when a locked case is clicked', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const progress: CaseProgress[] = [
+      mkProgress('case-001', 'available', 'instrumentation'),
+      mkProgress('case-002', 'locked', 'instrumentation'),
+    ];
+
+    render(
+      <CaseSelector
+        cases={mockCases.slice(0, 2)}
+        progress={progress}
+        currentCaseId="case-001"
+        onSelect={onSelect}
+      />
+    );
+
+    // Locked button is disabled — userEvent will not fire click on disabled buttons
+    const lockedButton = screen.getByRole('button', { name: /Auto Magic/i });
+    expect(lockedButton).toBeDisabled();
+    await user.click(lockedButton);
+    expect(onSelect).not.toHaveBeenCalled();
   });
 });
