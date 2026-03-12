@@ -96,7 +96,7 @@ phase2:                        # Optional — omit to skip investigation phase
 | `status_error` | A span has error status | `spanName: "my-span"` (optional) |
 | `telemetry_flowing` | OTel SDK is properly configured | — |
 | `error_handling` | Error spans have proper attributes | — |
-| `yaml_key_exists` | A key path exists in YAML config | `keyPath: "receivers.otlp"` |
+| `yaml_key_exists` | A key path exists in YAML config | `yamlPath: "receivers.otlp"` |
 
 > `yaml_key_exists` is used for Collector-config cases where students edit YAML instead of Python.
 
@@ -106,47 +106,59 @@ phase2:                        # Optional — omit to skip investigation phase
 
 Phase 2 investigation data lives in `src/data/phase2.ts`. Each case needs an entry with:
 
+- **`traceId`** — unique trace ID string for this case's synthetic data
+- **`totalDurationMs`** — total end-to-end duration in milliseconds
+- **`narrative`** — markdown string describing the incident shown to the student
 - **`spans`** — synthetic trace data (`TraceSpan` objects with timing, attributes, status)
 - **`logs`** — correlated log entries (generated from spans or hand-crafted)
 - **`rootCauseOptions`** — matching the `id` values from `case.yaml`
-- **`evaluationRules`** — logic for the root cause engine
 
 ```typescript
 // src/data/phase2.ts
-export const phase2Data: Record<string, Phase2Data> = {
-  'my-new-case-003': {
-    spans: [
-      {
-        traceId: '4f3a...',
-        spanId: 'a1b2...',
-        parentSpanId: null,
-        name: 'process_order',
-        startTime: 0,
-        duration: 5200,   // milliseconds
-        status: 'error',
-        attributes: {
-          'order.id': '12345',
-          'db.system': 'postgresql',
-        },
+export const myNewCasePhase2: Phase2Data = {
+  traceId: generateTraceId(),   // use the helper already in the file
+  totalDurationMs: 5200,
+  narrative: `Describe the incident here. What is the student investigating?`,
+  spans: [
+    {
+      id: 'span-001',           // unique within this case
+      name: 'process_order',
+      service: 'order-service',
+      durationMs: 5200,         // milliseconds
+      offsetMs: 0,              // start offset from trace start
+      status: 'error',          // 'ok' | 'error' | 'warning'
+      depth: 0,                 // nesting depth (0 = root span)
+      attributes: {
+        'order.id': '12345',
+        'db.system': 'postgresql',
       },
-    ],
-    logs: [...],
-    rootCauseOptions: [...],  // same ids as case.yaml
-    evaluationRules: [...],
-  },
+    },
+  ],
+  logs: [...],
+  rootCauseOptions: [...],  // same ids as case.yaml
 };
+
+// Register at bottom of file:
+phase2Registry['my-new-case-003'] = myNewCasePhase2;
 ```
 
 ### Root Cause Rules
 
-The `evaluationRules` array is evaluated by `src/lib/rootCauseEngine.ts`. Each rule should reference real span attribute values from your Phase 2 data so feedback is data-driven:
+Root cause evaluation logic lives in `src/lib/rootCauseEngine.ts` — **not** in `phase2.ts`. The engine uses a `RULES_REGISTRY` keyed by case ID. To add rules for your case:
+
+1. Define a `RootCauseRule[]` array in `rootCauseEngine.ts`
+2. Add it to `RULES_REGISTRY` under your case ID
+
+Each rule implements `evaluate(data)` → boolean, `explainCorrect(data)` → string, and `explainIncorrect(data, guessId)` → string. Rules should reference real span attribute values from your Phase 2 data so feedback is data-driven:
 
 ```typescript
-evaluationRules: [
+// In src/lib/rootCauseEngine.ts
+const myNewCaseRules: RootCauseRule[] = [
   {
     id: 'b',                  // matches rootCauseOption id
+    label: 'DB connection pool is too small',
     evaluate: (data) =>
-      data.spans.some(s => s.attributes['db.connection_pool.wait_ms'] > 4000),
+      data.spans.some(s => parseInt(s.attributes['db.connection_pool.wait_ms']) > 4000),
     explainCorrect: (data) => {
       const ms = data.spans
         .find(s => s.attributes['db.connection_pool.wait_ms'])
@@ -155,10 +167,16 @@ evaluationRules: [
     },
     explainIncorrect: () => 'The pool wait time is within normal range.',
   },
-],
+];
+
+// Add to RULES_REGISTRY:
+const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
+  // ... existing cases ...
+  'my-new-case-003': myNewCaseRules,
+};
 ```
 
-For simple cases a static `evaluate: () => true` with plain string explanations is fine.
+For simple cases, `evaluate: () => true` with static string explanations is fine. The `rootCauseOptions` in `case.yaml` (and `phase2.ts`) carry the static fallback `explanation` field shown in the UI; the engine's `explainCorrect`/`explainIncorrect` methods generate richer, data-driven feedback.
 
 ---
 
@@ -210,7 +228,8 @@ phase1:
 
 - [ ] `src/cases/<id>/case.yaml` — valid YAML, all required fields present
 - [ ] `src/cases/<id>/setup.py` — partial code that runs without errors
-- [ ] `src/data/phase2.ts` — entry added with spans, logs, options, and rules
+- [ ] `src/data/phase2.ts` — entry added with `traceId`, `totalDurationMs`, `narrative`, `spans`, `logs`, `rootCauseOptions`, and registered in `phase2Registry`
+- [ ] `src/lib/rootCauseEngine.ts` — `RootCauseRule[]` added and registered in `RULES_REGISTRY`
 - [ ] All `type:` values in validations match a known `ValidationCheckType`
 - [ ] All root cause rule `id` values match `rootCauseOptions` in `case.yaml`
 - [ ] Evaluation rules reference real span attribute names from your Phase 2 data

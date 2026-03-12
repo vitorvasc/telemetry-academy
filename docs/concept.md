@@ -36,7 +36,7 @@ Players investigate a simulated incident using real observability tools:
 - Correlate logs using `trace_id`
 - Identify anomalous spans (errors, high latency)
 - Find the root cause (slow DB? cache miss? race condition?)
-- Propose and validate the fix
+- Select the root cause from multiple-choice options (with data-driven explanations)
 
 ---
 

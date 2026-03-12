@@ -23,9 +23,9 @@ DEFERRED IDEAS section of CONTEXT.md, not the current phase.
 
 - Python runs in `src/workers/python.worker.ts` (Pyodide Web Worker)
 - Custom OTel exporter bridges spans to JS via postMessage
-- Validation engine: `src/lib/validation.ts` — 8 check types:
+- Validation engine: `src/lib/validation.ts` — 9 check types:
   `span_exists`, `attribute_exists`, `attribute_value`, `span_count`,
-  `status_ok`, `status_error`, `telemetry_flowing`, `error_handling`
+  `status_ok`, `status_error`, `telemetry_flowing`, `error_handling`, `yaml_key_exists`
 - Cases: YAML in `src/cases/*/case.yaml`, auto-discovered by `src/data/caseLoader.ts`
 - Phase 2 data: `src/data/phase2.ts` (traces, logs, root cause rules)
 - Root cause evaluation: `src/lib/rootCauseEngine.ts` (rules-based, not static text)
@@ -43,14 +43,17 @@ DEFERRED IDEAS section of CONTEXT.md, not the current phase.
 
 - Rules are declarative JSON (not regex/AST)
 - Progressive hints: `hintMessage` at 1-2 attempts, `guidedMessage` at 3+
-- Each root cause distractor has `specificHint` + `explanation`
+- Each root cause distractor has `explanation` in `rootCauseOptions` (static) and `explainIncorrect()` in `rootCauseEngine.ts` (data-driven)
 - Rules must reference real span attribute names from `phase2.ts` data
 
 ### Pyodide Patterns
 
 - Always set 5s timeout in Web Worker to prevent infinite loops
 - Custom exporter: `opentelemetry.sdk.trace.export.SpanExporter` subclass
-- PostMessage protocol: `{type: 'spans', data: serializedSpans}`
+- postMessage types (worker → host): `loading-stage`, `ready`, `error`, `success`, `stdout`, `telemetry`
+- postMessage types (host → worker): `init` (with `setupScript`), `run` (with `code` + `id`)
+- Run messages are correlated by `id`; `error` without `id` = init failure; `error` with `id` = run failure
+- See `docs/worker-protocol.md` for full protocol reference
 
 ### Responsive Design
 
@@ -72,12 +75,13 @@ When creating a new case:
 
 1. `src/cases/<id>/case.yaml` — metadata, phase1 config, validation rules
 2. `src/cases/<id>/setup.py` — partial instrumentation starter code
-3. `src/data/phase2.ts` — add traces, logs, rootCauseOptions, evaluationRules
-4. Verify: each `type:` value in validation rules exists in `ValidationCheckType`
-5. Verify: each root cause rule references a real span attribute from the phase2 traces
-6. Verify: `caseLoader.ts` auto-discovers the new directory (check console on dev startup)
+3. `src/data/phase2.ts` — add `traceId`, `totalDurationMs`, `narrative`, `spans`, `logs`, `rootCauseOptions`; register in `phase2Registry`
+4. `src/lib/rootCauseEngine.ts` — add `RootCauseRule[]` for the case and register in `RULES_REGISTRY`
+5. Verify: each `type:` value in validation rules exists in `ValidationCheckType`
+6. Verify: each root cause rule references a real span attribute from the phase2 traces
+7. Verify: `caseLoader.ts` auto-discovers the new directory (check console on dev startup)
 
 ## Current Phase: 4 (Content & Polish)
 
-9 cases planned, 2 complete (`hello-span-001`, `auto-magic-002`).
+9 cases planned, 2 complete (`001-hello-span`, `002-auto-magic`).
 See `.planning/ROADMAP.md` for full scope and `.planning/STATE.md` for current state.

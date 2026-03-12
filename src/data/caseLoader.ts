@@ -6,7 +6,7 @@
 //   3. Add setup.py   (initial Python code shown to the student)
 //   4. That's it — it's auto-discovered at build time
 //
-// See docs/ADDING_CASES.md for the full YAML schema reference.
+// See docs/adding_cases.md for the full YAML schema reference.
 
 import type { Case } from '../types';
 
