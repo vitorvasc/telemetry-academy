@@ -30,7 +30,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
   isWorkerReady = true, // Default to true for backward compatibility
   loadingLabel,
 }) => {
-  const isMac = navigator.platform.toUpperCase().includes('MAC');
+  const isMac = navigator.userAgent.toUpperCase().includes('MAC');
   const buttonTitle = (!isWorkerReady || isValidating || phaseUnlocked)
     ? undefined
     : isMac ? 'Run code (⌘↵)' : 'Run code (Ctrl+↵)';
@@ -112,7 +112,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
 
               return (
                 <div
-                  key={index}
+                  key={result.description}
                   className={`
                     flex items-start gap-3 p-3 rounded-lg border
                     ${bgClass}

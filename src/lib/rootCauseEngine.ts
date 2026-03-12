@@ -1,4 +1,5 @@
 import type { Phase2Data, TraceSpan } from '../types/phase2';
+import { formatSpanMs } from './formatters';
 
 /**
  * Result of evaluating a user's root cause guess
@@ -16,6 +17,10 @@ export interface EvaluationResult {
 export interface RootCauseRule {
   id: string;
   label: string;
+  /**
+   * Short hint shown after 1-2 incorrect attempts (optional)
+   */
+  specificHint?: string;
   /**
    * Evaluate whether this root cause applies to the given data
    */
@@ -89,16 +94,6 @@ export function findDbQuerySpan(data: Phase2Data): TraceSpan | null {
 }
 
 /**
- * Format milliseconds for display
- */
-export function formatDuration(ms: number): string {
-  if (ms >= 1000) {
-    return `${(ms / 1000).toFixed(2)}s`;
-  }
-  return `${Math.round(ms)}ms`;
-}
-
-/**
  * Calculate percentage of total time
  */
 export function calculatePercentage(partMs: number, totalMs: number): string {
@@ -119,6 +114,7 @@ const helloSpanRules: RootCauseRule[] = [
   {
     id: 'a',
     label: 'Missing index on the orders table — the UPDATE query does a full table scan',
+    specificHint: '💡 Hint: Look at db.connection_pool.wait_ms — is the time spent waiting for a connection or executing the query?',
     evaluate: () => false, // Never correct for this case
     explainCorrect: () => '',
     explainIncorrect: (data: Phase2Data) => {
@@ -128,7 +124,7 @@ const helloSpanRules: RootCauseRule[] = [
       
       if (waitMs && execTime !== null) {
         const waitPercent = calculatePercentage(waitMs, dbSpan!.durationMs);
-        return `Not quite. The trace shows db.connection_pool.wait_ms=${waitMs}, meaning ${formatDuration(waitMs)} (${waitPercent}) were spent waiting for a connection — not executing the query itself. The query only took ${formatDuration(execTime)} once it got a connection. A missing index would slow the query execution, but the data shows the bottleneck is connection wait time, not query time.`;
+        return `Not quite. The trace shows db.connection_pool.wait_ms=${waitMs}, meaning ${formatSpanMs(waitMs)} (${waitPercent}) were spent waiting for a connection — not executing the query itself. The query only took ${formatSpanMs(execTime)} once it got a connection. A missing index would slow the query execution, but the data shows the bottleneck is connection wait time, not query time.`;
       }
       
       return 'Not quite. The trace shows significant time spent waiting for a database connection, not executing the query itself. A missing index would slow query execution, but the bottleneck is elsewhere.';
@@ -152,7 +148,7 @@ const helloSpanRules: RootCauseRule[] = [
       
       if (waitMs) {
         const waitPercent = calculatePercentage(waitMs, totalMs);
-        return `✓ Exactly! The span attribute db.connection_pool.wait_ms=${waitMs} shows ${formatDuration(waitMs)} spent waiting for a connection — that's ${waitPercent} of the total ${formatDuration(totalMs)} latency. Look at the logs too: "pool_size=5, waiting=12" — 12 requests queued for only 5 connections. The fix: increase pool_size or reduce connection hold time.`;
+        return `✓ Exactly! The span attribute db.connection_pool.wait_ms=${waitMs} shows ${formatSpanMs(waitMs)} spent waiting for a connection — that's ${waitPercent} of the total ${formatSpanMs(totalMs)} latency. Look at the logs too: "pool_size=5, waiting=12" — 12 requests queued for only 5 connections. The fix: increase pool_size or reduce connection hold time.`;
       }
       
       return '✓ Exactly! The trace shows significant time spent waiting for a database connection, indicating the pool is exhausted. Check the logs for pool_size and waiting count confirmation.';
@@ -164,6 +160,7 @@ const helloSpanRules: RootCauseRule[] = [
   {
     id: 'c',
     label: 'The external cache is slow — Redis is adding latency to every request',
+    specificHint: '💡 Hint: Compare the duration of cache.invalidate to db.query in the trace. Which span is actually slow?',
     evaluate: () => false,
     explainCorrect: () => '',
     explainIncorrect: (data: Phase2Data) => {
@@ -171,7 +168,7 @@ const helloSpanRules: RootCauseRule[] = [
       const dbSpan = findDbQuerySpan(data);
       
       if (cacheSpan) {
-        return `Not quite. The cache.invalidate span took only ${formatDuration(cacheSpan.durationMs)} — that's totally normal for a cache operation. Compare that to db.query at ${formatDuration(dbSpan?.durationMs || 0)}. The culprit is clearly the database operation, not the cache.`;
+        return `Not quite. The cache.invalidate span took only ${formatSpanMs(cacheSpan.durationMs)} — that's totally normal for a cache operation. Compare that to db.query at ${formatSpanMs(dbSpan?.durationMs || 0)}. The culprit is clearly the database operation, not the cache.`;
       }
       
       return 'Not quite. The cache operations in the trace complete very quickly. The slow operation is the database query, not the cache.';
@@ -182,6 +179,7 @@ const helloSpanRules: RootCauseRule[] = [
   {
     id: 'd',
     label: 'The order-service is CPU-bound — too many concurrent requests overwhelming the process',
+    specificHint: '💡 Hint: Look for spans showing wait time vs computation time. What does db.connection_pool.wait_ms tell you about where time is being spent?',
     evaluate: () => false,
     explainCorrect: () => '',
     explainIncorrect: (data: Phase2Data) => {
@@ -220,6 +218,7 @@ const autoMagicRules: RootCauseRule[] = [
   {
     id: 'b',
     label: 'Database connection pool exhausted — order writes are timing out',
+    specificHint: '💡 Hint: Look at which spans are in the trace. Are there any database spans, or is the error on an outbound HTTP call?',
     evaluate: () => false,
     explainCorrect: () => '',
     explainIncorrect: (data: Phase2Data) => {
@@ -230,16 +229,18 @@ const autoMagicRules: RootCauseRule[] = [
   {
     id: 'c',
     label: 'Order service has a memory leak — GC pauses causing 500ms timeouts',
+    specificHint: '💡 Hint: Look at the error span\'s http.status_code attribute. Is this a timeout or a server-side response?',
     evaluate: () => false,
     explainCorrect: () => '',
     explainIncorrect: (data: Phase2Data) => {
       const totalMs = data.totalDurationMs;
-      return `No. The total trace duration is only ${formatDuration(totalMs)} — too fast for a GC issue. The error span shows http.status_code=500, which is an HTTP response from the payment service, not a timeout. GC pauses produce slow spans, not 500 errors.`;
+      return `No. The total trace duration is only ${formatSpanMs(totalMs)} — too fast for a GC issue. The error span shows http.status_code=500, which is an HTTP response from the payment service, not a timeout. GC pauses produce slow spans, not 500 errors.`;
     },
   },
   {
     id: 'd',
     label: 'Network routing issue — DNS resolution failing for the payment service',
+    specificHint: '💡 Hint: A DNS failure would mean no HTTP response at all. Check the http.status_code attribute on the error span.',
     evaluate: () => false,
     explainCorrect: () => '',
     explainIncorrect: (data: Phase2Data) => {
@@ -271,6 +272,7 @@ const collectorRules: RootCauseRule[] = [
   {
     id: 'b',
     label: 'OTLP exporter endpoint misconfigured — traces sent to wrong address',
+    specificHint: '💡 Hint: Consider at what stage in the pipeline sampling vs. exporting happens. Would a wrong endpoint explain why only error traces are missing?',
     evaluate: () => false,
     explainCorrect: () => '',
     explainIncorrect: () => 'Not quite. A wrong endpoint causes export failures, but traces would still be sampled. The selective dropout of error spans points to tail_sampling, which runs before export.',
@@ -278,6 +280,7 @@ const collectorRules: RootCauseRule[] = [
   {
     id: 'c',
     label: 'Receivers not configured — no telemetry reaching the collector',
+    specificHint: '💡 Hint: Some traces are getting through — just not the error ones. Would a receiver misconfiguration explain that selective pattern?',
     evaluate: () => false,
     explainCorrect: () => '',
     explainIncorrect: () => 'Not quite. Missing receivers would drop ALL traces, not just error traces. The selective gap — only errors missing — is the signature of tail_sampling filtering.',
@@ -285,6 +288,7 @@ const collectorRules: RootCauseRule[] = [
   {
     id: 'd',
     label: 'Batch processor buffer overflow — high-throughput traces queued and dropped',
+    specificHint: '💡 Hint: Buffer overflow drops traces randomly under load. What kind of processor would selectively drop only error-status traces?',
     evaluate: () => false,
     explainCorrect: () => '',
     explainIncorrect: () => 'No. Buffer overflow drops traces uniformly under load. Here, only error spans are missing — that selective behavior is tail_sampling with a misconfigured error policy, not random buffer overflow.',
@@ -322,19 +326,10 @@ export function createDefaultRules(caseId: string): Map<string, RootCauseRule> {
 }
 
 /**
- * Get a hint for an incorrect guess
+ * Get a hint for an incorrect guess by delegating to the rule's own specificHint
  */
-function getHintForGuess(guessId: string): string | undefined {
-  switch (guessId) {
-    case 'a': // Missing index
-      return '💡 Hint: Look at db.connection_pool.wait_ms — is the time spent waiting or querying?';
-    case 'c': // Cache is slow
-      return '💡 Hint: Compare the duration of cache.invalidate to db.query. Which is longer?';
-    case 'd': // CPU-bound
-      return '💡 Hint: Look for spans showing wait time vs computation time. What does db.connection_pool.wait_ms indicate?';
-    default:
-      return undefined;
-  }
+function getHintForGuess(rule: RootCauseRule): string | undefined {
+  return rule.specificHint;
 }
 
 // ============================================================================
@@ -381,7 +376,7 @@ export function evaluateGuess(
       explanation: isCorrect
         ? rule.explainCorrect(data)
         : rule.explainIncorrect(data, guessId),
-      hint: isCorrect ? undefined : getHintForGuess(guessId),
+      hint: isCorrect ? undefined : getHintForGuess(rule),
     };
   } catch (error) {
     // Graceful degradation if evaluation fails

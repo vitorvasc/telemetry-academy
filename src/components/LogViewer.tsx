@@ -76,10 +76,11 @@ export const LogViewer: React.FC<LogViewerProps> = ({
               const lv = LEVEL[log.level];
               const isCorr = traceCorr && log.traceId === highlightTraceId;
               const isSel = selected === i;
+              const rowKey = `${log.timestamp}-${log.spanId}-${i}`;
 
               return (
                 <tr
-                  key={i}
+                  key={rowKey}
                   onClick={() => setSelected(isSel ? null : i)}
                   className={`cursor-pointer border-b border-slate-800/40 ${lv.bg} ${
                     isSel ? 'bg-slate-800' : 'hover:bg-slate-800/50'
@@ -138,7 +139,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
             </button>
             {outputExpanded && (
               <div className="px-4 pb-3 font-mono text-[11px] text-slate-600 space-y-0.5">
-                {userOutput.map((line, i) => <div key={i}>{line}</div>)}
+                {userOutput.map((line, i) => <div key={`out-${i}-${line.slice(0, 20)}`}>{line}</div>)}
               </div>
             )}
           </div>

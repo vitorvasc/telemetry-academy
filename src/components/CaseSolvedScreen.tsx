@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { Case } from '../types';
 import type { CaseProgress } from '../types/progress';
 import { Trophy, Clock, Target, ChevronRight, Star, BookOpen } from 'lucide-react';
+import { formatElapsedMs } from '../lib/formatters';
 
 interface CaseSolvedScreenProps {
   solvedCase: Case;
@@ -9,13 +10,6 @@ interface CaseSolvedScreenProps {
   progress: CaseProgress;
   onNext: () => void;
   onReview: () => void;
-}
-
-function formatDuration(ms: number): string {
-  const s = Math.floor(ms / 1000);
-  const m = Math.floor(s / 60);
-  if (m > 0) return `${m}m ${s % 60}s`;
-  return `${s}s`;
 }
 
 function getScore(attempts: number, durationMs: number): { stars: number; label: string } {
@@ -88,7 +82,7 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
             {
               icon: Clock,
               label: 'Time',
-              value: durationMs > 0 ? formatDuration(durationMs) : '—',
+              value: durationMs > 0 ? formatElapsedMs(durationMs) : '—',
               color: 'text-sky-400',
             },
             {
@@ -119,10 +113,6 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
                 {concept.replace(/_/g, ' ')}
               </li>
             ))}
-            <li className="flex items-center gap-2 text-sm text-slate-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-              Identifying connection pool exhaustion via traces
-            </li>
           </ul>
         </div>
 

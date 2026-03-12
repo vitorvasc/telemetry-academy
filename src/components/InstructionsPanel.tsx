@@ -46,7 +46,7 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
               key={concept}
               className="px-2 py-1 text-xs bg-sky-400/10 text-sky-400 rounded-full"
             >
-              {concept.replace('_', ' ')}
+              {concept.replace(/_/g, ' ')}
             </span>
           ))}
         </div>

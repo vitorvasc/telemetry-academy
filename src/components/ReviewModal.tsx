@@ -2,16 +2,12 @@ import React from 'react';
 import { X, CheckCircle2, Clock, Activity } from 'lucide-react';
 import type { TraceSpan } from '../types/phase2';
 import type { RootCauseOption } from '../types/phase2';
+import { formatSpanMs } from '../lib/formatters';
 
 interface ReviewModalProps {
   spans: TraceSpan[];
   correctOption: RootCauseOption | null;
   onClose: () => void;
-}
-
-function formatMs(ms: number): string {
-  if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`;
-  return `${Math.round(ms)}ms`;
 }
 
 export const ReviewModal: React.FC<ReviewModalProps> = ({
@@ -78,7 +74,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         <td className="px-3 py-2 text-right text-slate-400">
                           <span className="flex items-center justify-end gap-1">
                             <Clock className="w-3 h-3" />
-                            {formatMs(span.durationMs)}
+                            {formatSpanMs(span.durationMs)}
                           </span>
                         </td>
                         <td className="px-3 py-2 text-right">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { TraceSpan } from '../types/phase2';
 import { ChevronRight, ChevronDown, Copy } from 'lucide-react';
+import { formatSpanMs } from '../lib/formatters';
 
 interface TraceViewerProps {
   spans: TraceSpan[];
@@ -14,8 +15,6 @@ const STATUS = {
   error:   { bar: 'bg-red-500',   dot: 'bg-red-400',   text: 'text-red-400',   badge: 'ERR',  badgeCls: 'bg-red-900/60 text-red-300' },
 };
 
-const fmt = (ms: number) => ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${ms}ms`;
-
 function TimeRuler({ totalMs }: { totalMs: number }) {
   const steps = [0, 25, 50, 75, 100];
   return (
@@ -23,7 +22,7 @@ function TimeRuler({ totalMs }: { totalMs: number }) {
       {steps.map(pct => (
         <div key={pct} className="absolute flex flex-col items-center" style={{ left: `${pct}%` }}>
           <span className="text-[10px] text-slate-600 mb-1">
-            {fmt((totalMs * pct) / 100)}
+            {formatSpanMs((totalMs * pct) / 100)}
           </span>
           <div className="w-px h-2 bg-slate-700" />
         </div>
@@ -69,7 +68,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({ spans, totalDurationMs
           <div className="w-px h-8 bg-slate-700" />
           <div className="flex flex-col">
             <span className="text-[10px] text-slate-500 uppercase tracking-wider">Duration</span>
-            <span className="text-xs text-amber-400 font-mono font-bold">{fmt(totalDurationMs)}</span>
+            <span className="text-xs text-amber-400 font-mono font-bold">{formatSpanMs(totalDurationMs)}</span>
           </div>
           <div className="w-px h-8 bg-slate-700" />
           <div className="flex flex-col">
@@ -121,7 +120,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({ spans, totalDurationMs
 
                 {/* Duration */}
                 <div className={`w-16 flex-shrink-0 text-right pr-3 text-xs font-mono font-medium ${s.text}`}>
-                  {fmt(span.durationMs)}
+                  {formatSpanMs(span.durationMs)}
                 </div>
 
                 {/* Timeline */}
@@ -136,7 +135,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({ spans, totalDurationMs
                     style={{ left: pct(span.offsetMs), width: pct(span.durationMs) }}
                   >
                     <span className="px-1 text-[10px] text-white/80 font-mono truncate hidden sm:block">
-                      {fmt(span.durationMs)}
+                      {formatSpanMs(span.durationMs)}
                     </span>
                   </div>
                   {/* Status badge */}
@@ -170,7 +169,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({ spans, totalDurationMs
                   {span.status === 'warning' && (
                     <div className="px-3 py-2 bg-amber-900/20 border-t border-amber-900/40 text-xs text-amber-400 flex items-center gap-2">
                       <span className="text-amber-500">⚠</span>
-                      <span><strong>db.connection_pool.wait_ms</strong> is abnormally high — check the connection pool configuration</span>
+                      <span>This span has abnormally high latency — inspect the attributes above for clues</span>
                     </div>
                   )}
                 </div>

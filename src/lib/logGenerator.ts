@@ -177,16 +177,15 @@ export function generateLogsFromSpans(
   logEvents.sort((a, b) => a.timestamp - b.timestamp);
 
   // Convert LogEvents to LogEntries with formatted timestamps
-  return logEvents.map(event => ({
-    timestamp: formatTimestamp(event.timestamp, baseTime),
-    level: event.level,
-    message: event.message,
-    traceId,
-    spanId: spans.find(s => 
-      event.name.startsWith(s.name)
-    )?.id || 'unknown',
-    service: spans.find(s => 
-      event.name.startsWith(s.name)
-    )?.service || 'unknown',
-  }));
+  return logEvents.map(event => {
+    const matchedSpan = spans.find(s => event.name.startsWith(s.name));
+    return {
+      timestamp: formatTimestamp(event.timestamp, baseTime),
+      level: event.level,
+      message: event.message,
+      traceId,
+      spanId: matchedSpan?.id || 'unknown',
+      service: matchedSpan?.service || 'unknown',
+    };
+  });
 }

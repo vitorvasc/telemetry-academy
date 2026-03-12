@@ -91,7 +91,8 @@ export function useCodeRunner(language: Language = 'python') {
       setSpans([]);
 
       const collectedSpans: RawOTelSpan[] = [];
-      const runId = Math.random().toString(36).substring(7);
+      const collectedLines: string[] = [];
+      const runId = crypto.randomUUID();
 
       const timeoutId = setTimeout(() => {
         if (workerRef.current) {
@@ -109,7 +110,7 @@ export function useCodeRunner(language: Language = 'python') {
         const { type, id, result, error, message, span } = data;
 
         if (type === 'stdout') {
-          setOutput(prev => [...prev, message ?? '']);
+          collectedLines.push(message ?? '');
           return;
         }
 
@@ -117,7 +118,6 @@ export function useCodeRunner(language: Language = 'python') {
           if (span) {
             const rawSpan = span as unknown as RawOTelSpan;
             collectedSpans.push(rawSpan);
-            setSpans(prev => [...prev, rawSpan]);
           }
           return;
         }
@@ -127,11 +127,15 @@ export function useCodeRunner(language: Language = 'python') {
         if (type === 'success') {
           clearTimeout(timeoutId);
           workerRef.current?.removeEventListener('message', messageHandler);
+          setOutput(collectedLines);
+          setSpans(collectedSpans);
           setIsRunning(false);
           resolve({ result, spans: collectedSpans });
         } else if (type === 'error') {
           clearTimeout(timeoutId);
           workerRef.current?.removeEventListener('message', messageHandler);
+          setOutput(collectedLines);
+          setSpans(collectedSpans);
           setIsRunning(false);
           reject(new Error(error));
         }

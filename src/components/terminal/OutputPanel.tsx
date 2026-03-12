@@ -16,7 +16,7 @@ export function OutputPanel({ output, error, isRunning }: OutputPanelProps) {
           <div className="text-slate-500 italic">No output</div>
         )}
         {output.map((line, i) => (
-          <div key={i} className="whitespace-pre-wrap">{line}</div>
+          <div key={`${i}-${line.slice(0, 20)}`} className="whitespace-pre-wrap">{line}</div>
         ))}
         {error && (
           <div className="text-red-400 whitespace-pre-wrap mt-2">{error}</div>
