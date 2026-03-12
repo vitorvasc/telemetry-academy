@@ -6,6 +6,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "types": ["vite/client"],
+    // skipLibCheck: required for Pyodide — its type declarations have known conflicts
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -22,7 +23,8 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "noPropertyAccessFromIndexSignature": true
   },
   "include": ["src"]
 }
