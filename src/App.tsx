@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useLocation, useRoute } from 'wouter';
 
 const CodeEditor = lazy(() =>
@@ -14,6 +14,7 @@ import { HomePage } from './components/HomePage';
 import { OutputPanel } from './components/terminal/OutputPanel';
 import { ReviewModal } from './components/ReviewModal';
 import { WelcomeModal } from './components/WelcomeModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useCodeRunner } from './hooks/useCodeRunner';
 import { useAcademyPersistence } from './hooks/useAcademyPersistence';
 import { usePhase2Data } from './hooks/usePhase2Data';
@@ -27,10 +28,34 @@ import { Group, Panel, Separator, useGroupRef, useDefaultLayout } from 'react-re
 type AppPhase = 'instrumentation' | 'investigation' | 'solved';
 type MobileTab = 'instructions' | 'code' | 'output';
 
+function NoTelemetryData({ onGoToPhase1 }: { onGoToPhase1: () => void }) {
+  return (
+    <div className="h-full flex items-center justify-center bg-slate-900 px-6">
+      <div className="text-center max-w-md mx-auto">
+        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Radio className="w-8 h-8 text-slate-600" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-200 mb-2">No Telemetry Data</h3>
+        <p className="text-sm text-slate-500 mb-6">
+          Run your code in Phase 1 to generate telemetry data for investigation.
+        </p>
+        <button
+          onClick={onGoToPhase1}
+          className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Go to Phase 1
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const FIRST_CASE_ID = '001-hello-span';
+
 function initProgress(cases: Case[]): CaseProgress[] {
-  return cases.map((c, i) => ({
+  return cases.map(c => ({
     caseId: c.id,
-    status: i === 0 ? 'available' : 'locked',
+    status: c.id === FIRST_CASE_ID ? 'available' : 'locked',
     phase: 'instrumentation',
     attempts: 0,
   }));
@@ -107,10 +132,10 @@ function App() {
   const bottomLayout = useDefaultLayout({ id: 'ta-panel-bottom', storage: localStorage });
   getSavedCodeRef.current = getSavedCode;
 
-  const currentCase = cases.find(c => c.id === currentCaseId) ?? cases[0];
-  const currentIdx = cases.findIndex(c => c.id === currentCaseId);
-  const nextCase = cases[currentIdx + 1];
-  const currentProgress = allProgress.find(p => p.caseId === currentCaseId)!;
+  const currentCase = useMemo(() => cases.find(c => c.id === currentCaseId) ?? cases[0], [currentCaseId]);
+  const currentIdx = useMemo(() => cases.findIndex(c => c.id === currentCaseId), [currentCaseId]);
+  const nextCase = useMemo(() => cases[currentIdx + 1], [currentIdx]);
+  const currentProgress = useMemo(() => allProgress.find(p => p.caseId === currentCaseId)!, [allProgress, currentCaseId]);
   const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
   const phaseUnlocked =
     lastPassedCodeRef.current !== null &&
@@ -167,14 +192,8 @@ function App() {
     initialLoadRef.current = false;
   }, [code, currentCaseId, isLoaded, saveCode]);
 
-  // Navigate to a case from home
-  const goToCase = (id: string) => {
-    switchCase(id);
-    setLocation(`/case/${id}`);
-  };
-
   // Switch cases
-  const switchCase = (id: string) => {
+  const switchCase = useCallback((id: string) => {
     const c = cases.find(x => x.id === id);
     if (!c) return;
     const prog = allProgress.find(p => p.caseId === id)!;
@@ -191,12 +210,18 @@ function App() {
     } else {
       lastPassedCodeRef.current = null;
     }
-  };
+  }, [allProgress, getSavedCode]);
+
+  // Navigate to a case from home
+  const goToCase = useCallback((id: string) => {
+    switchCase(id);
+    setLocation(`/case/${id}`);
+  }, [switchCase, setLocation]);
 
   // Update progress helper
-  const updateProgress = (id: string, patch: Partial<CaseProgress>) => {
+  const updateProgress = useCallback((id: string, patch: Partial<CaseProgress>) => {
     setAllProgress(prev => prev.map(p => p.caseId === id ? { ...p, ...patch } : p));
-  };
+  }, [setAllProgress]);
 
   // Phase 1 validation
   const handleValidate = async () => {
@@ -468,6 +493,7 @@ function App() {
           />
         )}
 
+        <ErrorBoundary>
         {appPhase === 'solved' ? (
           <div className="flex-1 overflow-hidden">
             <CaseSolvedScreen
@@ -627,23 +653,7 @@ function App() {
                       userOutput={output}
                     />
                   ) : (
-                    <div className="h-full flex items-center justify-center bg-slate-900 px-6">
-                      <div className="text-center max-w-md mx-auto">
-                        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Radio className="w-8 h-8 text-slate-600" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-200 mb-2">No Telemetry Data</h3>
-                        <p className="text-sm text-slate-500 mb-6">
-                          Run your code in Phase 1 to generate telemetry data for investigation.
-                        </p>
-                        <button
-                          onClick={() => setAppPhase('instrumentation')}
-                          className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
-                        >
-                          Go to Phase 1
-                        </button>
-                      </div>
-                    </div>
+                    <NoTelemetryData onGoToPhase1={() => setAppPhase('instrumentation')} />
                   )}
                 </div>
                 {phaseBar}
@@ -663,29 +673,14 @@ function App() {
                     userOutput={output}
                   />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-slate-900 px-6">
-                    <div className="text-center max-w-md mx-auto">
-                      <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Radio className="w-8 h-8 text-slate-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-slate-200 mb-2">No Telemetry Data</h3>
-                      <p className="text-sm text-slate-500 mb-6">
-                        Run your code in Phase 1 to generate telemetry data for investigation.
-                      </p>
-                      <button
-                        onClick={() => setAppPhase('instrumentation')}
-                        className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
-                      >
-                        Go to Phase 1
-                      </button>
-                    </div>
-                  </div>
+                  <NoTelemetryData onGoToPhase1={() => setAppPhase('instrumentation')} />
                 )}
               </div>
               {phaseBar}
             </div>
           </>
         )}
+        </ErrorBoundary>
       </main>
       <footer className="flex-shrink-0 border-t border-slate-800 bg-slate-950 px-4 py-2 flex items-center justify-between text-[11px] text-slate-500">
         <span>

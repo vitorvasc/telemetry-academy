@@ -50,6 +50,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     localStorage.setItem('ta-editor-fontsize', String(next));
   };
 
+  // Keep a ref to onRunShortcut so the Monaco addCommand closure always calls
+  // the latest version without needing to re-register the command on re-renders.
+  const onRunShortcutRef = useRef(onRunShortcut);
+  useEffect(() => { onRunShortcutRef.current = onRunShortcut; });
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     editorRef.current = editor;
@@ -57,7 +62,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
     editor.addCommand(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
-      () => { void onRunShortcut?.(); }
+      () => { void onRunShortcutRef.current?.(); }
     );
     if (containerRef.current) {
       observerRef.current = new ResizeObserver(() => {
