@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-06-PLAN.md — Panel size props from bare numbers to string percentages
-last_updated: "2026-03-10T13:43:25.381Z"
-last_activity: "2026-03-10 - Completed quick task 002: Fix DataCloneError in python.worker.ts, add Vitest unit tests"
+stopped_at: Completed 06-01-PLAN.md — Concept-first description rewrites for cases 001-003
+last_updated: "2026-03-13T14:05:04.140Z"
+last_activity: "2026-03-11 - Completed quick task 7: fix font size scaling on 2K resolution, especially homepage"
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
-  total_plans: 20
-  completed_plans: 20
+  total_plans: 27
+  completed_plans: 21
   percent: 100
 ---
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100%
 | Phase 05 P05 | 3 | 2 tasks | 5 files |
 | Phase 05 P07 | 3 | 1 tasks | 1 files |
 | Phase 05 P06 | 3 | 1 tasks | 1 files |
+| Phase 06 P01 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,8 @@ Recent decisions affecting current work:
 - [Phase 05-05]: CodeEditor named export remapped to default via .then(m => ({ default: m.CodeEditor })) for React.lazy compatibility
 - [Phase 05]: Word wrap state uses lazy initializer reading ta-editor-wordwrap, falling back to defaultWordWrap prop when no stored value
 - [Phase 05-06]: react-resizable-panels v4 Panel size props require string percentages — bare numbers are treated as pixel values (breaking change from v3)
+- [Phase 06]: Concept-first structure: concept -> production relevance -> exercise (no prior OTel knowledge assumed)
+- [Phase 06]: Production anecdotes use specific numbers to make relevance concrete
 
 ### Pending Todos
 
@@ -128,6 +131,7 @@ None yet.
 ### Roadmap Evolution
 
 - Phase 5 added: UI Polish — resizable panels, navigation improvements, hint system, code editor tweaks, performance and visual enhancements
+- Phase 6 added: Plan and implement final case list
 
 ### Quick Tasks Completed
 
@@ -143,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:14:00Z
-Stopped at: Completed quick task 006 — Investigation phase UX bug fixes
+Last session: 2026-03-13T14:05:04.134Z
+Stopped at: Completed 06-01-PLAN.md — Concept-first description rewrites for cases 001-003
 Resume file: None
