@@ -1,27 +1,26 @@
 # Technology Stack
 
-**Analysis Date:** 2026-03-10
+**Analysis Date:** 2026-03-13
 
 ## Languages
 
 **Primary:**
-- TypeScript 5.9.3 - All application source code in `src/`
-- Python (via Pyodide 0.29.3 WASM) - User-submitted code executed in-browser
+- TypeScript ~5.9.3 - All application source in `src/`
+- Python (Pyodide WASM) - Student code executed in-browser; OTel bootstrap in `src/workers/python/setup_telemetry.py`
 
 **Secondary:**
-- CSS (Tailwind utility classes) - Styling via `src/index.css`, `src/App.css`
-- YAML - Case definitions in `src/cases/*/case.yaml`
-- Python (setup scripts) - OTel telemetry bootstrap in `src/workers/python/setup_telemetry.py`
+- CSS - Global styles (`src/index.css`, `src/App.css`)
+- YAML - Case content definitions (`src/cases/*/case.yaml`)
 
 ## Runtime
 
 **Environment:**
-- Browser (no server runtime required — fully client-side)
-- Web Workers for Pyodide WASM execution (`src/workers/python.worker.ts`)
+- Browser (fully client-side — no server required)
+- Python runs inside a Pyodide WebAssembly Web Worker (`src/workers/python.worker.ts`)
 
-**Node.js (dev/build only):**
-- v24.13.0 (local environment)
-- Not required at runtime
+**Node.js:**
+- Required: ≥20.0.0 (enforced in `package.json` `engines` field)
+- Used for build toolchain only; not required at runtime
 
 **Package Manager:**
 - npm
@@ -30,81 +29,96 @@
 ## Frameworks
 
 **Core:**
-- React 19.2.0 - UI framework, component tree rooted at `src/main.tsx`
-- React DOM 19.2.0 - DOM rendering
+- React 19.2.x - UI framework; component tree rooted at `src/main.tsx`
+- wouter 3.9.x - Client-side routing (`<Router>`, `useRoute`, `useLocation`); NOT React Router
 
-**Build/Dev:**
-- Vite 7.3.1 - Dev server and production bundler, configured in `vite.config.ts`
-- TypeScript compiler (tsc) 5.9.3 - Type checking, config in `tsconfig.app.json` and `tsconfig.node.json`
+**UI / Styling:**
+- Tailwind CSS 4.2.x - Utility-first CSS; Vite plugin `@tailwindcss/vite`
+- `@tailwindcss/typography` 0.5.x - Prose styles for `react-markdown` in `src/components/InstructionsPanel.tsx`
+- lucide-react 0.577.x - Icon library used throughout UI
 
-**Styling:**
-- Tailwind CSS 4.2.1 - Utility-first CSS, loaded via `@tailwindcss/vite` Vite plugin
-- PostCSS 8.5.6 - CSS processing pipeline
-- Autoprefixer 10.4.24 - Vendor prefix automation
+**Editor:**
+- `@monaco-editor/react` 4.7.x - VSCode-based code editor (`src/components/CodeEditor.tsx`); supports Python and YAML language modes; lazy-loaded to avoid blocking initial render
+
+**Layout:**
+- `react-resizable-panels` 4.7.x - Resizable desktop panel layout in `src/App.tsx`; panel sizes persisted to `localStorage` via `useDefaultLayout`
+
+**Markdown:**
+- `react-markdown` 10.1.x - Renders case instruction markdown in `src/components/InstructionsPanel.tsx`
+
+**Python / WASM:**
+- `pyodide` 0.29.3 - Python WASM runtime; loaded from jsDelivr CDN on worker init (`https://cdn.jsdelivr.net/pyodide/v0.29.3/full/`). CDN URL and package version must stay in sync.
+- `opentelemetry-api` + `opentelemetry-sdk` (Python) - Installed at runtime into Pyodide via `micropip`; student code instruments against this SDK
 
 **Testing:**
-- No test framework detected (no jest/vitest config, no `*.test.*` or `*.spec.*` files found)
+- vitest 4.0.x - Test runner; configured inline in `vite.config.ts`
+- `@testing-library/react` 16.3.x - Component tests
+- `@testing-library/jest-dom` 6.9.x - DOM matchers
+- `@testing-library/user-event` 14.6.x - User interaction simulation
+- `@vitest/ui` 4.0.x - Interactive browser UI for test runs
+- `@vitest/coverage-v8` 4.0.x - Code coverage (v8 provider); outputs text, HTML, and lcov
+- jsdom 28.1.x - JSDOM environment for all tests
+
+**Build/Dev:**
+- vite 7.3.x - Dev server and production bundler; `vite.config.ts`
+- `@vitejs/plugin-react` 5.1.x - React Fast Refresh + JSX transform
+- `@modyfi/vite-plugin-yaml` 1.1.x - Enables `import.meta.glob('*.yaml')` used by `src/data/caseLoader.ts`
 
 ## Key Dependencies
 
 **Critical:**
-- `pyodide` 0.29.3 - Python runtime in WASM; loaded from CDN `https://cdn.jsdelivr.net/pyodide/v0.29.3/full/` at runtime; Python packages `opentelemetry-api` and `opentelemetry-sdk` installed via `micropip` on worker init
-- `@monaco-editor/react` 4.7.0 - VSCode-based code editor component used in `src/components/CodeEditor.tsx`
-- `js-yaml` (types only via `@types/js-yaml` 4.0.9, actual runtime via `js-yaml` bundled dep) - YAML parsing in `src/lib/validation.ts` for the YAML config case type
-- `lucide-react` 0.575.0 - Icon library used throughout UI components
+- `pyodide` 0.29.3 - The CDN URL in `src/workers/python.worker.ts` line `indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/'` must match the npm version. Upgrading either requires updating both.
+- `@monaco-editor/react` - Monaco bundles significant assets; lazy-loaded in `src/App.tsx` via `React.lazy`
+- `react-resizable-panels` v4 - Changed API in v4 (`useDefaultLayout`, `useGroupRef`); used throughout `src/App.tsx`
+- `wouter` - Lightweight alternative to React Router; breaking change if swapped
 
-**Build Plugins:**
-- `@vitejs/plugin-react` 5.1.1 - React Fast Refresh and JSX transform
-- `@modyfi/vite-plugin-yaml` 1.1.1 - Enables `import.meta.glob('*.yaml')` in `src/data/caseLoader.ts`
-
-**Linting:**
-- `eslint` 9.39.1 with flat config (`eslint.config.js`)
-- `typescript-eslint` 8.48.0 - TypeScript-aware lint rules
-- `eslint-plugin-react-hooks` 7.0.1 - Hooks rules enforcement
-- `eslint-plugin-react-refresh` 0.4.24 - Fast Refresh compliance
+**Infrastructure:**
+- `js-yaml` 4.1.x - YAML parsing used by validation logic for the `yaml-config` case type (`src/lib/validation.ts`)
 
 ## Configuration
 
 **TypeScript:**
-- Target: `ES2022`
-- Module: `ESNext` with bundler resolution
-- Strict mode enabled with `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`
-- JSX: `react-jsx` (no React import needed in TSX files)
-- Config: `tsconfig.app.json` (source), `tsconfig.node.json` (build tools)
-
-**Vite:**
-- Plugins: React, Tailwind CSS, YAML loader
-- Worker format: `es` (ES module workers for Pyodide compatibility)
-- Config: `vite.config.ts`
+- `tsconfig.json` - References `tsconfig.app.json` and `tsconfig.node.json`
+- `tsconfig.app.json` - App source; target ES2022, strict mode, `skipLibCheck: true` (required for Pyodide type declaration conflicts)
+- `tsconfig.node.json` - Vite config only; target ES2023
 
 **ESLint:**
-- Flat config format in `eslint.config.js`
-- Applies to `**/*.{ts,tsx}` files
-- Ignores `dist/`
+- `eslint.config.js` - Flat config; three rule groups:
+  1. All `.ts`/`.tsx` - type-checked rules, async correctness (`no-floating-promises`, `no-misused-promises`), `consistent-type-imports`, `switch-exhaustiveness-check`
+  2. `*.worker.ts` - unsafe rules disabled (Pyodide has no TypeScript types)
+  3. `*.test.*` / `*.spec.*` - unsafe rules disabled, vitest plugin enabled
 
-**Environment:**
-- No `.env` files present — no runtime environment variables required
-- All configuration is compile-time or hardcoded (e.g., Pyodide CDN URL in `src/workers/python.worker.ts`)
+**Vite:**
+- `vite.config.ts` - Build target `es2020` (required for Pyodide/WASM BigInt support); worker format `es`; test environment `jsdom`
 
-**Build:**
-- `npm run build` — runs `tsc -b && vite build`
-- Output: `dist/` directory
-- `npm run dev` — Vite dev server with HMR
-- `npm run lint` — ESLint
-- `npm run preview` — Preview production build
+**Git Hooks:**
+- `husky` 9.1.x - `pre-commit`: runs `lint-staged`; `commit-msg`: runs `commitlint`
+- `lint-staged` 16.3.x - ESLint `--fix` on staged `*.ts`/`*.tsx`
+- `@commitlint/cli` + `@commitlint/config-conventional` - Enforces Conventional Commits
+
+**Build Scripts:**
+```bash
+npm run dev           # Vite dev server with HMR
+npm run build         # tsc -b && vite build → dist/
+npm run lint          # ESLint
+npm run preview       # Preview production build
+npm run test          # vitest run (single pass)
+npm run test:watch    # vitest (watch mode)
+npm run test:coverage # vitest run --coverage
+```
 
 ## Platform Requirements
 
 **Development:**
-- Node.js with npm
-- Modern browser for manual testing
+- Node.js ≥20.0.0 with npm
 
 **Production:**
-- Static file host only (no server required)
-- Domain configured as `https://telemetry.academy/` (per `index.html` OG meta)
-- Browser must support WebAssembly (for Pyodide), Web Workers, and ES modules
-- Pyodide runtime fetched from `https://cdn.jsdelivr.net/pyodide/v0.29.3/full/` on first load
+- Static file hosting only (no server required)
+- Deployed to `https://telemetry.academy/`
+- Browser must support WebAssembly, Web Workers, and ES Modules
+- `public/_headers` defines security headers; CSP explicitly whitelists `cdn.jsdelivr.net` for scripts and fetch connections
+- No environment variables required — all config is compile-time or CDN URLs hardcoded in source
 
 ---
 
-*Stack analysis: 2026-03-10*
+*Stack analysis: 2026-03-13*

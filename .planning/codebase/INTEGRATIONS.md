@@ -1,20 +1,21 @@
 # External Integrations
 
-**Analysis Date:** 2026-03-10
+**Analysis Date:** 2026-03-13
 
 ## APIs & External Services
 
 **Python WASM Runtime (CDN):**
-- Pyodide runtime loaded at browser startup via `src/workers/python.worker.ts`
-  - CDN URL: `https://cdn.jsdelivr.net/pyodide/v0.29.3/full/`
-  - Loaded once per Worker init; cached by browser
-  - No API key required — public CDN
+- jsDelivr CDN - Pyodide runtime bundle fetched on first worker init
+  - SDK/Client: `pyodide` npm package (`src/workers/python.worker.ts`)
+  - CDN URL: `https://cdn.jsdelivr.net/pyodide/v0.29.3/full/` (hardcoded, must match npm version)
+  - Auth: None — public CDN
+  - Allowed in CSP: `script-src` and `connect-src` in `public/_headers`
 
-**Python Packages (micropip):**
-- `opentelemetry-api` — installed via `micropip` inside the Pyodide worker on init
-- `opentelemetry-sdk` — installed via `micropip` inside the Pyodide worker on init
-- Source: PyPI (via micropip's default index)
-- No auth required
+**Python Package Index (micropip):**
+- PyPI - Python packages installed into Pyodide at worker init via `micropip`
+  - Packages: `opentelemetry-api`, `opentelemetry-sdk`
+  - Called from: `src/workers/python.worker.ts` `init` handler
+  - Auth: None — public PyPI
 
 ## Data Storage
 
@@ -23,46 +24,48 @@
 
 **Client-Side Storage:**
 - `localStorage` key: `telemetry-academy`
-- Schema versioned (`SCHEMA_VERSION = 1`) to prevent data loss on schema changes
-- Stores: case progress, saved user code per case, attempt history, welcome modal seen flag
+- Schema version: `SCHEMA_VERSION = 2` (version mismatch clears stored data to prevent corruption)
+- Stores: case progress, saved user code per case, attempt history per rule, welcome modal seen flag
 - Implementation: `src/hooks/useAcademyPersistence.ts`
-- Debounced writes (300ms) to avoid excessive I/O
+- Debounced writes (300ms); handles `QuotaExceededError` gracefully
+- Panel layout sizes also stored in `localStorage` under keys `react-resizable-panels:ta-panel-*`
 
 **File Storage:**
-- None — all case data is bundled at build time via `import.meta.glob` in `src/data/caseLoader.ts`
+- None — all case data bundled at build time via `import.meta.glob` in `src/data/caseLoader.ts`
 
 **Caching:**
-- None server-side; browser caches Pyodide WASM bundle from CDN
+- No server-side cache; browser caches Pyodide WASM bundle and packages from CDN
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- None — no authentication required
+- None — no authentication
 - The app is fully anonymous; all state is local to the user's browser
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- None detected — no Sentry, Datadog, or similar SDK integrated
+- None — no Sentry, Datadog, or similar SDK integrated
 
 **Logs:**
 - `console.error` / `console.warn` for internal errors (localStorage failures, worker errors)
-- No structured logging to an external endpoint
+- No structured logging to any external endpoint
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Static site — target domain `https://telemetry.academy/` (per `index.html` OG meta tags)
-- No deployment config files detected in repo (no Dockerfile, no Netlify/Vercel config, no GitHub Actions workflows)
+- Static site at `https://telemetry.academy/`
+- `public/_headers` sets HTTP security headers (served by CDN/host, not Vite)
+- No Dockerfile, Netlify config, Vercel config, or GitHub Actions workflows detected in repo
 
 **CI Pipeline:**
-- Not detected — no `.github/workflows/`, no CI config files found
+- None detected — no `.github/workflows/` or similar CI config files
 
 ## Environment Configuration
 
 **Required env vars:**
-- None — the application has no runtime environment variables
-- Pyodide CDN URL is hardcoded in `src/workers/python.worker.ts` line 12
+- None — zero runtime environment variables
+- Pyodide CDN URL is hardcoded in `src/workers/python.worker.ts`
 
 **Secrets location:**
 - No secrets present — fully public, client-side only application
@@ -77,19 +80,26 @@
 
 ## Internal Messaging (postMessage Protocol)
 
-**Web Worker ↔ Main Thread:**
-The Pyodide worker communicates with the main thread via `postMessage`. This is an internal integration boundary:
+**Web Worker ↔ Main Thread** — the primary integration boundary in this app:
 
-- `{ type: 'init', setupScript }` — Main → Worker: initialize Pyodide + install OTel packages
-- `{ type: 'ready' }` — Worker → Main: Pyodide initialized successfully
-- `{ type: 'run', code, id }` — Main → Worker: execute user Python code
-- `{ type: 'success', id, result }` — Worker → Main: code ran successfully
-- `{ type: 'error', id?, error }` — Worker → Main: execution or init error
-- `{ type: 'stdout', message }` — Worker → Main: Python print() output captured via `JSStdout`
-- `{ type: 'telemetry', span }` — Worker → Main: OTel span exported via `JSSpanExporter`
+```
+Main → Worker  { type: 'init', setupScript }      Initialize Pyodide + install OTel packages
+Worker → Main  { type: 'loading-stage', stage, total, label }  Progress updates during init
+Worker → Main  { type: 'ready' }                  Pyodide initialized successfully
+Main → Worker  { type: 'run', code, id }          Execute user Python code (id = crypto.randomUUID())
+Worker → Main  { type: 'success', id, result }    Code ran successfully
+Worker → Main  { type: 'error', id?, error }      Init error (no id) or run error (with id)
+Worker → Main  { type: 'stdout', message }        Python print() output via JSStdout override
+Worker → Main  { type: 'telemetry', span }        OTel span exported by JSSpanExporter
+```
 
-Implementation: `src/workers/python.worker.ts`, `src/workers/python/setup_telemetry.py`, `src/hooks/useCodeRunner.ts`
+Implementation files:
+- `src/workers/python.worker.ts` — worker side (handles `init` and `run`)
+- `src/workers/python/setup_telemetry.py` — Python bootstrap: installs `JSStdout`, `JSSpanExporter`, configures OTel `TracerProvider`
+- `src/hooks/useCodeRunner.ts` — main-thread side (creates worker, dispatches messages, applies 5s execution timeout)
+
+Full protocol reference: `docs/worker-protocol.md`
 
 ---
 
-*Integration audit: 2026-03-10*
+*Integration audit: 2026-03-13*
