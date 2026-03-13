@@ -10,7 +10,28 @@ concepts:
 
 phase1:
   description: |
-    **Case #3: The Collector**
+    ## What is the OpenTelemetry Collector?
+
+    The **OTel Collector** is a vendor-agnostic proxy that sits between your applications and your observability backends. It receives telemetry in various formats, processes it (filters, enriches, batches), then exports to one or more backends simultaneously. It decouples your app code from your observability infrastructure.
+
+    ### The Pipeline Model
+
+    Every Collector pipeline follows the same three-stage flow:
+
+    ```
+    Receivers  →  Processors  →  Exporters
+    (accept)      (transform)    (send)
+    ```
+
+    - **Receivers**: Accept telemetry from apps (OTLP, Jaeger, Zipkin, Prometheus pull, ...)
+    - **Processors**: Transform spans in-flight — filter, enrich, batch, or **sample**
+    - **Exporters**: Forward telemetry to backends (Jaeger, Grafana Tempo, Datadog, S3, ...)
+
+    ### Why it matters in production
+
+    Without a Collector, every microservice hardcodes an exporter endpoint. When you switch from Jaeger to Grafana Tempo, you redeploy every service. With a Collector, you change one config file — app code is untouched.
+
+    ---
 
     **The Situation:**
     The OTel Collector is deployed but misconfigured. Critical error spans are
@@ -24,9 +45,13 @@ phase1:
     3. Set the service.name resource attribute
 
     **Key Concepts:**
-    - **OTel Collector**: A standalone agent that receives, processes, and exports telemetry
-    - **Tail sampling**: Makes sampling decisions after the full trace is complete (keeps errors!)
-    - **Pipeline**: receivers → processors → exporters
+    - **Collector**: Vendor-agnostic telemetry proxy — receives, processes, exports
+    - **Pipeline**: The receivers → processors → exporters data flow
+    - **Receiver**: Accepts incoming telemetry (e.g., `otlp`, `jaeger`, `zipkin`)
+    - **Processor**: Transforms spans in-flight (filter, enrich, batch, sample)
+    - **Exporter**: Sends telemetry to a backend (e.g., `otlp`, `jaeger`, `prometheus`)
+    - **Tail Sampling**: Samples after the full trace is complete — can keep all ERROR spans
+    - **decision_wait**: How long tail_sampling waits to collect all spans before deciding
 
     **Hints:**
     1. The `processors` section needs `tail_sampling` to keep error spans
