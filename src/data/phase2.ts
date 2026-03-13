@@ -491,3 +491,139 @@ You have traces from the full request path. Look at ALL the spans, not just the 
 };
 
 phase2Registry['006-metrics-meet-traces'] = metricsTracesPhase2;
+
+// ============================================================================
+// Case 007: Log Detective
+// ============================================================================
+
+const logDetectiveTraceId = generateTraceId();
+
+export const logDetectivePhase2: Phase2Data = {
+  traceId: logDetectiveTraceId,
+  totalDurationMs: 2100,
+  narrative: `A billing alert fired: user_id=usr_4821 — charge failed. The API returned 402.
+
+You have traces and correlated log lines. The structured fields on the billing.charge span are your primary evidence — find the root cause.`,
+  spans: [
+    {
+      id: 'span-ld-001',
+      name: 'api.request',
+      service: 'api-gateway',
+      durationMs: 2100,
+      offsetMs: 0,
+      status: 'error',
+      depth: 0,
+      attributes: {
+        'http.method': 'POST',
+        'http.route': '/billing/charge',
+        'http.status_code': '402',
+      },
+    },
+    {
+      id: 'span-ld-002',
+      name: 'billing.charge',
+      service: 'billing-service',
+      durationMs: 2050,
+      offsetMs: 28,
+      status: 'error',
+      depth: 1,
+      attributes: {
+        'user_id': 'usr_4821',
+        'billing.amount': '99.00',
+        'billing.currency': 'USD',
+        'billing.attempt': '3',
+        'billing.result': 'insufficient_funds',
+      },
+    },
+    {
+      id: 'span-ld-003',
+      name: 'payment.gateway',
+      service: 'payment-service',
+      durationMs: 180,
+      offsetMs: 35,
+      status: 'ok',
+      depth: 2,
+      attributes: {
+        'gateway.response_code': '200',
+        'gateway.decline_reason': 'insufficient_funds',
+        'gateway.provider': 'stripe',
+      },
+    },
+    {
+      id: 'span-ld-004',
+      name: 'db.query',
+      service: 'billing-service',
+      durationMs: 8,
+      offsetMs: 220,
+      status: 'ok',
+      depth: 2,
+      attributes: {
+        'db.operation': 'INSERT',
+        'db.table': 'billing_attempts',
+        'db.rows_affected': '1',
+      },
+    },
+  ],
+  logs: [
+    {
+      timestamp: '08:41:03.031',
+      level: 'warn',
+      message: 'Retrying charge for user_id=usr_4821: insufficient_funds (attempt 1/3) — waiting 500ms',
+      traceId: logDetectiveTraceId,
+      spanId: 'span-ld-002',
+      service: 'billing-service',
+    },
+    {
+      timestamp: '08:41:03.561',
+      level: 'warn',
+      message: 'Retrying charge for user_id=usr_4821: insufficient_funds (attempt 2/3) — waiting 500ms',
+      traceId: logDetectiveTraceId,
+      spanId: 'span-ld-002',
+      service: 'billing-service',
+    },
+    {
+      timestamp: '08:41:04.091',
+      level: 'error',
+      message: 'billing.charge failed for user_id=usr_4821: insufficient_funds (attempt 3/3) — giving up',
+      traceId: logDetectiveTraceId,
+      spanId: 'span-ld-002',
+      service: 'billing-service',
+    },
+    {
+      timestamp: '08:41:04.095',
+      level: 'warn',
+      message: 'Gateway decline: user_id=usr_4821, reason=insufficient_funds, gateway=stripe',
+      traceId: logDetectiveTraceId,
+      spanId: 'span-ld-003',
+      service: 'payment-service',
+    },
+  ],
+  rootCauseOptions: [
+    {
+      id: 'a',
+      label: 'The billing service is experiencing a database outage — no charge records are being written',
+      correct: false,
+      explanation: 'Not quite. The db.query span completed with status=ok and db.rows_affected=1 — the charge attempt record was written successfully. A database outage would show the db.query span failing. The error is in the charge logic itself, not the database.',
+    },
+    {
+      id: 'b',
+      label: 'User usr_4821 has insufficient funds — the charge failed after 3 retry attempts, and the correlated log reveals billing.attempt=3',
+      correct: true,
+      explanation: '✓ Correct! The billing.charge span has billing.attempt=3 and billing.result=insufficient_funds — confirming 3 failed retries for user usr_4821. The correlated log entry shows the same structured fields. This is exactly why structured span attributes and structured logs use the same field names: instant correlation, instant root cause.',
+    },
+    {
+      id: 'c',
+      label: 'The payment gateway API returned a 503 — external service unavailable during the billing window',
+      correct: false,
+      explanation: 'Not quite. The payment.gateway span shows status=ok and gateway.response_code=200. The gateway was available and responded successfully — it returned gateway.decline_reason=insufficient_funds. A 503 would show status=error on the payment.gateway span.',
+    },
+    {
+      id: 'd',
+      label: 'A configuration error caused the billing service to charge in the wrong currency',
+      correct: false,
+      explanation: 'Not quite. The billing.charge span shows billing.currency=USD consistently, and no currency conversion span exists in the trace. The decline reason is insufficient_funds — not a currency mismatch. The charge was attempted in the correct currency.',
+    },
+  ],
+};
+
+phase2Registry['007-log-detective'] = logDetectivePhase2;

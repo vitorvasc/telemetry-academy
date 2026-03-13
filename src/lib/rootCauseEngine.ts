@@ -482,6 +482,72 @@ const metricsTracesRules: RootCauseRule[] = [
   },
 ];
 
+/**
+ * Log Detective (007-log-detective) case rules
+ *
+ * Scenario: Billing charge fails for user usr_4821 after 3 retry attempts.
+ * The billing.charge span has billing.attempt=3 and billing.result=insufficient_funds.
+ * Correlated logs confirm the retry exhaustion with the same structured fields.
+ */
+const logDetectiveRules: RootCauseRule[] = [
+  {
+    id: 'a',
+    label: 'The billing service is experiencing a database outage — no charge records are being written',
+    specificHint: '💡 Hint: Look at the db.query span — what is its status and how many rows were affected?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const dbSpan = data.spans.find(s => s.name === 'db.query');
+      const status = dbSpan?.status ?? 'ok';
+      const rows = dbSpan?.attributes?.['db.rows_affected'] ?? '1';
+      return `Not quite. The db.query span has status=${status} and db.rows_affected=${rows} — the charge attempt record was written successfully. A database outage would show the db.query span failing. Look at the billing.charge span attributes for the actual diagnostic signal.`;
+    },
+  },
+  {
+    id: 'b',
+    label: 'User usr_4821 has insufficient funds — the charge failed after 3 retry attempts, and the correlated log reveals billing.attempt=3',
+    evaluate: (data: Phase2Data) => {
+      const billingSpan = data.spans.find(s => s.name === 'billing.charge');
+      return billingSpan?.attributes?.['billing.attempt'] === '3';
+    },
+    explainCorrect: (data: Phase2Data) => {
+      const billingSpan = data.spans.find(s => s.name === 'billing.charge');
+      const attempt = billingSpan?.attributes?.['billing.attempt'] ?? '3';
+      const result = billingSpan?.attributes?.['billing.result'] ?? 'insufficient_funds';
+      const userId = billingSpan?.attributes?.['user_id'] ?? 'usr_4821';
+      return `✓ Correct! The billing.charge span has billing.attempt=${attempt} and billing.result=${result} — ${userId} exhausted all retry attempts. The correlated log confirms: "billing.charge failed for user_id=${userId}: ${result} (attempt 3/3) — giving up." Structured span attributes and structured log fields use the same names so you can pivot between them instantly for root cause analysis.`;
+    },
+    explainIncorrect: () => '',
+  },
+  {
+    id: 'c',
+    label: 'The payment gateway API returned a 503 — external service unavailable during the billing window',
+    specificHint: '💡 Hint: Look at the payment.gateway span — what is its status and gateway.response_code?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const gwSpan = data.spans.find(s => s.name === 'payment.gateway');
+      const status = gwSpan?.status ?? 'ok';
+      const code = gwSpan?.attributes?.['gateway.response_code'] ?? '200';
+      const reason = gwSpan?.attributes?.['gateway.decline_reason'] ?? 'insufficient_funds';
+      return `Not quite. The payment.gateway span shows status=${status} and gateway.response_code=${code} — the gateway was reachable and responded. It even provided a specific decline reason: gateway.decline_reason=${reason}. A 503 (service unavailable) would show status=error on the payment.gateway span.`;
+    },
+  },
+  {
+    id: 'd',
+    label: 'A configuration error caused the billing service to charge in the wrong currency',
+    specificHint: '💡 Hint: Check the billing.currency attribute on the billing.charge span. Is the currency the problem?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const billingSpan = data.spans.find(s => s.name === 'billing.charge');
+      const currency = billingSpan?.attributes?.['billing.currency'] ?? 'USD';
+      const result = billingSpan?.attributes?.['billing.result'] ?? 'insufficient_funds';
+      return `Not quite. The billing.charge span shows billing.currency=${currency} — the currency is consistent and there is no currency conversion span in the trace. The billing.result=${result} attribute confirms the charge was declined for a funds reason, not a currency mismatch.`;
+    },
+  },
+];
+
 // ============================================================================
 // Rule Registry
 // ============================================================================
@@ -496,6 +562,7 @@ const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
   '004-broken-context': brokenContextRules,
   '005-the-baggage': theBaggageRules,
   '006-metrics-meet-traces': metricsTracesRules,
+  '007-log-detective': logDetectiveRules,
 };
 
 /**
