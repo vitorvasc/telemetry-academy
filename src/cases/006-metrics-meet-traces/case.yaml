@@ -1,0 +1,126 @@
+id: 006-metrics-meet-traces
+name: "Metrics Meet Traces"
+order: 6
+difficulty: senior
+concepts:
+  - metrics
+  - multi_signal
+  - histogram
+  - counter
+  - correlation
+
+phase1:
+  description: |
+    ## What are Metrics in OpenTelemetry?
+
+    **Metrics** are numeric measurements aggregated over time — counters, gauges, and histograms. Unlike spans (which capture individual request details), metrics give you statistical views: p99 latency, error rate, throughput. A histogram shows you that 99% of requests take over 1500ms; a span shows you the timeline of one specific request.
+
+    ---
+
+    ## Metrics vs. Traces — Two Different Questions
+
+    Metrics and traces are complementary, not redundant:
+
+    - **Metrics answer:** "What is the overall health?" — e.g., p99 latency=1500ms, error_rate=2.3%
+    - **Traces answer:** "Why did this specific request fail?" — e.g., the payment.charge span waited 4.7s for a DB connection
+
+    You need both: **metrics alert you** that something is wrong; **traces explain the cause**. Either signal alone leaves you blind.
+
+    ---
+
+    ## The OTel Metrics API
+
+    The OTel Metrics API mirrors the Tracing API in structure:
+
+    - **MeterProvider** — like TracerProvider; configures exporters and readers
+    - **Meter** — like Tracer; the factory for creating instruments
+    - **Counter** — monotonically increasing (requests processed, errors raised)
+    - **Histogram** — distribution of values (latency, payload size, queue depth)
+    - **Gauge** — point-in-time snapshot (current connections, memory usage)
+
+    ---
+
+    ## Why it Matters in Production
+
+    > "Our p99 latency was 1500ms but individual traces looked fine at 200ms. Only by correlating the histogram with untraced code segments did we find a serialization step adding 1.3s outside the traced path."
+
+    A single signal is often insufficient to diagnose production problems. Metrics show **what** is slow; traces show **where**. Together, they enable root cause isolation that neither can provide alone.
+
+    ---
+
+    **The Situation:**
+    A checkout API is showing p99 latency of 1500ms in the metrics dashboard. But engineers examining individual traces see only a 220ms handler span. The 1.3 second gap is unexplained — no one knows where the time is going.
+
+    **Your Mission:**
+    Create a `MeterProvider` and `Meter`. Inside the traced checkout handler, record a `requests.total` counter and a `request.duration` histogram. Add a span attribute `metrics.recorded: 'true'` to confirm your metric instrumentation ran.
+
+    **Key Concepts:**
+    - **MeterProvider**: The factory that configures and creates meters (wired to a metric reader)
+    - **Meter**: The OTel object you call to create metric instruments
+    - **Counter**: Monotonically increasing instrument — use for requests, errors, events
+    - **Histogram**: Distribution instrument — use for latency, payload size, queue depth
+    - **InMemoryMetricReader**: In-process reader that stores metric data for inspection
+    - **Multi-signal correlation**: Combining metrics and traces to isolate root causes
+
+  hints:
+    - "Use `meter.create_counter('requests.total')` to create a counter instrument"
+    - "Use `meter.create_histogram('request.duration', unit='ms')` to create a histogram"
+    - "Inside the span, call `counter.add(1, {...})` and `histogram.record(amount, {...})`, then `span.set_attribute('metrics.recorded', 'true')`"
+
+  validations:
+    - type: span_exists
+      spanName: checkout.handle
+      description: "A span must wrap the checkout handler"
+      successMessage: "✓ checkout.handle span created"
+      errorMessage: "✗ No checkout.handle span found. Use tracer.start_as_current_span('checkout.handle')"
+      hintMessage: "💡 Hint: The span name must be exactly 'checkout.handle'"
+      guidedMessage: "📖 Use: with tracer.start_as_current_span('checkout.handle') as span:"
+
+    - type: attribute_exists
+      spanName: checkout.handle
+      attributeKey: metrics.recorded
+      description: "Add span attribute metrics.recorded='true' after recording metrics to confirm instrumentation ran"
+      successMessage: "✓ metrics.recorded attribute present — metric instrumentation confirmed"
+      errorMessage: "✗ Attribute metrics.recorded not found on checkout.handle span"
+      hintMessage: "💡 Hint: After calling counter.add() and histogram.record(), add span.set_attribute('metrics.recorded', 'true')"
+      guidedMessage: "📖 After your metric calls: span.set_attribute('metrics.recorded', 'true')"
+
+    - type: telemetry_flowing
+      description: "Telemetry must be properly configured and flowing"
+      successMessage: "✓ Telemetry flowing — Phase 1 complete!"
+      errorMessage: "✗ Telemetry not properly configured. Check TracerProvider and exporter setup."
+      hintMessage: "💡 Make sure your span covers all the checkout logic"
+      guidedMessage: "📖 Ensure the 'with' block wraps the checkout handler logic and the exporter is registered"
+
+phase2:
+  description: |
+    **Investigation Phase**
+
+    Your p99 metric says 1500ms — but your handler traces show only 220ms. Where is the missing 1.3 seconds?
+
+    You have traces from the full request path. Look at ALL the spans, not just the handler — what else runs in the same request?
+
+  investigationTools:
+    - traces
+    - logs
+
+  rootCauseOptions:
+    - id: a
+      label: "The checkout handler has an N+1 database query problem — repeated queries for each order item"
+      correct: false
+      explanation: "Not quite. The checkout.handle span is only 220ms and has no child database spans. An N+1 query problem would produce multiple db.query spans adding up to hundreds or thousands of milliseconds. The handler is fast — look at what else runs in the same request."
+
+    - id: b
+      label: "The API gateway is adding overhead from excessive middleware logging at request start"
+      correct: false
+      explanation: "Not quite. The api.request span shows only 25ms before the checkout.handle span starts (offsetMs=25). That 25ms is gateway overhead — negligible compared to the 1.3s gap. The real latency is happening elsewhere in the trace."
+
+    - id: c
+      label: "A downstream payment service is timing out, adding retry delays before failing fast"
+      correct: false
+      explanation: "Not quite. There is no payment span in this trace. The checkout.handle span completes with status=ok — the checkout succeeded. Retry delays from a timing-out service would show in the trace as failed or slow child spans."
+
+    - id: d
+      label: "A large protobuf serialization step runs after the handler span closes — it's untraced in metrics but visible in the serialization.encode span"
+      correct: true
+      explanation: "✓ Correct! The serialization.encode span ran for 1310ms with serialization.payload_bytes=284621 (278KB of protobuf data). This step runs adjacent to the handler span — it's counted in the metrics p99 but outside the handler trace. The fix: optimize the serialization library (serialization.library='google.protobuf (unoptimized)') or reduce payload size."
