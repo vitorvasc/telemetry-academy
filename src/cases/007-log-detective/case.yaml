@@ -1,0 +1,100 @@
+id: 007-log-detective
+name: "Log Detective"
+order: 7
+difficulty: senior
+concepts:
+  - structured_logging
+  - trace_correlation
+  - log_context
+
+phase1:
+  description: |
+    ## What is Structured Logging?
+
+    Structured logging means emitting log records as machine-readable key-value pairs rather than plain text strings. Instead of `"charge failed"`, you emit structured fields: `{"user_id": "usr_4821", "billing.attempt": 3, "result": "insufficient_funds"}`. This enables filtering, correlation, and root cause analysis that is impossible with unstructured text.
+
+    ## Logs + Traces = Full Correlation
+
+    In production observability, the most powerful insight comes from linking a log line to the span that generated it. When spans carry the same structured fields as your logs — `user_id`, `billing.attempt`, `billing.result` — engineers can pivot from a log alert directly to the trace that shows the full request context. One click from log to span, instead of hours of log grepping.
+
+    ## Why it matters in production
+
+    A billing failure affected 3 users last quarter. The trace showed `status: ok` at the API level — the request "succeeded." But the `billing.charge` span had `billing.attempt=3` and `billing.result=insufficient_funds` — the same fields that would appear in a structured log entry. Without these span attributes, the root cause is invisible. With them, the incident is resolved in under 5 minutes.
+
+    ---
+
+    **The Situation:**
+    The billing service spans exist but contain no structured diagnostic fields. On-call engineers can see a `billing.charge` span in the trace, but they can't tell which user failed, how many retry attempts were made, or what the rejection reason was. The span is opaque.
+
+    **Your Mission:**
+    Add structured diagnostic attributes to the `billing.charge` span: `user_id` and `billing.attempt`. These are the same fields that structured logging would emit — but on the span, where they link directly to the full trace context and make root cause analysis instant.
+
+    **Key Concepts:**
+    - **Structured log fields**: Key-value pairs that make logs queryable and correlatable
+    - **Span attributes as log fields**: `set_attribute()` puts the same diagnostic data on the span that structured logs capture in log records
+    - **Trace correlation**: When spans and logs share the same fields (`user_id`, `billing.attempt`), you can pivot between them instantly
+    - **billing.attempt**: A retry counter — when it reaches 3, the charge has failed the maximum number of times
+    - **user_id**: The user-level identifier that makes a failure personally attributable, not just statistically visible
+
+  hints:
+    - "Use `span.set_attribute('user_id', user_id)` inside the billing.charge span"
+    - "Use `span.set_attribute('billing.attempt', attempt)` to record the retry count"
+    - "Both attributes should be set inside the `with tracer.start_as_current_span(\"billing.charge\") as span:` block"
+
+  validations:
+    - type: span_exists
+      spanName: billing.charge
+      description: "A billing.charge span must wrap the charge operation"
+      successMessage: "✓ billing.charge span found"
+      errorMessage: "✗ No billing.charge span found. Wrap the charge logic in a span named 'billing.charge'"
+      hintMessage: "💡 Hint: Use `with tracer.start_as_current_span('billing.charge') as span:`"
+      guidedMessage: "📖 Replace the comment with: `with tracer.start_as_current_span('billing.charge') as span:` and indent the charge logic inside it"
+
+    - type: attribute_exists
+      spanName: billing.charge
+      attributeKey: user_id
+      description: "Add user_id as a span attribute inside billing.charge"
+      successMessage: "✓ user_id attribute added to billing.charge"
+      errorMessage: "✗ user_id attribute not found on billing.charge span"
+      hintMessage: "💡 Hint: Use span.set_attribute('user_id', user_id) inside the billing.charge span"
+      guidedMessage: "📖 Inside the 'with tracer.start_as_current_span(\"billing.charge\") as span:' block: span.set_attribute('user_id', user_id)"
+
+    - type: telemetry_flowing
+      description: "Telemetry must be properly configured and flowing"
+      successMessage: "✓ Telemetry is flowing! Phase 1 complete."
+      errorMessage: "✗ Telemetry not properly configured"
+      hintMessage: "💡 Make sure your span covers the charge logic and both set_attribute calls are inside the with block"
+      guidedMessage: "📖 Ensure the 'with' block wraps the charge loop and both span.set_attribute() calls are inside it"
+
+phase2:
+  description: |
+    **Investigation Phase**
+
+    A billing alert fired: `user_id=usr_4821` — charge failed. Your job is to investigate the trace and correlated logs to find the root cause.
+
+    The structured fields on the `billing.charge` span are your primary evidence. Use them.
+
+  investigationTools:
+    - traces
+    - logs
+
+  rootCauseOptions:
+    - id: a
+      label: "The billing service is experiencing a database outage — no charge records are being written"
+      correct: false
+      explanation: "Not quite. The db.query span completed with status=ok and db.rows_affected=1 — the charge attempt record was written successfully. A database outage would show the db.query span failing, not succeeding. The error is in the charge logic, not the database."
+
+    - id: b
+      label: "User usr_4821 has insufficient funds — the charge failed after 3 retry attempts, and the correlated log reveals billing.attempt=3"
+      correct: true
+      explanation: "✓ Correct! The billing.charge span has billing.attempt=3 and billing.result=insufficient_funds — confirming 3 failed retries for user usr_4821. The correlated log entry shows the same structured fields: 'billing.charge failed for user_id=usr_4821: insufficient_funds (attempt 3/3) — giving up.' This is exactly why structured span attributes and structured logs use the same field names: instant correlation, instant root cause."
+
+    - id: c
+      label: "The payment gateway API returned a 503 — external service unavailable during the billing window"
+      correct: false
+      explanation: "Not quite. The payment.gateway span shows status=ok and gateway.response_code=200. The gateway was available and responded successfully — it even returned the decline reason (gateway.decline_reason=insufficient_funds). A 503 would show status=error on the payment.gateway span."
+
+    - id: d
+      label: "A configuration error caused the billing service to charge in the wrong currency"
+      correct: false
+      explanation: "Not quite. The billing.charge span shows billing.currency=USD consistently, and no currency conversion span exists in the trace. The decline reason from the gateway is insufficient_funds, not a currency mismatch. The charge was attempted in the correct currency — the user simply didn't have enough funds."
