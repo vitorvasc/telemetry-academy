@@ -150,3 +150,118 @@ You have traces flowing now. Find the root cause.`,
 
 // Populate registry after constants are defined
 phase2Registry['001-hello-span'] = helloSpanPhase2;
+
+// ============================================================================
+// Case 004: Broken Context
+// ============================================================================
+
+const brokenContextTraceId = generateTraceId();
+
+export const brokenContextPhase2: Phase2Data = {
+  traceId: brokenContextTraceId,
+  totalDurationMs: 4200,
+  narrative: `Orders are failing and you're paged: "payment status unknown for order ord_8821."
+
+You have traces from both checkout-service and payment-service — but they appear as two separate, disconnected traces in your observability tool. The checkout trace ends in error. The payment trace looks fine in isolation.
+
+Find the structural root cause.`,
+  spans: [
+    {
+      id: 'span-bc-001',
+      name: 'api.request',
+      service: 'api-gateway',
+      durationMs: 4200,
+      offsetMs: 0,
+      status: 'error',
+      depth: 0,
+      attributes: {
+        'http.method': 'POST',
+        'http.route': '/checkout',
+        'http.status_code': '500',
+      },
+    },
+    {
+      id: 'span-bc-002',
+      name: 'checkout.process',
+      service: 'checkout-service',
+      durationMs: 4100,
+      offsetMs: 50,
+      status: 'error',
+      depth: 1,
+      attributes: {
+        'order_id': 'ord_8821',
+        'checkout.step': 'payment',
+      },
+    },
+    {
+      id: 'span-bc-003',
+      name: 'payment.charge',
+      service: 'payment-service',
+      durationMs: 180,
+      offsetMs: 0,
+      status: 'ok',
+      depth: 0,
+      attributes: {
+        'payment.amount': '129.99',
+        'payment.status': 'charged',
+        'trace.parent_id': 'null',
+        'trace.orphaned': 'true',
+        'trace.note': 'ORPHANED — created as root span, not child of checkout.process',
+      },
+    },
+  ],
+  logs: [
+    {
+      timestamp: '09:14:22.103',
+      level: 'warn',
+      message: 'Received request with no traceparent header — creating new root span (service=payment-service, order=ord_8821)',
+      traceId: brokenContextTraceId,
+      spanId: 'span-bc-003',
+      service: 'payment-service',
+    },
+    {
+      timestamp: '09:14:22.281',
+      level: 'error',
+      message: 'Payment correlation failed: order ord_8821 has no linked payment trace in checkout context',
+      traceId: brokenContextTraceId,
+      spanId: 'span-bc-002',
+      service: 'checkout-service',
+    },
+    {
+      timestamp: '09:14:26.153',
+      level: 'error',
+      message: 'Checkout failed for order_id=ord_8821: payment status unknown — trace context was not propagated',
+      traceId: brokenContextTraceId,
+      spanId: 'span-bc-001',
+      service: 'api-gateway',
+    },
+  ],
+  rootCauseOptions: [
+    {
+      id: 'a',
+      label: 'Payment service is timing out due to a slow external bank API',
+      correct: false,
+      explanation: 'Not quite. The payment.charge span completed in 180ms — well within normal range, not a timeout. The structural problem is visible in the span attributes: trace.parent_id=null on the payment span confirms it was created as an orphan root span, disconnected from the checkout trace.',
+    },
+    {
+      id: 'b',
+      label: 'The checkout service is not propagating trace context to payment — orders appear as disconnected orphan traces, breaking correlation',
+      correct: true,
+      explanation: '✓ Correct! The payment.charge span has trace.parent_id=null and trace.orphaned=true — it was created as a new root span instead of a child of checkout.process. Fix: call inject(carrier) before the payment call and extract(carrier) inside charge_payment to restore the parent context.',
+    },
+    {
+      id: 'c',
+      label: 'The auth service is rejecting tokens due to a clock skew issue',
+      correct: false,
+      explanation: 'Not quite. There is no auth span in this trace. The checkout.process span attribute checkout.step=payment shows auth already succeeded — checkout reached the payment step before failing.',
+    },
+    {
+      id: 'd',
+      label: 'The database is missing the order record before payment is attempted',
+      correct: false,
+      explanation: 'Not quite. The checkout.process span shows checkout.step=payment, meaning the order record was found and checkout reached the payment step. The failure is in context propagation, not data lookup.',
+    },
+  ],
+};
+
+phase2Registry['004-broken-context'] = brokenContextPhase2;

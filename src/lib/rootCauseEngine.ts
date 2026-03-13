@@ -295,6 +295,67 @@ const collectorRules: RootCauseRule[] = [
   },
 ];
 
+/**
+ * Broken Context (004-broken-context) case rules
+ *
+ * Scenario: Checkout service calls payment service without propagating trace context.
+ * The payment.charge span is an orphan root span with trace.parent_id=null and
+ * trace.orphaned=true, making the two-service request uncorelatable.
+ */
+const brokenContextRules: RootCauseRule[] = [
+  {
+    id: 'a',
+    label: 'Payment service is timing out due to a slow external bank API',
+    specificHint: '💡 Hint: Look at the payment.charge span duration — is it actually slow?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const paymentSpan = data.spans.find(s => s.name === 'payment.charge');
+      const dur = paymentSpan?.durationMs ?? 'unknown';
+      return `Not quite. The payment.charge span completed in ${dur}ms — not a timeout. The problem is structural: trace.parent_id=${paymentSpan?.attributes?.['trace.parent_id'] ?? 'null'} shows the payment span is an orphan, disconnected from the checkout trace.`;
+    },
+  },
+  {
+    id: 'b',
+    label: 'The checkout service is not propagating trace context to payment — orders appear as disconnected orphan traces, breaking correlation',
+    specificHint: '',
+    evaluate: (data: Phase2Data) => {
+      const paymentSpan = data.spans.find(s => s.name === 'payment.charge');
+      return paymentSpan?.attributes?.['trace.orphaned'] === 'true';
+    },
+    explainCorrect: (data: Phase2Data) => {
+      const paymentSpan = data.spans.find(s => s.name === 'payment.charge');
+      return `✓ Correct! The payment.charge span has trace.parent_id=${paymentSpan?.attributes?.['trace.parent_id']} and trace.orphaned=${paymentSpan?.attributes?.['trace.orphaned']} — it was created as a root span instead of a child of checkout.process. Fix: call inject(carrier) before the payment call and extract(carrier) inside charge_payment.`;
+    },
+    explainIncorrect: () => '',
+  },
+  {
+    id: 'c',
+    label: 'The auth service is rejecting tokens due to a clock skew issue',
+    specificHint: '💡 Hint: Find the auth span — what is its status?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const authSpan = data.spans.find(s => s.name?.includes('auth'));
+      return authSpan
+        ? `Not quite. There is no auth error in this trace. The checkout.process span shows checkout.step=payment — auth already succeeded.`
+        : `Not quite. There is no auth span in this trace at all. The checkout.process attribute checkout.step=payment confirms auth was not the failing component.`;
+    },
+  },
+  {
+    id: 'd',
+    label: 'The database is missing the order record before payment is attempted',
+    specificHint: '💡 Hint: Does the trace show a db.query span, and what is its status?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const checkoutSpan = data.spans.find(s => s.name === 'checkout.process');
+      const step = checkoutSpan?.attributes?.['checkout.step'] ?? 'payment';
+      return `Not quite. The checkout.process span shows checkout.step=${step}, meaning the order record was found and checkout reached the payment step. The failure is in context propagation, not data lookup.`;
+    },
+  },
+];
+
 // ============================================================================
 // Rule Registry
 // ============================================================================
@@ -306,6 +367,7 @@ const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
   '001-hello-span': helloSpanRules,
   '002-auto-magic': autoMagicRules,
   '003-the-collector': collectorRules,
+  '004-broken-context': brokenContextRules,
 };
 
 /**
