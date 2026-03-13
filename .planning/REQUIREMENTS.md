@@ -21,7 +21,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LOOP-02**: Phase 1 (Instrumentation) validates JSON telemetry output, not RegEx parsing of code
 - [x] **LOOP-03**: "Root Cause Engine" provides detailed, attribute-specific explanations for incorrect guesses
 - [x] **LOOP-04**: Validation Panel displays real-time ✓/✗ feedback on specific telemetry requirements
-- [ ] **LOOP-05**: Case Solved screen displays attempts, time, score, and "What you learned" summary
+- [x] **LOOP-05**: Case Solved screen displays attempts, time, score, and "What you learned" summary
 
 ### Visualization (Investigation)
 
@@ -77,7 +77,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOOP-02 | Phase 2 | Complete |
 | LOOP-03 | Phase 3 | Complete |
 | LOOP-04 | Phase 2 | Complete |
-| LOOP-05 | Phase 4 | Pending |
+| LOOP-05 | Phase 4 | Complete |
 | VIS-01 | Phase 3 | Complete |
 | VIS-02 | Phase 3 | Complete |
 | VIS-03 | Phase 3 | Complete |
