@@ -1,0 +1,103 @@
+id: 005-the-baggage
+name: "The Baggage"
+order: 5
+difficulty: intermediate
+concepts:
+  - baggage
+  - context_propagation
+  - cross_service_correlation
+
+phase1:
+  description: |
+    ## What is OpenTelemetry Baggage?
+
+    **Baggage** is a set of key-value pairs that travel alongside trace context through the entire request chain. Unlike span attributes — which describe what happened inside a single span and stay there — baggage is visible to every downstream service that participates in the same trace. Any service can read the baggage values set by an upstream service, without needing explicit API parameters to carry that information forward.
+
+    **Baggage vs. Span Attributes:** Span attributes describe what happened in one span: the query executed, the HTTP status code returned, the error message thrown. Baggage carries information that *all* services need to make decisions — like `user.plan`, `feature.flag`, or `request.region`. Think of span attributes as a log entry and baggage as a sticky note passed hand-to-hand through the entire call chain.
+
+    **Why it matters in production:** A SaaS platform had premium users hitting free-tier rate limits. The rate limiter didn't know the user's plan — the plan wasn't propagated, just stored in a database the rate limiter never queried. Baggage solved it in one line: `baggage.set_baggage("user.plan", "premium")` at the API gateway. The rate limiter read it without a DB call, and premium users were correctly exempted from free-tier throttling.
+
+    ---
+
+    **The Situation:**
+    An API gateway sets `user.plan` and `request.region` for each incoming request, but the downstream rate-limiting service never sees these values. Premium users are being throttled at the free-tier limit (60 rpm) even though they have a 1000 rpm entitlement. The rate limiter receives no tenant metadata and defaults to the most restrictive policy.
+
+    **Your Mission:**
+    Set `user.plan` and `request.region` as baggage in the parent context using `baggage.set_baggage()`. Propagate the context by injecting it into a carrier dict. In the downstream `check_rate_limit` function, extract the context from the carrier and read both baggage values. Annotate the `rate_limiter.check` span with the values so they appear in the trace.
+
+    **Key Concepts:**
+    - **baggage.set_baggage(key, value)**: Creates a new context with the baggage value attached (returns a new context — does not mutate the current one)
+    - **baggage.get_baggage(key, context)**: Reads a baggage value from the given context
+    - **inject(carrier, context=ctx)**: Writes the context (including baggage) into a carrier dict for transport to the next service
+    - **extract(carrier)**: Reads the context back from a carrier dict — restores both trace context and baggage
+    - **Carrier**: A Python dict that simulates the HTTP headers passed between services
+
+    **Hints:**
+    1. Set baggage with `ctx = baggage.set_baggage("user.plan", plan)` — chain calls to add multiple keys
+    2. Inject before calling downstream: `inject(carrier, context=ctx)`
+    3. In the downstream function, extract and read: `ctx = extract(carrier); plan = baggage.get_baggage("user.plan", ctx)`
+    4. Annotate the child span with the extracted values using `span.set_attribute()`
+
+  hints:
+    - "Import `baggage` from `opentelemetry` and `inject, extract` from `opentelemetry.propagate`"
+    - "Chain baggage.set_baggage() calls — each returns a new context: `ctx = baggage.set_baggage('user.plan', plan); ctx = baggage.set_baggage('request.region', region, context=ctx)`"
+    - "In check_rate_limit: extract the carrier, read both baggage keys, and call span.set_attribute() for each"
+
+  validations:
+    - type: attribute_exists
+      spanName: api.request
+      attributeKey: user.plan
+      description: "The baggage user.plan value must appear as a span attribute on api.request"
+      successMessage: "✓ user.plan attribute found on api.request span"
+      errorMessage: "✗ No user.plan attribute on api.request. Read the baggage in check_rate_limit and call span.set_attribute('user.plan', plan)"
+      hintMessage: "💡 Hint: After extracting baggage in check_rate_limit, call span.set_attribute('user.plan', plan_value) inside the rate_limiter.check span"
+      guidedMessage: "📖 In check_rate_limit: `ctx = extract(carrier); plan = baggage.get_baggage('user.plan', ctx)` then inside the span: `span.set_attribute('user.plan', plan)`"
+
+    - type: attribute_exists
+      spanName: rate_limiter.check
+      attributeKey: user.plan
+      description: "The baggage must be visible in the downstream rate_limiter.check span"
+      successMessage: "✓ user.plan attribute found on rate_limiter.check span — baggage successfully propagated!"
+      errorMessage: "✗ No user.plan attribute on rate_limiter.check. The rate limiter span must read and record the baggage value"
+      hintMessage: "💡 Hint: The rate_limiter.check span needs to call span.set_attribute('user.plan', ...) with the value read from baggage"
+      guidedMessage: "📖 Inside the rate_limiter.check span: `plan = baggage.get_baggage('user.plan', ctx)` then `span.set_attribute('user.plan', plan or 'missing')`"
+
+    - type: telemetry_flowing
+      description: "Telemetry must be properly configured and flowing"
+      successMessage: "✓ Telemetry is flowing! Baggage propagation verified. Phase 1 complete."
+      errorMessage: "✗ Telemetry not properly configured — spans are not being captured"
+      hintMessage: "💡 Make sure both api.request and rate_limiter.check spans are created inside tracer.start_as_current_span blocks"
+      guidedMessage: "📖 Ensure handle_api_request creates an api.request span and check_rate_limit creates a rate_limiter.check span using tracer.start_as_current_span"
+
+phase2:
+  description: |
+    **Investigation Phase**
+
+    Premium users are flooding your on-call queue: they're getting HTTP 429s despite paying for 1000 rpm. Free users are unaffected. Your traces show a 429 from the rate limiter, but the root cause is subtle — look at what the rate limiter *didn't* know.
+
+    Investigate the spans and logs to find why the rate limiter applied free-tier limits to a premium user.
+
+  investigationTools:
+    - traces
+    - logs
+
+  rootCauseOptions:
+    - id: a
+      label: "The rate limiter service has a bug that ignores plan-based rules entirely"
+      correct: false
+      explanation: "Not quite. The rate_limiter.check span shows rate_limit.applied=free_tier and rate_limit.decision=rejected — the plan-based logic exists and ran. The problem is that it received no plan information: baggage.user_plan=missing confirms the rate limiter never received the user's plan, so it fell back to the free-tier default."
+
+    - id: b
+      label: "The API gateway is rate-limiting all users due to a global config error"
+      correct: false
+      explanation: "Not quite. The trace shows http.status_code=429 only for this premium user's request — the rate_limiter.check span attributes confirm rate_limit.applied=free_tier was applied selectively. If a global config error were throttling everyone, you'd see 429s uniformly across all users, not just premium accounts."
+
+    - id: c
+      label: "The user.plan baggage was dropped at the middleware boundary — the rate limiter received no tenant metadata and defaulted to the free-tier limit"
+      correct: true
+      explanation: "✓ Correct! The rate_limiter.check span has baggage.user_plan=missing — the rate limiter received the request with no baggage context. Without knowing the user's plan, it defaulted to the most restrictive policy: free_tier at 60 rpm. The auth-service trace confirms usr_9921 has plan=premium in the database, but that information was never propagated as baggage. Fix: set user.plan baggage at the API gateway entry point and extract it in the rate limiter."
+
+    - id: d
+      label: "The database is returning stale user plan data from a cache miss"
+      correct: false
+      explanation: "Not quite. The auth.validate span shows user.plan_db=premium — the database correctly returned the premium plan for usr_9921. The trace also shows auth.result=valid, meaning the lookup succeeded and returned fresh data. The rate limiter never queried the database at all: it relied on baggage that was never propagated, not on stale cached data."
