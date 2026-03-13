@@ -420,6 +420,68 @@ const theBaggageRules: RootCauseRule[] = [
   },
 ];
 
+/**
+ * Metrics Meet Traces (006-metrics-meet-traces) case rules
+ *
+ * Scenario: p99 latency spike (1500ms) caused by untraced protobuf serialization.
+ * The checkout.handle span (220ms) is fast; the bottleneck is the adjacent
+ * serialization.encode span (1310ms, serialization.payload_bytes=284621).
+ */
+const metricsTracesRules: RootCauseRule[] = [
+  {
+    id: 'a',
+    label: 'The checkout handler has an N+1 database query problem — repeated queries for each order item',
+    specificHint: '💡 Hint: Look at the checkout.handle span duration and its children. Are there any db.query child spans?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const handlerSpan = data.spans.find(s => s.name === 'checkout.handle');
+      const dur = handlerSpan?.durationMs ?? 220;
+      return `Not quite. The checkout.handle span is only ${formatSpanMs(dur)} and has no child database spans. An N+1 query problem would produce multiple db.query spans adding up to large latency. Look at the other spans in the trace — especially any that run after the handler.`;
+    },
+  },
+  {
+    id: 'b',
+    label: 'The API gateway is adding overhead from excessive middleware logging at request start',
+    specificHint: '💡 Hint: Look at the api.request span offsetMs — how much time passes before checkout.handle starts?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const checkoutSpan = data.spans.find(s => s.name === 'checkout.handle');
+      const offset = checkoutSpan?.offsetMs ?? 25;
+      return `Not quite. The gateway overhead is only ${formatSpanMs(offset)} before checkout.handle starts — negligible. The 1.3-second gap is not at the gateway. Check the serialization.encode span that runs adjacent to the handler.`;
+    },
+  },
+  {
+    id: 'c',
+    label: 'A downstream payment service is timing out, adding retry delays before failing fast',
+    specificHint: '💡 Hint: Does the trace contain a payment span? What is the checkout.handle span status?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const handlerSpan = data.spans.find(s => s.name === 'checkout.handle');
+      const status = handlerSpan?.status ?? 'ok';
+      return `Not quite. There is no payment span in this trace. The checkout.handle span has status=${status} — the checkout succeeded. Retry delays from a timing-out service would show as failed or slow child spans.`;
+    },
+  },
+  {
+    id: 'd',
+    label: 'A large protobuf serialization step runs after the handler span closes — it\'s untraced in metrics but visible in the serialization.encode span',
+    evaluate: (data: Phase2Data) => {
+      const serSpan = data.spans.find(s => s.name === 'serialization.encode');
+      return serSpan?.attributes?.['serialization.duration_ms'] !== undefined;
+    },
+    explainCorrect: (data: Phase2Data) => {
+      const serSpan = data.spans.find(s => s.name === 'serialization.encode');
+      const durMs = serSpan?.attributes?.['serialization.duration_ms'] ?? '1310';
+      const bytes = serSpan?.attributes?.['serialization.payload_bytes'] ?? '284621';
+      const library = serSpan?.attributes?.['serialization.library'] ?? 'google.protobuf (unoptimized)';
+      return `✓ Correct! The serialization.encode span ran for ${formatSpanMs(parseInt(durMs, 10))} encoding ${bytes} bytes of protobuf data (library: ${library}). This step is counted in the metrics p99 but sits outside the checkout.handle span — explaining the gap between the 220ms handler trace and the 1500ms metric. Fix: switch to a faster serialization library or compress the payload before encoding.`;
+    },
+    explainIncorrect: () => '',
+  },
+];
+
 // ============================================================================
 // Rule Registry
 // ============================================================================
@@ -433,6 +495,7 @@ const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
   '003-the-collector': collectorRules,
   '004-broken-context': brokenContextRules,
   '005-the-baggage': theBaggageRules,
+  '006-metrics-meet-traces': metricsTracesRules,
 };
 
 /**

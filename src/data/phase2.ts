@@ -379,3 +379,115 @@ You have traces. The rate limiter made a decision. Find out what it knew — and
 };
 
 phase2Registry['005-the-baggage'] = theBaggagePhase2;
+
+// ============================================================================
+// Case 006: Metrics Meet Traces
+// ============================================================================
+
+const metricsTracesTraceId = generateTraceId();
+
+export const metricsTracesPhase2: Phase2Data = {
+  traceId: metricsTracesTraceId,
+  totalDurationMs: 1580,
+  narrative: `Your p99 latency metric says 1500ms — but the checkout handler traces show only 220ms. Engineers are confused: where is the missing 1.3 seconds?
+
+You have traces from the full request path. Look at ALL the spans, not just the handler.`,
+  spans: [
+    {
+      id: 'span-mt-001',
+      name: 'api.request',
+      service: 'api-gateway',
+      durationMs: 1580,
+      offsetMs: 0,
+      status: 'ok',
+      depth: 0,
+      attributes: {
+        'http.method': 'POST',
+        'http.route': '/checkout',
+        'http.status_code': '200',
+      },
+    },
+    {
+      id: 'span-mt-002',
+      name: 'checkout.handle',
+      service: 'checkout-service',
+      durationMs: 220,
+      offsetMs: 25,
+      status: 'ok',
+      depth: 1,
+      attributes: {
+        'order_id': 'ord_5521',
+        'handler.duration_ms': '220',
+      },
+    },
+    {
+      id: 'span-mt-003',
+      name: 'serialization.encode',
+      service: 'checkout-service',
+      durationMs: 1310,
+      offsetMs: 245,
+      status: 'ok',
+      depth: 1,
+      attributes: {
+        'serialization.format': 'protobuf',
+        'serialization.duration_ms': '1310',
+        'serialization.payload_bytes': '284621',
+        'serialization.library': 'google.protobuf (unoptimized)',
+      },
+    },
+  ],
+  logs: [
+    {
+      timestamp: '10:22:01.045',
+      level: 'warn',
+      message: 'p99 latency=1482ms vs handler p99=218ms — gap of 1264ms unaccounted for',
+      traceId: metricsTracesTraceId,
+      spanId: 'span-mt-002',
+      service: 'checkout-service',
+    },
+    {
+      timestamp: '10:22:01.556',
+      level: 'info',
+      message: 'Serialization complete: payload=284621 bytes, duration=1310ms (protobuf unoptimized)',
+      traceId: metricsTracesTraceId,
+      spanId: 'span-mt-003',
+      service: 'checkout-service',
+    },
+    {
+      timestamp: '10:22:01.625',
+      level: 'warn',
+      message: 'Slow request detected: checkout /checkout 1580ms (SLA=500ms)',
+      traceId: metricsTracesTraceId,
+      spanId: 'span-mt-001',
+      service: 'api-gateway',
+    },
+  ],
+  rootCauseOptions: [
+    {
+      id: 'a',
+      label: 'The checkout handler has an N+1 database query problem — repeated queries for each order item',
+      correct: false,
+      explanation: 'Not quite. The checkout.handle span is only 220ms and has no child database spans. An N+1 query problem would produce multiple db.query spans. The handler is fast — look at what else runs in the same request.',
+    },
+    {
+      id: 'b',
+      label: 'The API gateway is adding overhead from excessive middleware logging at request start',
+      correct: false,
+      explanation: 'Not quite. The api.request span shows only 25ms before checkout.handle starts (offsetMs=25). That 25ms is gateway overhead — negligible. The real latency is in the serialization.encode span.',
+    },
+    {
+      id: 'c',
+      label: 'A downstream payment service is timing out, adding retry delays before failing fast',
+      correct: false,
+      explanation: 'Not quite. There is no payment span in this trace. The checkout.handle span completes with status=ok — the checkout succeeded. Retry delays would appear as failed or slow child spans.',
+    },
+    {
+      id: 'd',
+      label: 'A large protobuf serialization step runs after the handler span closes — it\'s untraced in metrics but visible in the serialization.encode span',
+      correct: true,
+      explanation: '✓ Correct! The serialization.encode span ran for 1310ms with serialization.payload_bytes=284621 (278KB of protobuf data). This step is counted in the metrics p99 but outside the handler trace. Fix: optimize the serialization library or reduce payload size.',
+    },
+  ],
+};
+
+phase2Registry['006-metrics-meet-traces'] = metricsTracesPhase2;
