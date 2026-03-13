@@ -1,0 +1,105 @@
+id: 008-sampling-sleuth
+name: "Sampling Sleuth"
+order: 8
+difficulty: senior
+concepts:
+  - sampling
+  - head_sampling
+  - trace_id_ratio
+  - parent_based
+
+phase1:
+  description: |
+    ## What is Sampling?
+
+    Sampling determines which traces are recorded and which are dropped. At high traffic (100,000 req/s), storing every trace is cost-prohibitive — you'd generate terabytes of data per day. Sampling lets you keep a representative subset while controlling storage costs and backend load.
+
+    ## Head-Based Sampling
+
+    The sampling decision is made at the **start** of the trace (the "head"), before any spans are created. `TraceIdRatioBased(0.1)` samples 10% of traces based on the trace ID hash — deterministic and no coordination needed. The same trace will always make the same sampling decision, regardless of which service processes it.
+
+    ## ParentBased vs TraceIdRatioBased
+
+    `TraceIdRatioBased` makes a fresh sampling decision per root span — each new trace independently has a 10% (or whatever ratio) chance of being sampled. `ParentBased` respects the parent's sampling decision: if the upstream sampled the trace, all downstream spans are also sampled. Use `ParentBased` in production to keep traces intact — you never want a situation where only half of a trace's spans are captured.
+
+    ## The Danger of Over-Aggressive Sampling
+
+    Setting sampling to 1% means 99% of errors are dropped before reaching your backend. A 5% error rate looks like 0.05% — effectively invisible. Alerts that trigger at 1% error rate never fire, even though the service is failing for 1 in 20 users.
+
+    ---
+
+    **The Situation:**
+    The team deployed a new sampler with `ratio=0.01` (1%) to cut observability costs. An error spike began 2 hours later, but no alerts fired — because 99% of error traces were dropped by the sampler before reaching the backend.
+
+    **Your Mission:**
+    Configure a `TracerProvider` with `ALWAYS_ON` sampler to ensure all 5 test spans are captured. Add a span attribute `sampler.configured: 'always_on'` to confirm your sampler is active. As a bonus, try switching to `ParentBased(TraceIdRatioBased(0.5))` and observe approximately half the spans are captured.
+
+    **Key Concepts:**
+    - **TraceIdRatioBased**: Samples a fixed percentage of traces based on trace ID hash — deterministic, no coordination needed
+    - **ParentBased**: Inherits the parent span's sampling decision — use in production to keep traces intact
+    - **ALWAYS_ON**: Captures every trace — ideal for development, debugging, or low-traffic services
+    - **ALWAYS_OFF**: Drops every trace — useful for disabling instrumentation temporarily
+    - **Head decision**: Sampling is decided at trace creation, before any work is done
+
+  hints:
+    - "Use `TracerProvider(sampler=ALWAYS_ON)` to capture all spans"
+    - "Add `span.set_attribute('sampler.configured', 'always_on')` inside the checkout span"
+    - "Import ALWAYS_ON from `opentelemetry.sdk.trace.sampling`"
+
+  validations:
+    - type: span_count
+      minCount: 3
+      description: "At least 3 spans must be captured (ALWAYS_ON sampler should capture all 5)"
+      successMessage: "✓ At least 3 spans captured — sampler is working"
+      errorMessage: "✗ Not enough spans captured. Configure TracerProvider with sampler=ALWAYS_ON"
+      hintMessage: "💡 Hint: Configure TracerProvider with sampler=ALWAYS_ON to capture all spans"
+      guidedMessage: "📖 provider = TracerProvider(sampler=ALWAYS_ON) — then add_span_processor and set as tracer provider"
+
+    - type: attribute_exists
+      spanName: checkout.handle
+      attributeKey: sampler.configured
+      description: "Add sampler.configured='always_on' attribute to confirm sampler is active"
+      successMessage: "✓ sampler.configured attribute found on checkout.handle span"
+      errorMessage: "✗ sampler.configured attribute not found on checkout.handle span"
+      hintMessage: "💡 Hint: Inside the checkout.handle span, add span.set_attribute('sampler.configured', 'always_on')"
+      guidedMessage: "📖 Inside 'with tracer.start_as_current_span(\"checkout.handle\") as span:', add: span.set_attribute('sampler.configured', 'always_on')"
+
+    - type: telemetry_flowing
+      description: "Telemetry must be properly configured and flowing"
+      successMessage: "✓ Telemetry is flowing! Phase 1 complete."
+      errorMessage: "✗ Telemetry not properly configured"
+      hintMessage: "💡 Make sure TracerProvider is configured with a sampler and the span processor is registered"
+      guidedMessage: "📖 Ensure TracerProvider(sampler=ALWAYS_ON) is set, SimpleSpanProcessor is added, and trace.set_tracer_provider() is called"
+
+phase2:
+  description: |
+    **Investigation Phase**
+
+    An error spike went undetected for 2 hours. No alerts fired. Users were getting 500s on `/checkout` — but monitoring showed near-zero error rates.
+
+    Investigate the trace and collector logs to find out why the error spike was invisible to alerting.
+
+  investigationTools:
+    - traces
+    - logs
+
+  rootCauseOptions:
+    - id: a
+      label: "The TracerProvider was configured with TraceIdRatioBased(0.01) — 99% of error traces were dropped, making the error rate invisible to alerting"
+      correct: true
+      explanation: "✓ Correct! The api.request span shows sampling.rate=0.01 — only 1% of traces reached the backend. The checkout.handle span has sampled_error_traces_count=42 and estimated_total_error_traces=4200, meaning ~4,158 error traces were silently dropped. The collector log confirms 415,800 traces dropped in the last hour. At 1% sampling, a 5% error rate appears as 0.05% — far below any alert threshold."
+
+    - id: b
+      label: "The error spike was a false positive — the monitoring system's alert threshold was incorrectly set to 50% instead of 5%"
+      correct: false
+      explanation: "Not quite. The alert threshold is not the problem — the problem is that error traces never reached the backend to be counted. The collector.pipeline span shows collector.dropped_traces_last_hour=415800. Even if the alert threshold were 0.1%, it would never fire because 99% of error traces were dropped before the backend could count them."
+
+    - id: c
+      label: "The application deployed a bug that causes errors only on specific user IDs — the small affected population didn't trigger volume-based alerts"
+      correct: false
+      explanation: "Not quite. The error type is NullPointerException in inventory.check — a code path executed for all checkout requests, not specific users. The checkout.handle span attributes show no user_id scoping. More critically, the sampling.rate=0.01 attribute confirms the visibility gap is sampling-based, not population-based."
+
+    - id: d
+      label: "The load balancer is silently dropping requests, causing errors that never reach the application layer"
+      correct: false
+      explanation: "Not quite. The api.request span is present in the trace with status=error — meaning errors DO reach the application layer. The load balancer is functioning correctly. The issue is that 99% of these error spans are dropped by the OTel sampler (sampling.rate=0.01) before they reach the observability backend."
