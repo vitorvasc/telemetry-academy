@@ -9,7 +9,13 @@ concepts:
 
 phase1:
   description: |
-    Welcome to your first case, Rookie!
+    ## What is a Span?
+
+    A **span** represents a single unit of work inside a distributed system. Every span records a name, start time, end time, status, and a set of key-value **attributes** that describe what happened. Spans are the building block of distributed tracing.
+
+    In production, spans let you see exactly where time is spent inside a request. Without them, all you know is "the API took 5 seconds." With spans, you know "the DB query waited 4.7 seconds for a connection pool slot — increase `pool_size` to fix it."
+
+    ---
 
     **The Situation:**
     The order processing service is running slow, and we have no visibility into what's happening. The system is essentially "blind" — we need to add telemetry to see inside.
@@ -18,9 +24,11 @@ phase1:
     Instrument the code to create a span around the order processing logic and add the order_id as an attribute.
 
     **Key Concepts:**
-    - **Span**: A unit of work in distributed tracing (represents an operation)
-    - **Attribute**: Key-value pairs that add context to spans
-    - **Tracer**: The OTel object that creates spans
+    - **Span**: A unit of work in a trace — has a name, start/end time, status, and attributes
+    - **TraceProvider**: The factory that configures and creates tracers (wired to an exporter)
+    - **Tracer**: The OTel object you call to create spans — one per module or service
+    - **Attribute**: A key-value pair attached to a span (e.g., `order_id="ORD-42"`)
+    - **Context Manager (`with` block)**: Python idiom for creating a span that auto-closes when the block exits
 
     **Hints:**
     1. Use the tracer to start a span

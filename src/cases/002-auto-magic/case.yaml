@@ -9,7 +9,15 @@ concepts:
 
 phase1:
   description: |
-    **Case #2: Auto-magic**
+    ## What is Auto-instrumentation?
+
+    **Auto-instrumentation** patches popular libraries at import time so spans are generated automatically — without writing any OTel SDK calls yourself. One call to `.instrument()` covers all HTTP requests, database queries, and cache operations that use the patched library.
+
+    The OpenTelemetry Python ecosystem ships instrumentors for **100+ libraries**: `urllib3`, `requests`, `SQLAlchemy`, `Redis`, `Celery`, `FastAPI`, `Django`, and more. Zero-code telemetry for your entire framework stack.
+
+    In production, this means you can add observability to an existing service in minutes — no refactoring, no business logic changes, no risk of introducing bugs while adding traces.
+
+    ---
 
     **The Situation:**
     The checkout service makes HTTP calls to an external payment API. The service is failing for 30% of users, but you have no HTTP-level visibility — you need telemetry without modifying the business logic.
@@ -18,9 +26,11 @@ phase1:
     Use OpenTelemetry's auto-instrumentation to make urllib HTTP calls automatically generate spans — zero code changes to the request logic itself.
 
     **Key Concepts:**
-    - **Auto-instrumentation**: Instrument existing libraries without touching their code
-    - **HTTP spans**: Spans automatically created for outbound HTTP calls
-    - **URLLibInstrumentor**: Patches urllib so every urlopen() creates a span
+    - **Auto-instrumentation**: Patches libraries at import time — no manual span creation needed
+    - **Instrumentation library**: A per-library adapter that hooks into the library's internal calls
+    - **Bootstrapper**: The `opentelemetry-bootstrap` CLI that scans your dependencies and installs the right instrumentors
+    - **Zero-code telemetry**: Full HTTP/DB/cache spans with no changes to business logic
+    - **URLLibInstrumentor**: The specific instrumentor that patches `urllib` so every `urlopen()` creates a span
 
     **Hints:**
     1. Import and call `URLLibInstrumentor().instrument()` before making any HTTP calls
