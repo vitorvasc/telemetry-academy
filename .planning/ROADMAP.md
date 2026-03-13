@@ -122,3 +122,31 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Visualization & Investigation | 3/3 | Complete | 2026-03-03 |
 | 4. Content & Polish | 3/3 | Complete | 2026-03-09 |
 | 5. UI Polish | 7/7 | Complete   | 2026-03-10 |
+
+### Phase 6: Plan and implement final case list
+
+**Goal:** A complete 9-case OTel curriculum — zero-to-hero journey from manual spans through cascading failure investigation. All existing cases rewritten concept-first; 6 new cases authored covering context propagation, baggage, metrics+traces, structured logging, sampling, and a capstone.
+**Requirements**: CASE-01, CASE-02, CASE-03, CASE-04, CASE-05, CASE-06, CASE-07, CASE-08, CASE-09, LOOP-05
+**Depends on:** Phase 5
+**Plans:** 7 plans in 7 waves
+
+**Wave 1:**
+- [ ] 06-01-PLAN.md — Rewrite cases 001, 002, 003 descriptions: concept-first with "What is X?" before the exercise
+
+**Wave 2** (Depends on Wave 1):
+- [ ] 06-02-PLAN.md — Author case 004 (Broken Context): context propagation, inject/extract, orphaned trace incident
+
+**Wave 3** (Depends on Wave 2):
+- [ ] 06-03-PLAN.md — Author case 005 (The Baggage): OTel Baggage, cross-service metadata, premium user misrouting incident
+
+**Wave 4** (Depends on Wave 3):
+- [ ] 06-04-PLAN.md — Author case 006 (Metrics Meet Traces): metrics API, multi-signal, serialization bottleneck incident
+
+**Wave 5** (Depends on Wave 4):
+- [ ] 06-05-PLAN.md — Author case 007 (Log Detective): structured logging, trace correlation, billing failure incident
+
+**Wave 6** (Depends on Wave 5):
+- [ ] 06-06-PLAN.md — Author case 008 (Sampling Sleuth): head sampling, TraceIdRatioBased, undetected error spike incident
+
+**Wave 7** (Depends on Wave 6):
+- [ ] 06-07-PLAN.md — Author case 009 (The Perfect Storm): capstone cascading failure + verify LOOP-05 CaseSolvedScreen
