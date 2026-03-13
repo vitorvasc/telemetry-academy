@@ -265,3 +265,117 @@ Find the structural root cause.`,
 };
 
 phase2Registry['004-broken-context'] = brokenContextPhase2;
+
+// ============================================================================
+// Case 005: The Baggage
+// ============================================================================
+
+const theBaggageTraceId = generateTraceId();
+
+export const theBaggagePhase2: Phase2Data = {
+  traceId: theBaggageTraceId,
+  totalDurationMs: 1850,
+  narrative: `Premium users are flooding your on-call queue with rate limit complaints — they're paying for 1000 rpm but getting capped at 60. Free users are unaffected.
+
+You have traces. The rate limiter made a decision. Find out what it knew — and what it didn't.`,
+  spans: [
+    {
+      id: 'span-tb-001',
+      name: 'api.request',
+      service: 'api-gateway',
+      durationMs: 1850,
+      offsetMs: 0,
+      status: 'error',
+      depth: 0,
+      attributes: {
+        'http.method': 'GET',
+        'http.route': '/api/data',
+        'user_id': 'usr_9921',
+        'http.status_code': '429',
+      },
+    },
+    {
+      id: 'span-tb-002',
+      name: 'rate_limiter.check',
+      service: 'rate-limiter',
+      durationMs: 12,
+      offsetMs: 45,
+      status: 'error',
+      depth: 1,
+      attributes: {
+        'rate_limit.applied': 'free_tier',
+        'rate_limit.threshold_rpm': '60',
+        'rate_limit.decision': 'rejected',
+        'baggage.user_plan': 'missing',
+      },
+    },
+    {
+      id: 'span-tb-003',
+      name: 'auth.validate',
+      service: 'auth-service',
+      durationMs: 28,
+      offsetMs: 58,
+      status: 'ok',
+      depth: 1,
+      attributes: {
+        'user.id': 'usr_9921',
+        'user.plan_db': 'premium',
+        'auth.result': 'valid',
+      },
+    },
+  ],
+  logs: [
+    {
+      timestamp: '11:47:03.045',
+      level: 'error',
+      message: 'Rate limit exceeded for user usr_9921: applied free_tier (60 rpm) — no plan baggage received, defaulting to free tier',
+      traceId: theBaggageTraceId,
+      spanId: 'span-tb-002',
+      service: 'rate-limiter',
+    },
+    {
+      timestamp: '11:47:03.071',
+      level: 'warn',
+      message: 'Request rejected with 429 — user usr_9921 has premium plan in DB but no baggage propagated',
+      traceId: theBaggageTraceId,
+      spanId: 'span-tb-001',
+      service: 'api-gateway',
+    },
+    {
+      timestamp: '11:47:03.086',
+      level: 'info',
+      message: 'Token valid for usr_9921, plan=premium (from auth DB, not baggage)',
+      traceId: theBaggageTraceId,
+      spanId: 'span-tb-003',
+      service: 'auth-service',
+    },
+  ],
+  rootCauseOptions: [
+    {
+      id: 'a',
+      label: 'The rate limiter service has a bug that ignores plan-based rules entirely',
+      correct: false,
+      explanation: 'Not quite. The rate_limiter.check span shows rate_limit.applied=free_tier — the plan-based logic exists and ran. The problem is baggage.user_plan=missing: the rate limiter received no tenant metadata and fell back to the free-tier default.',
+    },
+    {
+      id: 'b',
+      label: 'The API gateway is rate-limiting all users due to a global config error',
+      correct: false,
+      explanation: 'Not quite. The trace shows rate_limit.applied=free_tier was applied to this premium user specifically. A global config error would throttle all users uniformly — not selectively target premium accounts.',
+    },
+    {
+      id: 'c',
+      label: 'The user.plan baggage was dropped at the middleware boundary — the rate limiter received no tenant metadata and defaulted to the free-tier limit',
+      correct: true,
+      explanation: '✓ Correct! The rate_limiter.check span has baggage.user_plan=missing — the rate limiter received the request with no baggage context. Without knowing the user\'s plan, it defaulted to free_tier at 60 rpm. The auth.validate span confirms user.plan_db=premium in the database — the plan exists, it just wasn\'t propagated as baggage.',
+    },
+    {
+      id: 'd',
+      label: 'The database is returning stale user plan data from a cache miss',
+      correct: false,
+      explanation: 'Not quite. The auth.validate span shows user.plan_db=premium and auth.result=valid — the database lookup succeeded and returned correct data. The rate limiter never queried the database at all: it relied on baggage that was never propagated, not on stale cached data.',
+    },
+  ],
+};
+
+phase2Registry['005-the-baggage'] = theBaggagePhase2;

@@ -356,6 +356,70 @@ const brokenContextRules: RootCauseRule[] = [
   },
 ];
 
+/**
+ * The Baggage (005-the-baggage) case rules
+ *
+ * Scenario: Premium user misrouted to free-tier rate limit because user.plan
+ * baggage was not propagated from the API gateway to the rate-limiter service.
+ * The rate_limiter.check span has baggage.user_plan=missing as the key diagnostic attribute.
+ */
+const theBaggageRules: RootCauseRule[] = [
+  {
+    id: 'a',
+    label: 'The rate limiter service has a bug that ignores plan-based rules entirely',
+    specificHint: '💡 Hint: Look at the rate_limiter.check span — did plan-based logic run? What does baggage.user_plan tell you?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const rlSpan = data.spans.find(s => s.name === 'rate_limiter.check');
+      const applied = rlSpan?.attributes?.['rate_limit.applied'] ?? 'free_tier';
+      const baggageVal = rlSpan?.attributes?.['baggage.user_plan'] ?? 'missing';
+      return `Not quite. The rate_limiter.check span shows rate_limit.applied=${applied} — the plan-based logic exists and ran. The problem is baggage.user_plan=${baggageVal}: the rate limiter received no tenant metadata and fell back to the most restrictive default. The bug isn't in the logic — it's in what information the logic received.`;
+    },
+  },
+  {
+    id: 'b',
+    label: 'The API gateway is rate-limiting all users due to a global config error',
+    specificHint: '💡 Hint: Does the trace show all users being affected, or only this premium user? Check the rate_limit.applied attribute.',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const rlSpan = data.spans.find(s => s.name === 'rate_limiter.check');
+      const applied = rlSpan?.attributes?.['rate_limit.applied'] ?? 'free_tier';
+      return `Not quite. The rate_limit.applied=${applied} attribute shows the rate limiter applied a tier-specific policy, not a global cap. A global config error would produce identical 429s for all users. Here, premium users are singled out — because their plan metadata was never propagated as baggage.`;
+    },
+  },
+  {
+    id: 'c',
+    label: 'The user.plan baggage was dropped at the middleware boundary — the rate limiter received no tenant metadata and defaulted to the free-tier limit',
+    evaluate: (data: Phase2Data) => {
+      const rlSpan = data.spans.find(s => s.name === 'rate_limiter.check');
+      return rlSpan?.attributes?.['baggage.user_plan'] === 'missing';
+    },
+    explainCorrect: (data: Phase2Data) => {
+      const rlSpan = data.spans.find(s => s.name === 'rate_limiter.check');
+      const authSpan = data.spans.find(s => s.name === 'auth.validate');
+      const baggageVal = rlSpan?.attributes?.['baggage.user_plan'] ?? 'missing';
+      const planDb = authSpan?.attributes?.['user.plan_db'] ?? 'premium';
+      return `✓ Correct! The rate_limiter.check span has baggage.user_plan=${baggageVal} — the rate limiter received the request with no baggage context and defaulted to free_tier. The auth.validate span confirms user.plan_db=${planDb} in the database — the plan exists, it just wasn't propagated as baggage. Fix: call baggage.set_baggage("user.plan", plan) at the API gateway and extract it in the rate limiter service.`;
+    },
+    explainIncorrect: () => '',
+  },
+  {
+    id: 'd',
+    label: 'The database is returning stale user plan data from a cache miss',
+    specificHint: '💡 Hint: Look at the auth.validate span — what did the database return? Did the database lookup even fail?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const authSpan = data.spans.find(s => s.name === 'auth.validate');
+      const planDb = authSpan?.attributes?.['user.plan_db'] ?? 'premium';
+      const authResult = authSpan?.attributes?.['auth.result'] ?? 'valid';
+      return `Not quite. The auth.validate span shows user.plan_db=${planDb} and auth.result=${authResult} — the database returned the correct plan and the lookup succeeded. The rate limiter never queried the database: it relied entirely on baggage that was never propagated. Stale cache data would produce a wrong plan value, not a missing one.`;
+    },
+  },
+];
+
 // ============================================================================
 // Rule Registry
 // ============================================================================
@@ -368,6 +432,7 @@ const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
   '002-auto-magic': autoMagicRules,
   '003-the-collector': collectorRules,
   '004-broken-context': brokenContextRules,
+  '005-the-baggage': theBaggageRules,
 };
 
 /**
