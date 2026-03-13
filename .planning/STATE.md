@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-02-PLAN.md — Case 004 Broken Context
-last_updated: "2026-03-13T14:10:01.318Z"
+stopped_at: Completed 06-03-PLAN.md — Case 005 The Baggage
+last_updated: "2026-03-13T14:15:54.068Z"
 last_activity: "2026-03-11 - Completed quick task 7: fix font size scaling on 2K resolution, especially homepage"
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 27
-  completed_plans: 22
+  completed_plans: 23
   percent: 100
 ---
 
@@ -75,6 +75,7 @@ Progress: [██████████] 100%
 | Phase 05 P06 | 3 | 1 tasks | 1 files |
 | Phase 06 P01 | 3 | 2 tasks | 3 files |
 | Phase 06 P02 | 3 | 2 tasks | 5 files |
+| Phase 06-plan-and-implement-final-case-list P03 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,7 @@ Recent decisions affecting current work:
 - [Phase 06]: Concept-first structure: concept -> production relevance -> exercise (no prior OTel knowledge assumed)
 - [Phase 06]: Production anecdotes use specific numbers to make relevance concrete
 - [Phase 06]: Orphan span represented with trace.parent_id=null and trace.orphaned=true attributes for rule evaluation
+- [Phase 06]: baggage.user_plan=missing as diagnostic attribute signals absent propagation without ambiguity
 
 ### Pending Todos
 
@@ -149,6 +151,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T14:10:01.312Z
-Stopped at: Completed 06-02-PLAN.md — Case 004 Broken Context
+Last session: 2026-03-13T14:15:54.063Z
+Stopped at: Completed 06-03-PLAN.md — Case 005 The Baggage
 Resume file: None
