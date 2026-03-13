@@ -1,0 +1,100 @@
+id: 004-broken-context
+name: "Broken Context"
+order: 4
+difficulty: intermediate
+concepts:
+  - context_propagation
+  - trace_context
+  - w3c_traceparent
+
+phase1:
+  description: |
+    ## What is Context Propagation?
+
+    Context propagation is the mechanism that links spans across service boundaries into a single distributed trace. Each service knows about the active trace because upstream services **inject** the current trace/span ID into an outgoing carrier (HTTP headers, a Python dict), and downstream services **extract** it to create a child span. Without propagation, each service generates an isolated, disconnected trace — you see symptoms but cannot follow a request end-to-end.
+
+    **How it works:** When the checkout service calls the payment service, it calls `inject(carrier)` to write the current `traceparent` into a Python dict (simulating HTTP headers). The payment service receives that dict and calls `extract(carrier)` to restore the trace context. Any spans created after extract() become children of the upstream checkout span — giving you one unified trace.
+
+    **Why it matters in production:** A checkout request failed after 10 seconds. Without propagated context, auth and payment each showed a normal-looking trace. With propagation, the unified trace revealed auth was waiting 9.8 seconds for payment's connection pool — a two-line fix that cut checkout latency by 98%.
+
+    ---
+
+    **The Situation:**
+    A checkout service calls a payment service. Both are instrumented and running, but orders are failing and the traces show two disconnected traces instead of one unified trace. The context isn't being propagated between services.
+
+    **Your Mission:**
+    Use `inject()` to add the trace context to a carrier dict before calling the downstream payment service. Use `extract()` in the downstream function to restore the context and create a child span under the checkout span.
+
+    **Key Concepts:**
+    - **traceparent**: The W3C Trace Context header carrying trace ID + span ID + flags
+    - **W3C Trace Context**: The standard format for propagating trace state across service boundaries
+    - **inject(carrier)**: Writes the current trace context into a carrier dict (simulating HTTP headers)
+    - **extract(carrier)**: Reads trace context from a carrier dict and returns a Context object
+    - **Carrier**: A Python dict (or HTTP headers map) that transports the traceparent between services
+
+    **Hints:**
+    1. Import `inject` and `extract` from `opentelemetry.propagate`
+    2. Before calling `charge_payment`, create a carrier dict and call `inject(carrier)` — this writes the current traceparent into the dict
+    3. In `charge_payment`, call `context.attach(extract(carrier))` to restore the upstream context, then start the payment span inside that context
+
+  hints:
+    - "Import `inject` and `extract` from `opentelemetry.propagate`"
+    - "Call `inject(carrier)` before calling charge_payment, then pass the carrier as an argument"
+    - "In charge_payment, use `ctx = extract(carrier)` and start your span with `tracer.start_as_current_span(..., context=ctx)`"
+
+  validations:
+    - type: span_exists
+      spanName: checkout.process
+      description: "The upstream checkout.process span must be created"
+      successMessage: "✓ checkout.process span found"
+      errorMessage: "✗ No checkout.process span found. Wrap the checkout logic with tracer.start_as_current_span('checkout.process')"
+      hintMessage: "💡 Hint: Use `with tracer.start_as_current_span('checkout.process') as span:` to create the upstream span"
+      guidedMessage: "📖 In process_checkout: `with tracer.start_as_current_span('checkout.process') as span:` then call charge_payment inside the block"
+
+    - type: span_exists
+      spanName: payment.charge
+      description: "The downstream payment.charge span must be created"
+      successMessage: "✓ payment.charge span found"
+      errorMessage: "✗ No payment.charge span found. Wrap the charge logic with tracer.start_as_current_span('payment.charge')"
+      hintMessage: "💡 Hint: Use `with tracer.start_as_current_span('payment.charge', context=ctx):` in charge_payment"
+      guidedMessage: "📖 In charge_payment: extract context with `ctx = extract(carrier)`, then `with tracer.start_as_current_span('payment.charge', context=ctx):`"
+
+    - type: telemetry_flowing
+      description: "Both spans must be captured by the telemetry pipeline"
+      successMessage: "✓ Telemetry is flowing! Both services are connected. Phase 1 complete."
+      errorMessage: "✗ Telemetry not properly configured — spans are not being exported"
+      hintMessage: "💡 Make sure both checkout.process and payment.charge spans are inside tracer.start_as_current_span blocks"
+      guidedMessage: "📖 Ensure the checkout span wraps the call to charge_payment, and payment.charge uses the extracted context"
+
+phase2:
+  description: |
+    **Investigation Phase**
+
+    Orders are failing and your on-call page says "payment status unknown." You have traces flowing from both services — but something is structurally wrong. The checkout trace and payment trace appear as two separate, disconnected traces in your observability tool.
+
+    Investigate the spans and logs to find why context propagation is broken and orders cannot be correlated.
+
+  investigationTools:
+    - traces
+    - logs
+
+  rootCauseOptions:
+    - id: a
+      label: "Payment service is timing out due to a slow external bank API"
+      correct: false
+      explanation: "Not quite. The payment.charge span completed in 180ms — well within normal range, not a timeout. The structural problem is visible in the span attributes: trace.parent_id=null on the payment span confirms it was created as an orphan root span, disconnected from the checkout trace."
+
+    - id: b
+      label: "The checkout service is not propagating trace context to payment — orders appear as disconnected orphan traces, breaking correlation"
+      correct: true
+      explanation: "✓ Correct! The payment.charge span has trace.parent_id=null and trace.orphaned=true — it was created as a new root span instead of a child of checkout.process. Fix: call inject(carrier) before the payment call and extract(carrier) inside charge_payment to restore the parent context."
+
+    - id: c
+      label: "The auth service is rejecting tokens due to a clock skew issue"
+      correct: false
+      explanation: "Not quite. There is no auth span in this trace. The checkout.process span attribute checkout.step=payment shows auth already succeeded — checkout reached the payment step before failing."
+
+    - id: d
+      label: "The database is missing the order record before payment is attempted"
+      correct: false
+      explanation: "Not quite. The checkout.process span shows checkout.step=payment, meaning the order record was found and checkout reached the payment step. The failure is in context propagation, not data lookup."
