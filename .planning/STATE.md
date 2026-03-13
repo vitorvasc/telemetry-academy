@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-05-PLAN.md — Case 007 Log Detective
-last_updated: "2026-03-13T14:25:29.393Z"
+stopped_at: Completed 06-06-PLAN.md — Case 008 Sampling Sleuth
+last_updated: "2026-03-13T14:31:18.219Z"
 last_activity: "2026-03-11 - Completed quick task 7: fix font size scaling on 2K resolution, especially homepage"
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 27
-  completed_plans: 25
+  completed_plans: 26
   percent: 100
 ---
 
@@ -78,6 +78,7 @@ Progress: [██████████] 100%
 | Phase 06-plan-and-implement-final-case-list P03 | 3 | 2 tasks | 5 files |
 | Phase 06 P04 | 3 | 2 tasks | 5 files |
 | Phase 06 P05 | 2 | 2 tasks | 5 files |
+| Phase 06 P06 | 4 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,7 @@ Recent decisions affecting current work:
 - [Phase 06]: Indirect metric validation: metrics.recorded span attribute confirms metric API usage without JS exporter bridge
 - [Phase 06]: Protobuf serialization bottleneck: teaches metrics-vs-traces gap — latency source is outside the traced code path
 - [Phase 06]: Validate logging concept via span attributes (billing.attempt, user_id) — LoggingInstrumentor not available in Pyodide sandbox
+- [Phase 06]: sampling.rate=0.01 as primary diagnostic attribute — unambiguous evidence of sampling-caused invisible errors
 
 ### Pending Todos
 
@@ -156,6 +158,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T14:25:29.389Z
-Stopped at: Completed 06-05-PLAN.md — Case 007 Log Detective
+Last session: 2026-03-13T14:31:18.210Z
+Stopped at: Completed 06-06-PLAN.md — Case 008 Sampling Sleuth
 Resume file: None
