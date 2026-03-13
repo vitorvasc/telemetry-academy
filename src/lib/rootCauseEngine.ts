@@ -628,6 +628,93 @@ const samplingSleuthRules: RootCauseRule[] = [
 ];
 
 // ============================================================================
+// Case 009: The Perfect Storm rules
+// ============================================================================
+
+/**
+ * The Perfect Storm (009-the-perfect-storm) case rules
+ *
+ * Scenario: Inventory cache returns stale out-of-stock data → payment rejects valid
+ * orders → retry storm → auth connection pool saturates.
+ * Primary diagnostic: inventory.cache_hit=false + inventory.cached_stock=0 vs actual_stock=142.
+ */
+const perfectStormRules: RootCauseRule[] = [
+  // Option A: Payment bank timeout (distractor)
+  {
+    id: 'a',
+    label: 'Payment service is rejecting orders due to a bank API timeout — all checkout attempts are timing out at the payment layer',
+    specificHint: '💡 Hint: Check the payment.charge span duration and payment.rejection_reason — is it a timeout or a rejection?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const paymentSpan = data.spans.find(s => s.name === 'payment.charge');
+      const reason = paymentSpan?.attributes?.['payment.rejection_reason'] ?? 'out_of_stock';
+      const dur = paymentSpan?.durationMs ?? 45;
+      return `Not quite. The payment.charge span completed in ${dur}ms — not a timeout. The payment.rejection_reason=${reason} shows payment rejected the order because inventory reported zero stock, not because of a bank API issue. The failure is in the inventory data reaching payment, not the payment service itself.`;
+    },
+  },
+
+  // Option B: Stale inventory cache (correct answer)
+  {
+    id: 'b',
+    label: "Inventory service cache is returning stale out-of-stock data — this causes payment to reject valid orders, triggering retry storms that saturate auth's connection pool",
+    evaluate: (data: Phase2Data) => {
+      const inventorySpan = data.spans.find(s => s.name === 'inventory.check');
+      return inventorySpan?.attributes?.['inventory.cache_hit'] === 'false';
+    },
+    explainCorrect: (data: Phase2Data) => {
+      const inventorySpan = data.spans.find(s => s.name === 'inventory.check');
+      const paymentSpan = data.spans.find(s => s.name === 'payment.charge');
+      const authSpan = data.spans.find(s => s.name === 'auth.validate');
+      const cacheHit = inventorySpan?.attributes?.['inventory.cache_hit'] ?? 'false';
+      const cachedStock = inventorySpan?.attributes?.['inventory.cached_stock'] ?? '0';
+      const actualStock = inventorySpan?.attributes?.['inventory.actual_stock'] ?? '142';
+      const cacheAgeMs = inventorySpan?.attributes?.['inventory.cache_age_ms'] ?? '86400000';
+      const rejectionReason = paymentSpan?.attributes?.['payment.rejection_reason'] ?? 'out_of_stock';
+      const poolWait = authSpan?.attributes?.['auth.connection_pool.wait_ms'] ?? '3200';
+      const poolWaiting = authSpan?.attributes?.['auth.pool_waiting'] ?? '47';
+      const cacheAgeDays = Math.round(parseInt(cacheAgeMs, 10) / (1000 * 60 * 60 * 24));
+      return `✓ Correct! The inventory.check span shows inventory.cache_hit=${cacheHit}, inventory.cached_stock=${cachedStock} vs inventory.actual_stock=${actualStock} — the cache is ${cacheAgeDays} day(s) stale. Payment receives stock=${cachedStock} and rejects the order (payment.rejection_reason=${rejectionReason}). Each rejection triggers checkout retries, flooding auth service. auth.connection_pool.wait_ms=${poolWait} with auth.pool_waiting=${poolWaiting} confirms 47 requests queued for 10 connections. Cascade chain: stale cache → payment rejection → retry flood → auth saturation.`;
+    },
+    explainIncorrect: () => '',
+  },
+
+  // Option C: Auth memory leak (distractor)
+  {
+    id: 'c',
+    label: 'Auth service has a memory leak causing slow token validation — the cascade starts at auth and propagates to inventory and payment',
+    specificHint: '💡 Hint: Check auth.result — did auth fail? Look at the inventory.check span for the actual trigger.',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const authSpan = data.spans.find(s => s.name === 'auth.validate');
+      const poolWait = authSpan?.attributes?.['auth.connection_pool.wait_ms'] ?? '3200';
+      const poolWaiting = authSpan?.attributes?.['auth.pool_waiting'] ?? '47';
+      const poolSize = authSpan?.attributes?.['auth.pool_size'] ?? '10';
+      const authResult = authSpan?.attributes?.['auth.result'] ?? 'valid';
+      return `Not quite. auth.connection_pool.wait_ms=${poolWait} is a symptom, not the cause. Auth validation itself succeeded (auth.result=${authResult}) — the ${poolWaiting} queued connections (pool_size=${poolSize}) are retried checkout requests caused by payment rejections. And payment rejected orders because inventory.cache_hit=false reported zero stock. The cascade originates at inventory, not auth.`;
+    },
+  },
+
+  // Option D: Payment double-validation (distractor)
+  {
+    id: 'd',
+    label: 'A deployment of payment-service introduced a bug that double-validates order quantities — the inventory service is being queried twice per checkout',
+    specificHint: '💡 Hint: Count the inventory.check spans in the trace. How many times was inventory queried?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const inventorySpans = data.spans.filter(s => s.name === 'inventory.check');
+      const count = inventorySpans.length;
+      const inventorySpan = inventorySpans[0];
+      const cachedStock = inventorySpan?.attributes?.['inventory.cached_stock'] ?? '0';
+      const actualStock = inventorySpan?.attributes?.['inventory.actual_stock'] ?? '142';
+      return `Not quite. The trace shows ${count} inventory.check span${count !== 1 ? 's' : ''} — inventory was queried exactly once. The payment rejection is not from double-validation; it's from payment.rejection_reason=out_of_stock where the stock value came from a stale cache (inventory.cached_stock=${cachedStock}, inventory.actual_stock=${actualStock}). Double-validation would produce two inventory.check spans in the trace.`;
+    },
+  },
+];
+
+// ============================================================================
 // Rule Registry
 // ============================================================================
 
@@ -643,6 +730,7 @@ const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
   '006-metrics-meet-traces': metricsTracesRules,
   '007-log-detective': logDetectiveRules,
   '008-sampling-sleuth': samplingSleuthRules,
+  '009-the-perfect-storm': perfectStormRules,
 };
 
 /**

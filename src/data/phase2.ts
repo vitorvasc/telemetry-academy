@@ -743,3 +743,142 @@ One of the 1% of traces that made it through is sitting right here. Find out why
 };
 
 phase2Registry['008-sampling-sleuth'] = samplingSleuthPhase2;
+
+// ============================================================================
+// Case 009: The Perfect Storm
+// ============================================================================
+
+const perfectStormTraceId = generateTraceId();
+
+export const perfectStormPhase2: Phase2Data = {
+  traceId: perfectStormTraceId,
+  totalDurationMs: 8400,
+  narrative: `Checkout is failing for all users. Every order attempt returns an error.
+
+Three services are involved: auth, inventory, and payment. The cascade started 4 minutes ago and is getting worse. One complete trace made it through — find the root cause before retries take down auth entirely.`,
+  spans: [
+    {
+      id: 'span-ps-001',
+      name: 'checkout.process',
+      service: 'checkout-orchestrator',
+      durationMs: 8400,
+      offsetMs: 0,
+      status: 'error',
+      depth: 0,
+      attributes: {
+        'user.tier': 'premium',
+        'order_id': 'ord_7732',
+        'checkout.result': 'failed',
+      },
+    },
+    {
+      id: 'span-ps-002',
+      name: 'auth.validate',
+      service: 'auth-service',
+      durationMs: 3250,
+      offsetMs: 45,
+      status: 'ok',
+      depth: 1,
+      attributes: {
+        'user.id': 'usr_5521',
+        'auth.result': 'valid',
+        'auth.connection_pool.wait_ms': '3200',
+        'auth.pool_size': '10',
+        'auth.pool_waiting': '47',
+      },
+    },
+    {
+      id: 'span-ps-003',
+      name: 'inventory.check',
+      service: 'inventory-service',
+      durationMs: 12,
+      offsetMs: 3300,
+      status: 'ok',
+      depth: 1,
+      attributes: {
+        'item.id': 'item_882',
+        'inventory.cache_hit': 'false',
+        'inventory.cached_stock': '0',
+        'inventory.actual_stock': '142',
+        'inventory.cache_age_ms': '86400000',
+      },
+    },
+    {
+      id: 'span-ps-004',
+      name: 'payment.charge',
+      service: 'payment-service',
+      durationMs: 45,
+      offsetMs: 3315,
+      status: 'error',
+      depth: 1,
+      attributes: {
+        'payment.amount': '249.99',
+        'payment.rejection_reason': 'out_of_stock',
+        'payment.order_id': 'ord_7732',
+        'payment.validated_stock': '0',
+      },
+    },
+  ],
+  logs: [
+    {
+      timestamp: '14:08:12.031',
+      level: 'error',
+      message: 'Order ord_7732 rejected: item_882 stock=0 (from inventory cache) — payment declined',
+      traceId: perfectStormTraceId,
+      spanId: 'span-ps-004',
+      service: 'payment-service',
+    },
+    {
+      timestamp: '14:08:12.019',
+      level: 'warn',
+      message: 'Cache miss → serving stale data: item_882 cached_stock=0, cache_age=86400000ms (1 day stale)',
+      traceId: perfectStormTraceId,
+      spanId: 'span-ps-003',
+      service: 'inventory-service',
+    },
+    {
+      timestamp: '14:08:11.049',
+      level: 'warn',
+      message: 'Connection pool pressure: waiting=47, pool_size=10 — checkout retry storm in progress',
+      traceId: perfectStormTraceId,
+      spanId: 'span-ps-002',
+      service: 'auth-service',
+    },
+    {
+      timestamp: '14:08:12.041',
+      level: 'error',
+      message: 'Checkout failed for usr_5521: payment rejection (out_of_stock) — retry 3/3',
+      traceId: perfectStormTraceId,
+      spanId: 'span-ps-001',
+      service: 'checkout-orchestrator',
+    },
+  ],
+  rootCauseOptions: [
+    {
+      id: 'a',
+      label: 'Payment service is rejecting orders due to a bank API timeout — all checkout attempts are timing out at the payment layer',
+      correct: false,
+      explanation: 'Not quite. The payment.charge span shows payment.rejection_reason=out_of_stock — payment rejected the order because inventory reported zero stock, not because of a bank timeout. The payment span completed in 45ms. The issue is upstream in the inventory data.',
+    },
+    {
+      id: 'b',
+      label: 'Inventory service cache is returning stale out-of-stock data — this causes payment to reject valid orders, triggering retry storms that saturate auth\'s connection pool',
+      correct: true,
+      explanation: '✓ Correct! The inventory.check span shows inventory.cache_hit=false, inventory.cached_stock=0, and inventory.actual_stock=142 — the cache is 86,400,000ms (1 day) stale. Payment sees stock=0 and rejects the order (payment.rejection_reason=out_of_stock). Each rejection triggers checkout retries, flooding auth. The auth.connection_pool.wait_ms=3200 with auth.pool_waiting=47 confirms 47 requests queued for 10 connections — a retry storm. Cascade: stale cache → payment rejection → retry flood → auth saturation.',
+    },
+    {
+      id: 'c',
+      label: 'Auth service has a memory leak causing slow token validation — the cascade starts at auth and propagates to inventory and payment',
+      correct: false,
+      explanation: 'Not quite. auth.connection_pool.wait_ms=3200 is a symptom of the retry storm, not the trigger. Auth token validation succeeded (auth.result=valid). The 47 queued connections (auth.pool_waiting=47) are retried checkout requests caused by payment rejections — which were caused by stale inventory cache data. The cascade starts at inventory, not auth.',
+    },
+    {
+      id: 'd',
+      label: 'A deployment of payment-service introduced a bug that double-validates order quantities — the inventory service is being queried twice per checkout',
+      correct: false,
+      explanation: 'Not quite. The trace shows a single inventory.check span at depth=1 — inventory is called exactly once per checkout. The payment rejection is from payment.rejection_reason=out_of_stock where the stock value came from a stale cache (inventory.cached_stock=0, inventory.actual_stock=142). Double-validation would produce two inventory.check spans.',
+    },
+  ],
+};
+
+phase2Registry['009-the-perfect-storm'] = perfectStormPhase2;
