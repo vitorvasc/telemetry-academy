@@ -627,3 +627,119 @@ You have traces and correlated log lines. The structured fields on the billing.c
 };
 
 phase2Registry['007-log-detective'] = logDetectivePhase2;
+
+// ============================================================================
+// Case 008: Sampling Sleuth
+// ============================================================================
+
+const samplingSleuthTraceId = generateTraceId();
+
+export const samplingSleuthPhase2: Phase2Data = {
+  traceId: samplingSleuthTraceId,
+  totalDurationMs: 890,
+  narrative: `An error spike went undetected for 2 hours. No alerts fired.
+
+Users reported 500s on /checkout — but your monitoring showed near-zero error rates.
+One of the 1% of traces that made it through is sitting right here. Find out why the rest were invisible.`,
+  spans: [
+    {
+      id: 'span-ss-001',
+      name: 'api.request',
+      service: 'api-gateway',
+      durationMs: 890,
+      offsetMs: 0,
+      status: 'error',
+      depth: 0,
+      attributes: {
+        'http.method': 'POST',
+        'http.route': '/checkout',
+        'http.status_code': '500',
+        'sampling.rate': '0.01',
+        'sampling.decision': 'sampled',
+      },
+    },
+    {
+      id: 'span-ss-002',
+      name: 'checkout.handle',
+      service: 'checkout-service',
+      durationMs: 850,
+      offsetMs: 20,
+      status: 'error',
+      depth: 1,
+      attributes: {
+        'error.type': 'NullPointerException',
+        'error.source': 'inventory.check',
+        'sampled_error_traces_count': '42',
+        'estimated_total_error_traces': '4200',
+      },
+    },
+    {
+      id: 'span-ss-003',
+      name: 'collector.pipeline',
+      service: 'otel-collector',
+      durationMs: 5,
+      offsetMs: 875,
+      status: 'ok',
+      depth: 1,
+      attributes: {
+        'collector.sampler': 'TraceIdRatioBased(0.01)',
+        'collector.dropped_traces_last_hour': '415800',
+        'collector.sampled_traces_last_hour': '4200',
+      },
+    },
+  ],
+  logs: [
+    {
+      timestamp: '10:15:22.001',
+      level: 'warn',
+      message: 'High drop rate: 415800 traces dropped in last hour (sampling.rate=0.01) — consider increasing ratio',
+      traceId: samplingSleuthTraceId,
+      spanId: 'span-ss-003',
+      service: 'otel-collector',
+    },
+    {
+      timestamp: '10:15:22.019',
+      level: 'error',
+      message: 'NullPointerException in inventory.check — trace sampled but 99% of identical errors were dropped',
+      traceId: samplingSleuthTraceId,
+      spanId: 'span-ss-002',
+      service: 'checkout-service',
+    },
+    {
+      timestamp: '10:15:22.051',
+      level: 'warn',
+      message: 'Error rate appears low (0.01%) in monitoring — actual estimated rate: 1% (99% traces dropped by sampler)',
+      traceId: samplingSleuthTraceId,
+      spanId: 'span-ss-001',
+      service: 'api-gateway',
+    },
+  ],
+  rootCauseOptions: [
+    {
+      id: 'a',
+      label: 'The TracerProvider was configured with TraceIdRatioBased(0.01) — 99% of error traces were dropped, making the error rate invisible to alerting',
+      correct: true,
+      explanation: '✓ Correct! The api.request span shows sampling.rate=0.01 — only 1% of traces reached the backend. The checkout.handle span has sampled_error_traces_count=42 and estimated_total_error_traces=4200, meaning ~4,158 error traces were silently dropped. The collector log confirms 415,800 traces dropped in the last hour. At 1% sampling, a real error rate appears 100x smaller — far below any alert threshold.',
+    },
+    {
+      id: 'b',
+      label: 'The error spike was a false positive — the monitoring system\'s alert threshold was incorrectly set to 50% instead of 5%',
+      correct: false,
+      explanation: 'Not quite. The alert threshold is not the problem. The collector.pipeline span shows collector.dropped_traces_last_hour=415800 — error traces never reached the backend to be counted. Even with a 0.01% alert threshold, it would never fire because 99% of error evidence was dropped by the sampler before the backend could count it.',
+    },
+    {
+      id: 'c',
+      label: 'The application deployed a bug that causes errors only on specific user IDs — the small affected population didn\'t trigger volume-based alerts',
+      correct: false,
+      explanation: 'Not quite. The error.type is NullPointerException in inventory.check — a code path executed for all checkout requests, not specific users. The checkout.handle span has no user_id scoping. The critical clue is sampling.rate=0.01 on the api.request span: the low apparent error count is a sampling artifact, not a small affected population.',
+    },
+    {
+      id: 'd',
+      label: 'The load balancer is silently dropping requests, causing errors that never reach the application layer',
+      correct: false,
+      explanation: 'Not quite. The api.request span is present in the trace with status=error — errors DO reach the application layer. The load balancer is functioning. The issue is that 99% of these error spans are dropped by the OTel sampler (sampling.rate=0.01) before reaching the observability backend, not by the load balancer.',
+    },
+  ],
+};
+
+phase2Registry['008-sampling-sleuth'] = samplingSleuthPhase2;

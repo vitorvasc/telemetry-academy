@@ -549,6 +549,85 @@ const logDetectiveRules: RootCauseRule[] = [
 ];
 
 // ============================================================================
+// Case 008: Sampling Sleuth rules
+// ============================================================================
+
+/**
+ * Sampling Sleuth (008-sampling-sleuth) case rules
+ *
+ * Scenario: TraceIdRatioBased(0.01) dropped 99% of error traces — error spike was invisible
+ */
+const samplingSleuthRules: RootCauseRule[] = [
+  // Option A: Aggressive sampling dropped error traces (correct answer)
+  {
+    id: 'a',
+    label: 'The TracerProvider was configured with TraceIdRatioBased(0.01) — 99% of error traces were dropped, making the error rate invisible to alerting',
+    evaluate: (data: Phase2Data) => {
+      const apiSpan = data.spans.find(s => s.name === 'api.request');
+      return apiSpan?.attributes?.['sampling.rate'] === '0.01';
+    },
+    explainCorrect: (data: Phase2Data) => {
+      const apiSpan = data.spans.find(s => s.name === 'api.request');
+      const checkoutSpan = data.spans.find(s => s.name === 'checkout.handle');
+      const collectorSpan = data.spans.find(s => s.name === 'collector.pipeline');
+      const samplingRate = apiSpan?.attributes?.['sampling.rate'] ?? '0.01';
+      const sampledCount = checkoutSpan?.attributes?.['sampled_error_traces_count'] ?? '42';
+      const estimatedTotal = checkoutSpan?.attributes?.['estimated_total_error_traces'] ?? '4200';
+      const droppedCount = collectorSpan?.attributes?.['collector.dropped_traces_last_hour'] ?? '415800';
+      return `✓ Correct! The api.request span shows sampling.rate=${samplingRate} — only 1% of traces reached the backend. The checkout.handle span records sampled_error_traces_count=${sampledCount} vs estimated_total_error_traces=${estimatedTotal}, meaning ~${parseInt(estimatedTotal, 10) - parseInt(sampledCount, 10)} error traces were silently dropped. The collector confirms ${droppedCount} traces dropped last hour. At 1% sampling, a real error rate appears 100x smaller — far below any alert threshold.`;
+    },
+    explainIncorrect: () => '',
+  },
+
+  // Option B: False positive / alert threshold (distractor)
+  {
+    id: 'b',
+    label: 'The error spike was a false positive — the monitoring system\'s alert threshold was incorrectly set to 50% instead of 5%',
+    specificHint: '💡 Hint: Check collector.dropped_traces_last_hour on the collector.pipeline span. How many traces were dropped?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const collectorSpan = data.spans.find(s => s.name === 'collector.pipeline');
+      const dropped = collectorSpan?.attributes?.['collector.dropped_traces_last_hour'] ?? '415800';
+      const sampled = collectorSpan?.attributes?.['collector.sampled_traces_last_hour'] ?? '4200';
+      return `Not quite. The alert threshold is not the problem. The collector.pipeline span shows collector.dropped_traces_last_hour=${dropped} — error evidence never reached the backend to be counted. Only ${sampled} traces made it through. Even with a 0.01% alert threshold, it would never fire because 99% of error traces were dropped by the sampler.`;
+    },
+  },
+
+  // Option C: User-specific bug (distractor)
+  {
+    id: 'c',
+    label: 'The application deployed a bug that causes errors only on specific user IDs — the small affected population didn\'t trigger volume-based alerts',
+    specificHint: '💡 Hint: Check the sampling.rate attribute on the api.request span. Is the low error count a population issue or a sampling issue?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const apiSpan = data.spans.find(s => s.name === 'api.request');
+      const checkoutSpan = data.spans.find(s => s.name === 'checkout.handle');
+      const samplingRate = apiSpan?.attributes?.['sampling.rate'] ?? '0.01';
+      const errorType = checkoutSpan?.attributes?.['error.type'] ?? 'NullPointerException';
+      const errorSource = checkoutSpan?.attributes?.['error.source'] ?? 'inventory.check';
+      return `Not quite. The error.type is ${errorType} in ${errorSource} — a code path executed for all checkout requests, not specific users. There is no user_id scoping on the checkout.handle span. The critical clue is sampling.rate=${samplingRate} on the api.request span: the low apparent error count is a sampling artifact, not a small affected population.`;
+    },
+  },
+
+  // Option D: Load balancer dropping requests (distractor)
+  {
+    id: 'd',
+    label: 'The load balancer is silently dropping requests, causing errors that never reach the application layer',
+    specificHint: '💡 Hint: Is the api.request span present in the trace? If errors reach the application layer, what else must be causing them to be invisible?',
+    evaluate: () => false,
+    explainCorrect: () => '',
+    explainIncorrect: (data: Phase2Data) => {
+      const apiSpan = data.spans.find(s => s.name === 'api.request');
+      const samplingRate = apiSpan?.attributes?.['sampling.rate'] ?? '0.01';
+      const status = apiSpan?.status ?? 'error';
+      return `Not quite. The api.request span is present in the trace with status=${status} — errors DO reach the application layer. The load balancer is functioning correctly. The issue is that 99% of these error spans are dropped by the OTel sampler (sampling.rate=${samplingRate}) before reaching the observability backend, not by the load balancer.`;
+    },
+  },
+];
+
+// ============================================================================
 // Rule Registry
 // ============================================================================
 
@@ -563,6 +642,7 @@ const RULES_REGISTRY: Record<string, RootCauseRule[]> = {
   '005-the-baggage': theBaggageRules,
   '006-metrics-meet-traces': metricsTracesRules,
   '007-log-detective': logDetectiveRules,
+  '008-sampling-sleuth': samplingSleuthRules,
 };
 
 /**
