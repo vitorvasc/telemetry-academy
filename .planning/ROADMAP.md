@@ -128,7 +128,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 **Goal:** A complete 9-case OTel curriculum — zero-to-hero journey from manual spans through cascading failure investigation. All existing cases rewritten concept-first; 6 new cases authored covering context propagation, baggage, metrics+traces, structured logging, sampling, and a capstone.
 **Requirements**: CASE-01, CASE-02, CASE-03, CASE-04, CASE-05, CASE-06, CASE-07, CASE-08, CASE-09, LOOP-05
 **Depends on:** Phase 5
-**Plans:** 4/7 plans executed
+**Plans:** 5/7 plans executed
 
 **Wave 1:**
 - [ ] 06-01-PLAN.md — Rewrite cases 001, 002, 003 descriptions: concept-first with "What is X?" before the exercise
