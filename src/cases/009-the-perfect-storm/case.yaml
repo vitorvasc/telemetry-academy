@@ -1,0 +1,131 @@
+id: 009-the-perfect-storm
+name: "The Perfect Storm"
+order: 9
+difficulty: expert
+concepts:
+  - cascading_failure
+  - multi_signal
+  - context_propagation
+  - baggage
+  - spans
+  - distributed_tracing
+
+phase1:
+  description: |
+    ## Congratulations — You've Reached the Capstone
+
+    This is the hardest case in Telemetry Academy. It synthesizes everything you've learned — spans, auto-instrumentation, context propagation, baggage, metrics, structured logging, and sampling. Before you start: if any of these concepts feel shaky, revisit cases 1–8. You'll need all of them here.
+
+    ## What is a Cascading Failure?
+
+    A cascading failure occurs when one component's degradation causes overload in downstream systems, which in turn causes further failures. Each failure amplifies the next. In this system, a stale inventory cache returns out-of-stock data for items that are actually in stock. Payment rejects valid orders. Retries flood the system. Auth's connection pool saturates under the retry storm. A small cache problem becomes a checkout outage within seconds.
+
+    ## The Full Observability Stack
+
+    - **Spans** (cases 1–3): Tell you what happened, where, and for how long
+    - **Context propagation** (case 4): Links parent and child spans across service boundaries
+    - **Baggage** (case 5): Carries metadata (like user tier) through the entire trace
+    - **Metrics** (case 6): Show trends — volume, latency, error rates
+    - **Logs** (case 7): Fill in the gaps with human-readable context
+    - **Sampling** (case 8): Determines which traces make it to the backend
+
+    In a cascade, you need **all** of these. Missing any one signal means you see only part of the picture.
+
+    ---
+
+    **The Situation:**
+    An e-commerce checkout system has three services: `auth-service`, `inventory-service`, and `payment-service`. They work fine individually, but under load a cascade is causing checkout failures. The system is blind — we need comprehensive telemetry to make the cascade visible.
+
+    **Your Mission:**
+    The boilerplate provides all three service functions. You must:
+    - Add a span to each service function (`checkout.process`, `auth.validate`, `inventory.check`)
+    - Propagate context from checkout → auth → inventory → payment (inject/extract via carrier dict)
+    - Set `user.tier` as baggage at the checkout entry point
+    - Annotate the `inventory.check` span with the `inventory.cache_hit` result
+    - Annotate the `auth.validate` span with `auth.connection_pool.wait_ms`
+
+    **Key Concepts:**
+    - All concepts from cases 1–8 apply here simultaneously
+    - The diagnostic attributes you add in Phase 1 are exactly what makes Phase 2 solvable
+    - Without `inventory.cache_hit`, the root cause is invisible in Phase 2
+
+  hints:
+    - "Use `tracer.start_as_current_span()` for each service function"
+    - "For context propagation: inject(carrier, context=context.get_current()) before calling each service"
+    - "Set baggage with `baggage.set_baggage('user.tier', tier)` at the top of process_checkout"
+
+  validations:
+    - type: span_exists
+      spanName: checkout.process
+      description: "A checkout.process root span must be created"
+      successMessage: "✓ checkout.process span created"
+      errorMessage: "✗ checkout.process span not found. Add a span to process_checkout()"
+      hintMessage: "💡 Hint: Use with tracer.start_as_current_span('checkout.process') as span: in process_checkout()"
+      guidedMessage: "📖 In process_checkout(), add: with tracer.start_as_current_span('checkout.process') as span: — then move all function logic inside this block"
+
+    - type: span_exists
+      spanName: auth.validate
+      description: "An auth.validate span must be created"
+      successMessage: "✓ auth.validate span created"
+      errorMessage: "✗ auth.validate span not found. Add a span to validate_auth()"
+      hintMessage: "💡 Hint: Use with tracer.start_as_current_span('auth.validate') as span: in validate_auth()"
+      guidedMessage: "📖 In validate_auth(), add: with tracer.start_as_current_span('auth.validate') as span: — wrap the token validation logic inside"
+
+    - type: span_exists
+      spanName: inventory.check
+      description: "An inventory.check span must be created"
+      successMessage: "✓ inventory.check span created"
+      errorMessage: "✗ inventory.check span not found. Add a span to check_inventory()"
+      hintMessage: "💡 Hint: Use with tracer.start_as_current_span('inventory.check') as span: in check_inventory()"
+      guidedMessage: "📖 In check_inventory(), add: with tracer.start_as_current_span('inventory.check') as span: — use the span inside to add cache attributes"
+
+    - type: attribute_exists
+      spanName: inventory.check
+      attributeKey: inventory.cache_hit
+      description: "Add inventory.cache_hit attribute to the inventory.check span"
+      successMessage: "✓ inventory.cache_hit attribute found on inventory.check span"
+      errorMessage: "✗ inventory.cache_hit attribute not found on inventory.check span"
+      hintMessage: "💡 Hint: Inside the inventory.check span, add span.set_attribute('inventory.cache_hit', str(cache_result))"
+      guidedMessage: "📖 Inside the 'with tracer.start_as_current_span(\"inventory.check\") as span:' block, call: span.set_attribute('inventory.cache_hit', 'true') or 'false' based on the cache lookup result"
+
+    - type: attribute_exists
+      spanName: auth.validate
+      attributeKey: auth.connection_pool.wait_ms
+      description: "Add auth.connection_pool.wait_ms attribute to the auth.validate span"
+      successMessage: "✓ auth.connection_pool.wait_ms attribute found on auth.validate span"
+      errorMessage: "✗ auth.connection_pool.wait_ms attribute not found on auth.validate span"
+      hintMessage: "💡 Hint: Inside the auth.validate span, add span.set_attribute('auth.connection_pool.wait_ms', pool_wait)"
+      guidedMessage: "📖 Inside the 'with tracer.start_as_current_span(\"auth.validate\") as span:' block, call: span.set_attribute('auth.connection_pool.wait_ms', str(pool_wait_ms)) where pool_wait_ms is the mock connection pool wait time"
+
+phase2:
+  description: |
+    **Investigation Phase**
+
+    Checkout is failing. Users are getting errors on every order attempt. Three services are involved — auth, inventory, and payment — and the cascade is happening fast.
+
+    You have a full distributed trace showing all three services. The root cause is not where it looks obvious. Read the span attributes carefully across all three services before deciding.
+
+  investigationTools:
+    - traces
+    - logs
+
+  rootCauseOptions:
+    - id: a
+      label: "Payment service is rejecting orders due to a bank API timeout — all checkout attempts are timing out at the payment layer"
+      correct: false
+      explanation: "Not quite. The payment.charge span shows payment.rejection_reason=out_of_stock — the payment service rejected the order because inventory reported zero stock. The payment span completed in 45ms — not a timeout. The issue is upstream in the inventory data, not the payment service."
+
+    - id: b
+      label: "Inventory service cache is returning stale out-of-stock data — this causes payment to reject valid orders, triggering retry storms that saturate auth's connection pool"
+      correct: true
+      explanation: "✓ Correct! The inventory.check span shows inventory.cache_hit=false, inventory.cached_stock=0, and inventory.actual_stock=142 — the cache is 1 day stale. Payment sees stock=0 and rejects the order (payment.rejection_reason=out_of_stock). Each rejection triggers checkout retries, flooding auth service. The auth.connection_pool.wait_ms=3200 with auth.pool_waiting=47 confirms 47 requests queued for 10 connections — a textbook retry storm. Cascade chain: stale cache → payment rejection → retry flood → auth saturation."
+
+    - id: c
+      label: "Auth service has a memory leak causing slow token validation — the cascade starts at auth and propagates to inventory and payment"
+      correct: false
+      explanation: "Not quite. auth.connection_pool.wait_ms=3200 is a symptom of the retry storm, not the trigger. Auth token validation itself succeeded (auth.result=valid, auth.pool_size=10). The 47 queued connections (auth.pool_waiting=47) are retried checkout requests caused by payment rejections — which were caused by stale inventory cache data. The cascade starts at inventory, not auth."
+
+    - id: d
+      label: "A deployment of payment-service introduced a bug that double-validates order quantities — the inventory service is being queried twice per checkout"
+      correct: false
+      explanation: "Not quite. The trace shows a single inventory.check span at depth=1 — inventory is called once per checkout request. The payment rejection isn't from double-validation; it's from payment.rejection_reason=out_of_stock, where the 'stock' value came from a stale cache (inventory.cached_stock=0, inventory.actual_stock=142). Double-validation would produce two inventory.check spans in the trace."
