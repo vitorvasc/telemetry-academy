@@ -62,8 +62,8 @@ export function loadCases(): Case[] {
     .map(({ yaml, code }) => buildCase(yaml as any, code))
     .sort((a, b) => {
       // Sort by `order` field if present, else by id
-      const aOrder = (a as unknown as Record<string, number>).order ?? 999;
-      const bOrder = (b as unknown as Record<string, number>).order ?? 999;
+      const aOrder = (a as unknown as Record<string, number>)['order'] ?? 999;
+      const bOrder = (b as unknown as Record<string, number>)['order'] ?? 999;
       return aOrder - bOrder || a.id.localeCompare(b.id);
     });
 }

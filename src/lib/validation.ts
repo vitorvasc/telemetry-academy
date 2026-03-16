@@ -91,7 +91,7 @@ function runCheck(rule: SpanValidationRule, spans: RawOTelSpan[]): boolean {
       return spans.some(span => {
         const status = (span.status as Record<string, unknown>) || {};
         const attributes = (span.attributes) || {};
-        const hasErrorStatus = (status.status_code || status.code) === 'ERROR';
+        const hasErrorStatus = (status["status_code"] || status["code"]) === 'ERROR';
         const hasErrorAttributes = 'error.type' in attributes || 'error.message' in attributes;
         return hasErrorStatus || hasErrorAttributes;
       });
@@ -215,7 +215,7 @@ export function checkStatus(
 
   return spansToCheck.some(span => {
     const status = (span.status as Record<string, unknown>) || {};
-    const actualStatusCode = status.status_code || status.code;
+    const actualStatusCode = status["status_code"] || status["code"];
     return actualStatusCode === statusCode;
   });
 }

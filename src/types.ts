@@ -1,4 +1,5 @@
 export type { RootCauseOption } from './types/phase2';
+import type { RootCauseOption } from './types/phase2';
 
 export interface Case {
   id: string;
