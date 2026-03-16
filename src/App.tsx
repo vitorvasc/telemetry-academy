@@ -130,13 +130,17 @@ function App() {
   const mainLayout = useDefaultLayout({ id: 'ta-panel-main', storage: localStorage });
   const rightLayout = useDefaultLayout({ id: 'ta-panel-right', storage: localStorage });
   const bottomLayout = useDefaultLayout({ id: 'ta-panel-bottom', storage: localStorage });
-  getSavedCodeRef.current = getSavedCode;
+  // Keep ref in sync without triggering re-render (must be in effect, not render)
+  useEffect(() => {
+    getSavedCodeRef.current = getSavedCode;
+  });
 
   const currentCase = useMemo(() => cases.find(c => c.id === currentCaseId) ?? cases[0], [currentCaseId]);
   const currentIdx = useMemo(() => cases.findIndex(c => c.id === currentCaseId), [currentCaseId]);
   const nextCase = useMemo(() => cases[currentIdx + 1], [currentIdx]);
   const currentProgress = useMemo(() => allProgress.find(p => p.caseId === currentCaseId)!, [allProgress, currentCaseId]);
   const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
+  // eslint-disable-next-line react-hooks/refs -- intentional: ref used for non-reactive comparison
   const phaseUnlocked =
     lastPassedCodeRef.current !== null &&
     code === lastPassedCodeRef.current;
