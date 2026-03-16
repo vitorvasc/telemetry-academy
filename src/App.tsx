@@ -122,28 +122,26 @@ function App() {
     }
   }, [isLoaded, hasSeenWelcome]);
   const initialLoadRef = useRef(true);
+  // Stable ref to getSavedCode — avoids re-triggering the load effect on every keystroke
+  // (getSavedCode identity changes when caseCode updates)
   const getSavedCodeRef = useRef(getSavedCode);
-  const lastPassedCodeRef = useRef<string | null>(null);
+  const [lastPassedCode, setLastPassedCode] = useState<string | null>(null);
   const mainGroupRef = useGroupRef();
 
   // Panel persistence via useDefaultLayout (react-resizable-panels v4)
   const mainLayout = useDefaultLayout({ id: 'ta-panel-main', storage: localStorage });
   const rightLayout = useDefaultLayout({ id: 'ta-panel-right', storage: localStorage });
   const bottomLayout = useDefaultLayout({ id: 'ta-panel-bottom', storage: localStorage });
-  // Keep ref in sync without triggering re-render (must be in effect, not render)
-  useEffect(() => {
-    getSavedCodeRef.current = getSavedCode;
-  });
+  // Keep getSavedCodeRef in sync — intentional pattern to prevent effect re-triggering on keystroke
+  // eslint-disable-next-line react-hooks/refs
+  getSavedCodeRef.current = getSavedCode;
 
   const currentCase = useMemo(() => cases.find(c => c.id === currentCaseId) ?? cases[0], [currentCaseId]);
   const currentIdx = useMemo(() => cases.findIndex(c => c.id === currentCaseId), [currentCaseId]);
   const nextCase = useMemo(() => cases[currentIdx + 1], [currentIdx]);
   const currentProgress = useMemo(() => allProgress.find(p => p.caseId === currentCaseId)!, [allProgress, currentCaseId]);
   const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
-  // eslint-disable-next-line react-hooks/refs -- intentional: ref used for non-reactive comparison
-  const phaseUnlocked =
-    lastPassedCodeRef.current !== null &&
-    code === lastPassedCodeRef.current;
+  const phaseUnlocked = lastPassedCode !== null && code === lastPassedCode;
 
   const phaseBar = currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
     <div className="flex-shrink-0 flex border-t border-slate-700 bg-slate-900">
@@ -210,9 +208,9 @@ function App() {
     setInvestigationAttempts(prog.attempts);
     setShowReviewModal(false);
     if (prog.phase === 'investigation' || prog.phase === 'complete') {
-      lastPassedCodeRef.current = savedCode;
+      setLastPassedCode(savedCode);
     } else {
-      lastPassedCodeRef.current = null;
+      setLastPassedCode(null);
     }
   }, [allProgress, getSavedCode]);
 
@@ -258,7 +256,7 @@ function App() {
 
       if (results.every(r => r.passed)) {
         setAppPhase('investigation');
-        lastPassedCodeRef.current = code;
+        setLastPassedCode(code);
         updateProgress(currentCaseId, { phase: 'investigation' });
       }
 
@@ -298,7 +296,7 @@ function App() {
 
     if (results.every(r => r.passed)) {
       setAppPhase('investigation');
-      lastPassedCodeRef.current = code;
+      setLastPassedCode(code);
       updateProgress(currentCaseId, { phase: 'investigation' });
     }
 
@@ -331,7 +329,7 @@ function App() {
     setValidationResults([]);
     setInvestigationAttempts(0);
     setAppPhase('instrumentation');
-    lastPassedCodeRef.current = null;
+    setLastPassedCode(null);
     setShowResetConfirm(false);
   };
 
