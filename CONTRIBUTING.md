@@ -12,66 +12,64 @@ cd telemetry-academy
 npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build
-npm run lint       # ESLint check
+npm run lint       # ESLint check (0 errors required)
+npm run test       # unit tests
 ```
 
-## Development Workflow (GSD)
+## Branch Strategy
 
-This project uses the **GSD (Get Shit Done)** workflow for structured development.
-All non-trivial changes follow this cycle:
-
-```
-Research → .planning/XX-YY-RESEARCH.md
-Context  → .planning/XX-YY-CONTEXT.md   (decisions, gray areas)
-Plan     → .planning/XX-YY-PLAN.md      (tasks + acceptance criteria)
-Execute  → commit per task: feat(XX-YY): description
-Verify   → .planning/XX-YY-VERIFICATION.md
-```
-
-Planning artifacts live in `.planning/`. Phase scope is fixed once `CONTEXT.md`
-is approved — new ideas go in a `DEFERRED IDEAS` section.
-
-For day-to-day contributions (bug fixes, case authoring), you don't need the full
-GSD cycle. A clear PR description with before/after behavior is enough.
+- `main` — protected, always deployable. Direct pushes are blocked.
+- Feature branches: `feat/<description>`, `fix/<description>`, `chore/<description>`
+- Open a PR to merge into `main`. CI must pass before merging.
 
 ## Adding Cases
 
-The fastest way to contribute is to author a new case. See [docs/adding_cases.md](docs/adding_cases.md)
+The fastest way to contribute is to author a new case. See [docs/ADDING_CASES.md](docs/ADDING_CASES.md)
 for the full guide. The short version:
 
-1. Create `src/cases/<id>/case.yaml` and `src/cases/<id>/setup.py`
-2. Add Phase 2 data to `src/data/phase2.ts`
-3. Cases are auto-discovered — no registration needed
+1. Create `src/cases/<id>/case.yaml` — content, validations, root cause options
+2. Create `src/cases/<id>/setup.py` — initial Python code
+3. Optionally add `src/cases/<id>/setup.js` for JavaScript support
+4. Cases are auto-discovered at build time — no TypeScript changes needed
+
+Use the [new case issue template](.github/ISSUE_TEMPLATE/new_case.md) to propose a case before implementing.
 
 ## Commit Conventions
 
 This project follows [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-feat(XX-YY): add context propagation case
-fix(XX-YY): clear validation state on code change
+feat: add JavaScript support for Hello Span case
+fix: clear validation state on code change
 chore: update dependencies
 docs: improve contributing guide
+test: add unit tests for rootCauseEngine
 ```
-
-Where `XX-YY` is the phase/task number (e.g., `04-01`). For standalone fixes or
-case contributions, a simple `feat:` or `fix:` prefix is fine.
 
 ## Code Standards
 
-- **TypeScript strict** — no `any`, no implicit returns
-- **ESLint** — run `npm run lint` before pushing; CI will fail otherwise
+- **TypeScript strict** — `npm run build` must pass with no TS errors
+- **ESLint** — `npm run lint` must report 0 errors before pushing
 - **Tailwind v4** — use utility classes; no inline styles
-- **Pyodide patterns** — always set a 5s timeout in the Web Worker
+- **No `any` escapes** — use `unknown` + type guards or targeted `eslint-disable` with a comment
 - **Validation rules** — declarative JSON only; reference real span attribute names
 
 ## Pull Request Guidelines
 
-- Keep PRs focused — one feature or fix per PR
-- Reference the case ID or issue in the PR title if applicable
-- For new cases: include a short description of the OTel concept being taught
-- Screenshots or screen recordings welcome for UI changes
-- All CI checks must pass (TypeScript build + ESLint)
+1. Fork the repo and create a branch from `main`
+2. Make your changes, ensuring `npm run build` and `npm run lint` pass
+3. Open a PR using the [PR template](.github/pull_request_template.md)
+4. CI will run TypeScript check + lint + build automatically
+5. At least one review is required before merging
+
+Keep PRs focused — one feature or fix per PR. For new cases, include a short
+description of the OTel concept being taught. Screenshots or recordings welcome
+for UI changes.
+
+## Reporting Bugs & Security Issues
+
+- **Bugs:** Open a [bug report](.github/ISSUE_TEMPLATE/bug_report.md)
+- **Security:** See [SECURITY.md](SECURITY.md) — please do **not** open public issues for vulnerabilities
 
 ## Project Structure
 
