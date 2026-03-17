@@ -1,4 +1,61 @@
-# Python Worker — postMessage Protocol
+# Worker postMessage Protocol
+
+The execution workers communicate with the host (`src/hooks/useCodeRunner.ts`) via `postMessage`. This document describes all message types for both the Python and JavaScript workers.
+
+---
+
+## JavaScript Worker
+
+The JavaScript worker (`src/workers/js.worker.ts`) has a simpler lifecycle than the Python worker — no init/ready handshake is needed.
+
+### Lifecycle
+
+The host sets `isReady = true` immediately after creating the JS worker (no `init` message sent, no `ready` message expected). The Run button activates as soon as the worker is created.
+
+### Host → Worker: `run`
+
+Same shape as the Python worker:
+
+```typescript
+{ type: 'run', code: string, id: string }
+```
+
+- `code` — the student's JavaScript code, executed in a sandboxed function scope with OTel globals injected.
+- `id` — correlation ID matching the eventual `complete` or `error` response.
+
+### Worker → Host: `complete`
+
+Sent when execution finishes without throwing.
+
+```typescript
+{ type: 'complete', id: string, spans: RawOTelSpan[], output: string[] }
+```
+
+- `spans` — all finished spans from the `InMemorySpanExporter`, converted to `RawOTelSpan` format.
+- `output` — captured `console.log/warn/error` lines, batched (no streaming).
+
+### Worker → Host: `error`
+
+Sent on execution failure or timeout. **Always has `id`** (no init-phase errors).
+
+```typescript
+{ type: 'error', id: string, error: string, output?: string[] }
+```
+
+- `output` — console lines captured before the error, if any.
+
+### Key Differences from Python Worker
+
+| Feature | Python | JavaScript |
+|---------|--------|-----------|
+| Init handshake | `init` → `ready` | None — host sets `isReady` immediately |
+| Streaming output | `stdout`/`telemetry` messages | Batched in `complete` |
+| Timeout (worker-side) | N/A | 5s `setTimeout` guards async hangs |
+| Sync loop protection | N/A | Host `Worker.terminate()` (worker-side timeout can't interrupt a blocked event loop) |
+
+---
+
+## Python Worker
 
 The Python execution worker (`src/workers/python.worker.ts`) communicates with the host (`src/hooks/useCodeRunner.ts`) via `postMessage`. This document describes all message types in both directions.
 

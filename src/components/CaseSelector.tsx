@@ -28,11 +28,13 @@ const ProgressDot: React.FC<{ status: PhaseStatus }> = ({ status }) => {
   return <Lock className="w-2.5 h-2.5 text-slate-700 flex-shrink-0" />;
 };
 
-const DIFFICULTY_COLOR = {
+const DIFFICULTY_COLOR: Record<string, string> = {
   rookie: 'text-green-400',
   junior: 'text-sky-400',
+  intermediate: 'text-sky-400',
   senior: 'text-violet-400',
   staff:  'text-amber-400',
+  expert: 'text-amber-400',
 };
 
 export const CaseSelector: React.FC<CaseSelectorProps> = ({

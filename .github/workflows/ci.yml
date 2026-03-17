@@ -1,17 +1,14 @@
-name: Deploy to Cloudflare Pages
+name: CI
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
 jobs:
-  deploy:
+  ci:
     runs-on: ubuntu-latest
-    name: Deploy
-    permissions:
-      contents: read
-      deployments: write
+    name: Build & Lint
 
     steps:
       - name: Checkout
@@ -37,10 +34,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Publish to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=telemetry-academy --branch=main

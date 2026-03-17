@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { CaseProgress } from '../types/progress';
 
 const STORAGE_KEY = 'telemetry-academy';
-const SCHEMA_VERSION = 2; // v2: case dir rename (hello-span-001 → 001-hello-span)
+const SCHEMA_VERSION = 3; // v3: language-aware code keys (caseId:language)
 
 export interface PersistedState {
   version: number;
@@ -26,8 +26,8 @@ interface UseAcademyPersistenceReturn {
   attemptHistory: Record<string, Record<string, number>>;
   updateAttemptHistory: (caseId: string, ruleDescription: string) => void;
   getAttemptCount: (caseId: string, ruleDescription: string) => number;
-  getSavedCode: (caseId: string) => string | undefined;
-  saveCode: (caseId: string, code: string) => void;
+  getSavedCode: (caseId: string, language?: string) => string | undefined;
+  saveCode: (caseId: string, code: string, language?: string) => void;
   resetAll: () => void;
   isLoaded: boolean;
   hasSeenWelcome: boolean;
@@ -67,6 +67,17 @@ export function useAcademyPersistence(
           setCaseCode(parsed.caseCode || {});
           setAttemptHistory(parsed.attemptHistory || {});
           setHasSeenWelcome(parsed.hasSeenWelcome ?? false);
+        } else if (parsed.version === 2) {
+          // v2 → v3: existing code was Python-only; re-key as caseId:python
+          const migratedCode: Record<string, string> = {};
+          for (const [key, value] of Object.entries(parsed.caseCode || {})) {
+            migratedCode[`${key}:python`] = value;
+          }
+          setProgress(parsed.progress || initialProgress);
+          setCaseCode(migratedCode);
+          setAttemptHistory(parsed.attemptHistory || {});
+          setHasSeenWelcome(parsed.hasSeenWelcome ?? false);
+          // Auto-save will persist the migrated state with version 3
         } else {
           // Version mismatch - clear and use initial values
           // eslint-disable-next-line no-console
@@ -147,16 +158,18 @@ export function useAcademyPersistence(
     return attemptHistory[caseId]?.[ruleDescription] || 0;
   }, [attemptHistory]);
 
-  // Get saved code for a specific case
-  const getSavedCode = useCallback((caseId: string): string | undefined => {
-    return caseCode[caseId];
+  // Get saved code for a specific case (language-aware: key is caseId:language)
+  const getSavedCode = useCallback((caseId: string, language?: string): string | undefined => {
+    const key = language ? `${caseId}:${language}` : caseId;
+    return caseCode[key];
   }, [caseCode]);
 
-  // Save code for a specific case
-  const saveCode = useCallback((caseId: string, code: string) => {
+  // Save code for a specific case (language-aware: key is caseId:language)
+  const saveCode = useCallback((caseId: string, code: string, language?: string) => {
+    const key = language ? `${caseId}:${language}` : caseId;
     setCaseCode(prev => ({
       ...prev,
-      [caseId]: code,
+      [key]: code,
     }));
   }, []);
 
