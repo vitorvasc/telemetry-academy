@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import type { LogEntry } from '../types/phase2';
-import { Search, Link2, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react'
+import type { LogEntry } from '../types/phase2'
+import { Search, Link2, ChevronDown } from 'lucide-react'
 
 interface LogViewerProps {
-  logs: LogEntry[];
-  highlightTraceId?: string;
-  filter?: string;
-  onFilterChange?: (filter: string) => void;
-  userOutput?: string[];
+  logs: LogEntry[]
+  highlightTraceId?: string
+  filter?: string
+  onFilterChange?: (filter: string) => void
+  userOutput?: string[]
 }
 
 const LEVEL = {
-  debug: { label: 'DEBUG', cls: 'text-slate-500',  bg: '' },
-  info:  { label: 'INFO ', cls: 'text-sky-400',    bg: '' },
-  warn:  { label: 'WARN ', cls: 'text-amber-400',  bg: 'bg-amber-900/10' },
-  error: { label: 'ERROR', cls: 'text-red-400',    bg: 'bg-red-900/10' },
-};
+  debug: { label: 'DEBUG', cls: 'text-slate-500', bg: '' },
+  info: { label: 'INFO ', cls: 'text-sky-400', bg: '' },
+  warn: { label: 'WARN ', cls: 'text-amber-400', bg: 'bg-amber-900/10' },
+  error: { label: 'ERROR', cls: 'text-red-400', bg: 'bg-red-900/10' },
+}
 
 export const LogViewer: React.FC<LogViewerProps> = ({
   logs,
@@ -25,17 +25,20 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   userOutput,
 }) => {
   // Support both controlled (parent-managed) and uncontrolled (internal) filter state
-  const [internalFilter, setInternalFilter] = useState('');
-  const filter = externalFilter ?? internalFilter;
-  const setFilter = onFilterChange ?? setInternalFilter;
+  const [internalFilter, setInternalFilter] = useState('')
+  const filter = externalFilter ?? internalFilter
+  const setFilter = onFilterChange ?? setInternalFilter
 
-  const [traceCorr, setTraceCorr] = useState(true);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [outputExpanded, setOutputExpanded] = useState(false);
+  const [traceCorr, setTraceCorr] = useState(true)
+  const [selected, setSelected] = useState<number | null>(null)
+  const [outputExpanded, setOutputExpanded] = useState(false)
 
-  const filtered = logs.filter(l =>
-    !filter || l.message.toLowerCase().includes(filter.toLowerCase()) || l.level.includes(filter.toLowerCase())
-  );
+  const filtered = logs.filter(
+    l =>
+      !filter ||
+      l.message.toLowerCase().includes(filter.toLowerCase()) ||
+      l.level.includes(filter.toLowerCase())
+  )
 
   return (
     <div className="h-full flex flex-col bg-slate-950 font-mono">
@@ -73,10 +76,10 @@ export const LogViewer: React.FC<LogViewerProps> = ({
         <table className="w-full text-xs border-collapse">
           <tbody>
             {filtered.map((log, i) => {
-              const lv = LEVEL[log.level];
-              const isCorr = traceCorr && log.traceId === highlightTraceId;
-              const isSel = selected === i;
-              const rowKey = `${log.timestamp}-${log.spanId}-${i}`;
+              const lv = LEVEL[log.level]
+              const isCorr = traceCorr && log.traceId === highlightTraceId
+              const isSel = selected === i
+              const rowKey = `${log.timestamp}-${log.spanId}-${i}`
 
               return (
                 <tr
@@ -88,7 +91,10 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                 >
                   {/* Trace correlation indicator */}
                   <td className="w-1 p-0">
-                    <div className={`h-full w-1 ${isCorr ? 'bg-sky-500' : 'bg-transparent'}`} style={{ minHeight: '24px' }} />
+                    <div
+                      className={`h-full w-1 ${isCorr ? 'bg-sky-500' : 'bg-transparent'}`}
+                      style={{ minHeight: '24px' }}
+                    />
                   </td>
 
                   {/* Timestamp */}
@@ -97,7 +103,9 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                   </td>
 
                   {/* Level */}
-                  <td className={`px-1 py-1.5 whitespace-nowrap align-top font-bold ${lv.cls}`}>
+                  <td
+                    className={`px-1 py-1.5 whitespace-nowrap align-top font-bold ${lv.cls}`}
+                  >
                     {lv.label}
                   </td>
 
@@ -108,22 +116,32 @@ export const LogViewer: React.FC<LogViewerProps> = ({
 
                   {/* Message */}
                   <td className="px-2 py-1.5 align-top w-full">
-                    <span className={
-                      log.level === 'error' ? 'text-red-300' :
-                      log.level === 'warn'  ? 'text-amber-200' :
-                      'text-slate-300'
-                    }>
+                    <span
+                      className={
+                        log.level === 'error'
+                          ? 'text-red-300'
+                          : log.level === 'warn'
+                            ? 'text-amber-200'
+                            : 'text-slate-300'
+                      }
+                    >
                       {log.message}
                     </span>
                     {isSel && (
                       <div className="mt-2 space-y-1 text-[10px] text-slate-500">
-                        <div>trace_id: <span className="text-sky-500">{log.traceId}</span></div>
-                        <div>span_id: <span className="text-slate-400">{log.spanId}</span></div>
+                        <div>
+                          trace_id:{' '}
+                          <span className="text-sky-500">{log.traceId}</span>
+                        </div>
+                        <div>
+                          span_id:{' '}
+                          <span className="text-slate-400">{log.spanId}</span>
+                        </div>
                       </div>
                     )}
                   </td>
                 </tr>
-              );
+              )
             })}
           </tbody>
         </table>
@@ -134,12 +152,16 @@ export const LogViewer: React.FC<LogViewerProps> = ({
               onClick={() => setOutputExpanded(v => !v)}
               className="w-full flex items-center gap-2 px-4 py-2 text-[10px] text-slate-500 hover:text-slate-400"
             >
-              <ChevronDown className={`w-3 h-3 transition-transform ${outputExpanded ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`w-3 h-3 transition-transform ${outputExpanded ? 'rotate-180' : ''}`}
+              />
               Code Output ({userOutput.length} lines)
             </button>
             {outputExpanded && (
               <div className="px-4 pb-3 font-mono text-[11px] text-slate-600 space-y-0.5">
-                {userOutput.map((line, i) => <div key={`out-${i}-${line.slice(0, 20)}`}>{line}</div>)}
+                {userOutput.map((line, i) => (
+                  <div key={`out-${i}-${line.slice(0, 20)}`}>{line}</div>
+                ))}
               </div>
             )}
           </div>
@@ -148,9 +170,14 @@ export const LogViewer: React.FC<LogViewerProps> = ({
 
       {/* Footer */}
       <div className="flex items-center justify-between px-4 py-1.5 border-t border-slate-700 bg-slate-900 text-[10px] text-slate-600">
-        <span>Blue bar = correlated with trace <span className="text-slate-500">{highlightTraceId?.slice(0, 8)}…</span></span>
+        <span>
+          Blue bar = correlated with trace{' '}
+          <span className="text-slate-500">
+            {highlightTraceId?.slice(0, 8)}…
+          </span>
+        </span>
         <span>Click a row to see trace_id / span_id</span>
       </div>
     </div>
-  );
-};
+  )
+}

@@ -1,5 +1,5 @@
-import yaml from 'js-yaml';
-import type { RawOTelSpan } from '../hooks/usePhase2Data';
+import yaml from 'js-yaml'
+import type { RawOTelSpan } from '../hooks/usePhase2Data'
 
 export type ValidationCheckType =
   | 'span_exists'
@@ -10,38 +10,38 @@ export type ValidationCheckType =
   | 'status_error'
   | 'telemetry_flowing'
   | 'error_handling'
-  | 'yaml_key_exists';   // NEW: checks YAML structure, used for The Collector case
+  | 'yaml_key_exists' // NEW: checks YAML structure, used for The Collector case
 
 export interface SpanValidationRule {
-  type: ValidationCheckType;
-  spanName?: string;
-  attributeKey?: string;
-  attributeValue?: unknown;
-  minCount?: number;
-  description: string;
-  successMessage: string;
-  errorMessage: string;
-  hintMessage?: string;
-  guidedMessage?: string;
+  type: ValidationCheckType
+  spanName?: string
+  attributeKey?: string
+  attributeValue?: unknown
+  minCount?: number
+  description: string
+  successMessage: string
+  errorMessage: string
+  hintMessage?: string
+  guidedMessage?: string
   // YAML validation fields (used when type === 'yaml_key_exists')
-  yamlPath?: string;      // dot-notation path: 'processors.tail_sampling'
-  expectedValue?: string; // optional: check that value equals this string
+  yamlPath?: string // dot-notation path: 'processors.tail_sampling'
+  expectedValue?: string // optional: check that value equals this string
 }
 
 export interface ValidationContext {
-  spans: RawOTelSpan[];
-  attemptHistory: Record<string, number>; // rule description -> attempt count
+  spans: RawOTelSpan[]
+  attemptHistory: Record<string, number> // rule description -> attempt count
 }
 
 export interface YamlValidationContext {
-  yamlContent: string;
-  attemptHistory: Record<string, number>;
+  yamlContent: string
+  attemptHistory: Record<string, number>
 }
 
 export interface ValidationResult extends SpanValidationRule {
-  passed: boolean;
-  message: string;
-  attemptsOnThisRule: number;
+  passed: boolean
+  message: string
+  attemptsOnThisRule: number
 }
 
 /**
@@ -53,17 +53,17 @@ export function validateSpans(
   context: ValidationContext
 ): ValidationResult[] {
   return rules.map(rule => {
-    const attempts = context.attemptHistory[rule.description] || 0;
-    const passed = runCheck(rule, context.spans);
-    const message = selectMessage(rule, attempts, passed);
-    
+    const attempts = context.attemptHistory[rule.description] || 0
+    const passed = runCheck(rule, context.spans)
+    const message = selectMessage(rule, attempts, passed)
+
     return {
       ...rule,
       passed,
       message,
       attemptsOnThisRule: attempts,
-    };
-  });
+    }
+  })
 }
 
 /**
@@ -72,33 +72,40 @@ export function validateSpans(
 function runCheck(rule: SpanValidationRule, spans: RawOTelSpan[]): boolean {
   switch (rule.type) {
     case 'span_exists':
-      return checkSpanExists(spans, rule.spanName);
+      return checkSpanExists(spans, rule.spanName)
     case 'attribute_exists':
-      return checkAttributeExists(spans, rule.spanName, rule.attributeKey);
+      return checkAttributeExists(spans, rule.spanName, rule.attributeKey)
     case 'attribute_value':
-      return checkAttributeValue(spans, rule.spanName, rule.attributeKey, rule.attributeValue);
+      return checkAttributeValue(
+        spans,
+        rule.spanName,
+        rule.attributeKey,
+        rule.attributeValue
+      )
     case 'span_count':
-      return checkSpanCount(spans, rule.minCount);
+      return checkSpanCount(spans, rule.minCount)
     case 'status_ok':
-      return checkStatus(spans, rule.spanName, 'OK');
+      return checkStatus(spans, rule.spanName, 'OK')
     case 'status_error':
-      return checkStatus(spans, rule.spanName, 'ERROR');
+      return checkStatus(spans, rule.spanName, 'ERROR')
     case 'telemetry_flowing':
       // Check that spans exist (telemetry is flowing) and span name matches if specified
-      return checkSpanExists(spans, rule.spanName) && spans.length > 0;
+      return checkSpanExists(spans, rule.spanName) && spans.length > 0
     case 'error_handling':
       // Check for error status or error attributes in spans
       return spans.some(span => {
-        const status = (span.status as Record<string, unknown>) || {};
-        const attributes = (span.attributes) || {};
-        const hasErrorStatus = (status["status_code"] || status["code"]) === 'ERROR';
-        const hasErrorAttributes = 'error.type' in attributes || 'error.message' in attributes;
-        return hasErrorStatus || hasErrorAttributes;
-      });
+        const status = (span.status as Record<string, unknown>) || {}
+        const attributes = span.attributes || {}
+        const hasErrorStatus =
+          (status['status_code'] || status['code']) === 'ERROR'
+        const hasErrorAttributes =
+          'error.type' in attributes || 'error.message' in attributes
+        return hasErrorStatus || hasErrorAttributes
+      })
     case 'yaml_key_exists':
-      return false; // Handled by validateYaml, not validateSpans
+      return false // Handled by validateYaml, not validateSpans
     default:
-      return false;
+      return false
   }
 }
 
@@ -107,20 +114,20 @@ function runCheck(rule: SpanValidationRule, spans: RawOTelSpan[]): boolean {
  * Progressive escalation: error -> hint -> guided
  */
 function selectMessage(
-  rule: SpanValidationRule, 
-  attempts: number, 
+  rule: SpanValidationRule,
+  attempts: number,
   passed: boolean
 ): string {
   if (passed) {
-    return rule.successMessage;
+    return rule.successMessage
   }
-  
+
   if (attempts === 0) {
-    return rule.errorMessage;
+    return rule.errorMessage
   } else if (attempts >= 1 && attempts <= 2) {
-    return rule.hintMessage || rule.errorMessage;
+    return rule.hintMessage || rule.errorMessage
   } else {
-    return rule.guidedMessage || rule.hintMessage || rule.errorMessage;
+    return rule.guidedMessage || rule.hintMessage || rule.errorMessage
   }
 }
 
@@ -128,16 +135,19 @@ function selectMessage(
  * Checks if a span with the given name exists.
  * If no name is provided, checks if any spans exist.
  */
-export function checkSpanExists(spans: RawOTelSpan[], spanName?: string): boolean {
+export function checkSpanExists(
+  spans: RawOTelSpan[],
+  spanName?: string
+): boolean {
   if (!spans || spans.length === 0) {
-    return false;
+    return false
   }
-  
+
   if (!spanName) {
-    return spans.length > 0;
+    return spans.length > 0
   }
-  
-  return spans.some(span => (span.name) === spanName);
+
+  return spans.some(span => span.name === spanName)
 }
 
 /**
@@ -150,17 +160,17 @@ export function checkAttributeExists(
   attributeKey?: string
 ): boolean {
   if (!spans || spans.length === 0 || !attributeKey) {
-    return false;
+    return false
   }
 
   const spansToCheck = spanName
-    ? spans.filter(span => (span.name) === spanName)
-    : spans;
+    ? spans.filter(span => span.name === spanName)
+    : spans
 
   return spansToCheck.some(span => {
-    const attributes = (span.attributes) || {};
-    return attributeKey in attributes;
-  });
+    const attributes = span.attributes || {}
+    return attributeKey in attributes
+  })
 }
 
 /**
@@ -172,28 +182,36 @@ export function checkAttributeValue(
   attributeKey?: string,
   attributeValue?: unknown
 ): boolean {
-  if (!spans || spans.length === 0 || !attributeKey || attributeValue === undefined) {
-    return false;
+  if (
+    !spans ||
+    spans.length === 0 ||
+    !attributeKey ||
+    attributeValue === undefined
+  ) {
+    return false
   }
 
   const spansToCheck = spanName
-    ? spans.filter(span => (span.name) === spanName)
-    : spans;
+    ? spans.filter(span => span.name === spanName)
+    : spans
 
   return spansToCheck.some(span => {
-    const attributes = (span.attributes) || {};
-    return attributes[attributeKey] === attributeValue;
-  });
+    const attributes = span.attributes || {}
+    return attributes[attributeKey] === attributeValue
+  })
 }
 
 /**
  * Checks if the number of spans meets the minimum count.
  */
-export function checkSpanCount(spans: RawOTelSpan[], minCount?: number): boolean {
+export function checkSpanCount(
+  spans: RawOTelSpan[],
+  minCount?: number
+): boolean {
   if (minCount === undefined) {
-    return spans && spans.length > 0;
+    return spans && spans.length > 0
   }
-  return (spans?.length || 0) >= minCount;
+  return (spans?.length || 0) >= minCount
 }
 
 /**
@@ -206,18 +224,18 @@ export function checkStatus(
   statusCode?: string
 ): boolean {
   if (!spans || spans.length === 0) {
-    return false;
+    return false
   }
 
   const spansToCheck = spanName
-    ? spans.filter(span => (span.name) === spanName)
-    : spans;
+    ? spans.filter(span => span.name === spanName)
+    : spans
 
   return spansToCheck.some(span => {
-    const status = (span.status as Record<string, unknown>) || {};
-    const actualStatusCode = status["status_code"] || status["code"];
-    return actualStatusCode === statusCode;
-  });
+    const status = (span.status as Record<string, unknown>) || {}
+    const actualStatusCode = status['status_code'] || status['code']
+    return actualStatusCode === statusCode
+  })
 }
 
 /**
@@ -229,18 +247,23 @@ export function validateYaml(
   context: YamlValidationContext
 ): ValidationResult[] {
   return rules.map(rule => {
-    const attempts = context.attemptHistory[rule.description] || 0;
-    const passed = rule.type === 'yaml_key_exists'
-      ? checkYamlKeyExists(context.yamlContent, rule.yamlPath, rule.expectedValue)
-      : false;
-    const message = selectMessage(rule, attempts, passed);
+    const attempts = context.attemptHistory[rule.description] || 0
+    const passed =
+      rule.type === 'yaml_key_exists'
+        ? checkYamlKeyExists(
+            context.yamlContent,
+            rule.yamlPath,
+            rule.expectedValue
+          )
+        : false
+    const message = selectMessage(rule, attempts, passed)
     return {
       ...rule,
       passed,
       message,
       attemptsOnThisRule: attempts,
-    };
-  });
+    }
+  })
 }
 
 /**
@@ -252,23 +275,27 @@ function checkYamlKeyExists(
   path?: string,
   expectedValue?: string
 ): boolean {
-  if (!path) return false;
+  if (!path) return false
   try {
-    const doc = yaml.load(yamlContent) as Record<string, unknown>;
-    if (!doc || typeof doc !== 'object') return false;
-    const keys = path.split('.');
-    let current: unknown = doc;
+    const doc = yaml.load(yamlContent) as Record<string, unknown>
+    if (!doc || typeof doc !== 'object') return false
+    const keys = path.split('.')
+    let current: unknown = doc
     for (const key of keys) {
-      if (current === null || typeof current !== 'object' || !(key in current)) {
-        return false;
+      if (
+        current === null ||
+        typeof current !== 'object' ||
+        !(key in current)
+      ) {
+        return false
       }
-      current = (current as Record<string, unknown>)[key];
+      current = (current as Record<string, unknown>)[key]
     }
     if (expectedValue !== undefined) {
-      return String(current) === String(expectedValue);
+      return String(current) === String(expectedValue)
     }
-    return true;
+    return true
   } catch {
-    return false; // Invalid YAML — treat as failed
+    return false // Invalid YAML — treat as failed
   }
 }

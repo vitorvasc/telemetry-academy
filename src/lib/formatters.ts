@@ -8,8 +8,8 @@
  * Used by: TraceViewer, ReviewModal, rootCauseEngine
  */
 export function formatSpanMs(ms: number): string {
-  if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`;
-  return `${ms}ms`;
+  if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`
+  return `${ms}ms`
 }
 
 /**
@@ -22,8 +22,8 @@ export function formatSpanMs(ms: number): string {
  * Used by: CaseSolvedScreen (time-to-solve display)
  */
 export function formatElapsedMs(ms: number): string {
-  const s = Math.floor(ms / 1000);
-  const m = Math.floor(s / 60);
-  if (m > 0) return `${m}m ${s % 60}s`;
-  return `${s}s`;
+  const s = Math.floor(ms / 1000)
+  const m = Math.floor(s / 60)
+  if (m > 0) return `${m}m ${s % 60}s`
+  return `${s}s`
 }

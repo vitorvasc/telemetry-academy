@@ -1,8 +1,8 @@
-import React from 'react';
-import { X, FlaskConical, Search, Trophy } from 'lucide-react';
+import React from 'react'
+import { X, FlaskConical, Search, Trophy } from 'lucide-react'
 
 interface WelcomeModalProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 const STEPS = [
@@ -27,7 +27,7 @@ const STEPS = [
     title: 'Solve',
     body: 'Identify the root cause and earn stars. Each case teaches a real OTel skill used in production.',
   },
-];
+]
 
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
   return (
@@ -41,12 +41,15 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
 
       {/* Modal card */}
       <div className="relative z-10 bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl">
-
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
           <div>
-            <div className="text-base font-bold text-white">Welcome to Telemetry Academy</div>
-            <div className="text-xs text-slate-400 mt-0.5">Learn OpenTelemetry by doing</div>
+            <div className="text-base font-bold text-white">
+              Welcome to Telemetry Academy
+            </div>
+            <div className="text-xs text-slate-400 mt-0.5">
+              Learn OpenTelemetry by doing
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -59,14 +62,23 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
         {/* Steps */}
         <div className="px-5 py-5 space-y-3">
           {STEPS.map(({ icon: Icon, color, bg, title, body }, i) => (
-            <div key={title} className={`flex gap-3 p-3 rounded-xl border ${bg}`}>
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg}`}>
+            <div
+              key={title}
+              className={`flex gap-3 p-3 rounded-xl border ${bg}`}
+            >
+              <div
+                className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${bg}`}
+              >
                 <Icon className={`w-4 h-4 ${color}`} />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-xs font-bold text-slate-500">{String(i + 1)}</span>
-                  <span className={`text-sm font-semibold ${color}`}>{title}</span>
+                  <span className="text-xs font-bold text-slate-500">
+                    {String(i + 1)}
+                  </span>
+                  <span className={`text-sm font-semibold ${color}`}>
+                    {title}
+                  </span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">{body}</p>
               </div>
@@ -85,5 +97,5 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

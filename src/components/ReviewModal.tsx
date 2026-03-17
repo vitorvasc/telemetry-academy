@@ -1,13 +1,13 @@
-import React from 'react';
-import { X, CheckCircle2, Clock, Activity } from 'lucide-react';
-import type { TraceSpan } from '../types/phase2';
-import type { RootCauseOption } from '../types/phase2';
-import { formatSpanMs } from '../lib/formatters';
+import React from 'react'
+import { X, CheckCircle2, Clock, Activity } from 'lucide-react'
+import type { TraceSpan } from '../types/phase2'
+import type { RootCauseOption } from '../types/phase2'
+import { formatSpanMs } from '../lib/formatters'
 
 interface ReviewModalProps {
-  spans: TraceSpan[];
-  correctOption: RootCauseOption | null;
-  onClose: () => void;
+  spans: TraceSpan[]
+  correctOption: RootCauseOption | null
+  onClose: () => void
 }
 
 export const ReviewModal: React.FC<ReviewModalProps> = ({
@@ -26,12 +26,13 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
       {/* Modal card */}
       <div className="relative z-10 bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl">
-
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-amber-400" />
-            <span className="text-sm font-semibold text-slate-200">Investigation Review</span>
+            <span className="text-sm font-semibold text-slate-200">
+              Investigation Review
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -43,7 +44,6 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
         {/* Content — scrollable */}
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
-
           {/* Spans table — or empty state for yaml-config cases */}
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
@@ -59,9 +59,15 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-slate-800 text-slate-400">
-                      <th className="text-left px-3 py-2 font-medium">Span Name</th>
-                      <th className="text-right px-3 py-2 font-medium">Duration</th>
-                      <th className="text-right px-3 py-2 font-medium">Status</th>
+                      <th className="text-left px-3 py-2 font-medium">
+                        Span Name
+                      </th>
+                      <th className="text-right px-3 py-2 font-medium">
+                        Duration
+                      </th>
+                      <th className="text-right px-3 py-2 font-medium">
+                        Status
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -70,7 +76,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         key={span.id}
                         className={`border-t border-slate-700/50 ${i % 2 === 0 ? '' : 'bg-slate-800/30'}`}
                       >
-                        <td className="px-3 py-2 text-slate-300 font-mono">{span.name}</td>
+                        <td className="px-3 py-2 text-slate-300 font-mono">
+                          {span.name}
+                        </td>
                         <td className="px-3 py-2 text-right text-slate-400">
                           <span className="flex items-center justify-end gap-1">
                             <Clock className="w-3 h-3" />
@@ -78,7 +86,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                           </span>
                         </td>
                         <td className="px-3 py-2 text-right">
-                          <span className={`font-bold ${span.status === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+                          <span
+                            className={`font-bold ${span.status === 'error' ? 'text-red-400' : 'text-green-400'}`}
+                          >
                             {span.status === 'error' ? 'ERROR' : 'OK'}
                           </span>
                         </td>
@@ -96,14 +106,19 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-xs font-semibold text-green-400 mb-1">Root Cause</div>
-                  <div className="text-sm font-medium text-slate-200 mb-2">{correctOption.label}</div>
-                  <div className="text-xs text-slate-400 leading-relaxed">{correctOption.explanation}</div>
+                  <div className="text-xs font-semibold text-green-400 mb-1">
+                    Root Cause
+                  </div>
+                  <div className="text-sm font-medium text-slate-200 mb-2">
+                    {correctOption.label}
+                  </div>
+                  <div className="text-xs text-slate-400 leading-relaxed">
+                    {correctOption.explanation}
+                  </div>
                 </div>
               </div>
             </div>
           )}
-
         </div>
 
         {/* Footer */}
@@ -117,5 +132,5 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

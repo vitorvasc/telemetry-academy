@@ -1,52 +1,77 @@
-import { useState } from 'react';
-import { Lock, CheckCircle2, Circle, ChevronRight, Shield, Menu, X } from 'lucide-react';
-import { cases } from '../data/cases';
-import type { CaseProgress } from '../types/progress';
-import type { Case } from '../types';
+import { useState } from 'react'
+import {
+  Lock,
+  CheckCircle2,
+  Circle,
+  ChevronRight,
+  Shield,
+  Menu,
+  X,
+} from 'lucide-react'
+import { cases } from '../data/cases'
+import type { CaseProgress } from '../types/progress'
+import type { Case } from '../types'
 
 interface HomePageProps {
-  progress: CaseProgress[];
-  onSelectCase: (id: string) => void;
+  progress: CaseProgress[]
+  onSelectCase: (id: string) => void
 }
 
 function getRank(solvedCount: number): string {
-  if (solvedCount === 0) return 'ROOKIE';
-  if (solvedCount === 1) return 'JUNIOR';
-  if (solvedCount === 2) return 'SENIOR';
-  return 'STAFF';
+  if (solvedCount === 0) return 'ROOKIE'
+  if (solvedCount === 1) return 'JUNIOR'
+  if (solvedCount === 2) return 'SENIOR'
+  return 'STAFF'
 }
 
 function getDifficultyColor(difficulty: Case['difficulty']) {
   switch (difficulty) {
-    case 'rookie': return 'text-green-400 border-green-800 bg-green-950/40';
-    case 'junior': return 'text-sky-400 border-sky-800 bg-sky-950/40';
-    case 'senior': return 'text-violet-400 border-violet-800 bg-violet-950/40';
-    case 'staff': return 'text-amber-400 border-amber-800 bg-amber-950/40';
-    case 'intermediate': return 'text-sky-400 border-sky-800 bg-sky-950/40';
-    case 'expert': return 'text-red-400 border-red-800 bg-red-950/40';
+    case 'rookie':
+      return 'text-green-400 border-green-800 bg-green-950/40'
+    case 'junior':
+      return 'text-sky-400 border-sky-800 bg-sky-950/40'
+    case 'senior':
+      return 'text-violet-400 border-violet-800 bg-violet-950/40'
+    case 'staff':
+      return 'text-amber-400 border-amber-800 bg-amber-950/40'
+    case 'intermediate':
+      return 'text-sky-400 border-sky-800 bg-sky-950/40'
+    case 'expert':
+      return 'text-red-400 border-red-800 bg-red-950/40'
   }
 }
 
 function StatusDot({ status }: { status: CaseProgress['status'] }) {
-  if (status === 'solved') return <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />;
-  if (status === 'available' || status === 'in-progress') return <Circle className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />;
-  return <Lock className="w-3 h-3 text-slate-600 flex-shrink-0" />;
+  if (status === 'solved')
+    return <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+  if (status === 'available' || status === 'in-progress')
+    return <Circle className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
+  return <Lock className="w-3 h-3 text-slate-600 flex-shrink-0" />
 }
 
 interface CaseListProps {
-  progress: CaseProgress[];
-  solvedCount: number;
-  clearancePct: number;
-  onSelect: (id: string) => void;
+  progress: CaseProgress[]
+  solvedCount: number
+  clearancePct: number
+  onSelect: (id: string) => void
 }
 
-function CaseList({ progress, solvedCount, clearancePct, onSelect }: CaseListProps) {
+function CaseList({
+  progress,
+  solvedCount,
+  clearancePct,
+  onSelect,
+}: CaseListProps) {
   return (
     <div className="flex flex-col">
       <div className="px-4 py-3 border-b border-slate-800">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] xl:text-xs uppercase tracking-widest text-slate-500">Clearance</span>
-          <span className="text-[10px] xl:text-xs text-slate-400">{solvedCount}/{cases.length}</span>
+          <span className="text-[10px] xl:text-xs uppercase tracking-widest text-slate-500">
+            Clearance
+          </span>
+          <span className="text-[10px] xl:text-xs text-slate-400">
+            {solvedCount}/{cases.length}
+          </span>
         </div>
         <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
           <div
@@ -56,8 +81,8 @@ function CaseList({ progress, solvedCount, clearancePct, onSelect }: CaseListPro
         </div>
       </div>
       {cases.map((c, i) => {
-        const prog = progress.find(p => p.caseId === c.id);
-        const status = prog?.status ?? 'locked';
+        const prog = progress.find(p => p.caseId === c.id)
+        const status = prog?.status ?? 'locked'
         return (
           <button
             key={c.id}
@@ -68,31 +93,32 @@ function CaseList({ progress, solvedCount, clearancePct, onSelect }: CaseListPro
             `}
           >
             <StatusDot status={status} />
-            <span className={`text-xs xl:text-sm truncate ${status === 'solved' ? 'text-slate-500 line-through' : status !== 'locked' ? 'text-slate-300' : 'text-slate-500'}`}>
+            <span
+              className={`text-xs xl:text-sm truncate ${status === 'solved' ? 'text-slate-500 line-through' : status !== 'locked' ? 'text-slate-300' : 'text-slate-500'}`}
+            >
               {String(i + 1).padStart(2, '0')} — {c.name}
             </span>
           </button>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 export function HomePage({ progress, onSelectCase }: HomePageProps) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const solvedCount = progress.filter(p => p.status === 'solved').length;
-  const clearancePct = Math.round((solvedCount / cases.length) * 100);
-  const rank = getRank(solvedCount);
+  const solvedCount = progress.filter(p => p.status === 'solved').length
+  const clearancePct = Math.round((solvedCount / cases.length) * 100)
+  const rank = getRank(solvedCount)
 
   const handleSelect = (id: string) => {
-    setDrawerOpen(false);
-    onSelectCase(id);
-  };
+    setDrawerOpen(false)
+    onSelectCase(id)
+  }
 
   return (
     <div className="bg-slate-950 text-slate-50 min-h-screen flex flex-col">
-
       {/* ── Navbar ── */}
       <header className="sticky top-0 z-20 bg-slate-950 border-b border-slate-800">
         <div className="flex items-center gap-3 px-4 py-3">
@@ -110,7 +136,9 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center flex-shrink-0">
               <Shield className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-sm xl:text-base font-bold text-slate-200 tracking-wide">Telemetry Academy</span>
+            <span className="text-sm xl:text-base font-bold text-slate-200 tracking-wide">
+              Telemetry Academy
+            </span>
           </div>
 
           <div className="flex-1" />
@@ -118,15 +146,23 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
           {/* Stats */}
           <div className="flex items-center divide-x divide-slate-800 text-[11px] xl:text-xs">
             <div className="flex items-center gap-1 pr-3 md:flex hidden">
-              <span className="text-slate-500 uppercase tracking-wider">Rank</span>
+              <span className="text-slate-500 uppercase tracking-wider">
+                Rank
+              </span>
               <span className="font-bold text-sky-400">{rank}</span>
             </div>
             <div className="flex items-center gap-1 px-3">
-              <span className="text-slate-500 uppercase tracking-wider">Cases</span>
-              <span className="font-bold text-white">{solvedCount}/{cases.length}</span>
+              <span className="text-slate-500 uppercase tracking-wider">
+                Cases
+              </span>
+              <span className="font-bold text-white">
+                {solvedCount}/{cases.length}
+              </span>
             </div>
             <div className="flex items-center gap-1 pl-3">
-              <span className="text-slate-500 uppercase tracking-wider hidden sm:inline">Clearance</span>
+              <span className="text-slate-500 uppercase tracking-wider hidden sm:inline">
+                Clearance
+              </span>
               <span className="font-bold text-violet-400">{clearancePct}%</span>
             </div>
           </div>
@@ -143,27 +179,40 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
           />
           <div className="absolute inset-y-0 left-0 w-72 bg-slate-950 border-r border-slate-800 flex flex-col overflow-y-auto z-50">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 flex-shrink-0">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Incidents</span>
-              <button onClick={() => setDrawerOpen(false)} className="text-slate-500 hover:text-white p-1">
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                Incidents
+              </span>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="text-slate-500 hover:text-white p-1"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <CaseList progress={progress} solvedCount={solvedCount} clearancePct={clearancePct} onSelect={handleSelect} />
+            <CaseList
+              progress={progress}
+              solvedCount={solvedCount}
+              clearancePct={clearancePct}
+              onSelect={handleSelect}
+            />
           </div>
         </div>
       )}
 
       {/* ── Main layout ── */}
       <div className="flex flex-1">
-
         {/* Desktop sidebar */}
         <aside className="hidden md:flex flex-col w-56 flex-shrink-0 border-r border-slate-800 sticky top-[49px] self-start h-[calc(100vh-49px)] overflow-y-auto">
-          <CaseList progress={progress} solvedCount={solvedCount} clearancePct={clearancePct} onSelect={handleSelect} />
+          <CaseList
+            progress={progress}
+            solvedCount={solvedCount}
+            clearancePct={clearancePct}
+            onSelect={handleSelect}
+          />
         </aside>
 
         {/* Content */}
         <main className="flex-1 min-w-0">
-
           {/* Hero */}
           <div className="flex flex-col items-center text-center px-4 py-10 border-b border-slate-800">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center mb-5 shadow-xl shadow-sky-500/20">
@@ -173,7 +222,8 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
               TELEMETRY ACADEMY
             </h1>
             <p className="text-slate-500 text-sm xl:text-base mb-8 max-w-xs">
-              Learn OpenTelemetry by instrumenting real systems and investigating real incidents.
+              Learn OpenTelemetry by instrumenting real systems and
+              investigating real incidents.
             </p>
             {/* How it works teaser */}
             <div className="flex items-center gap-4 text-xs xl:text-sm text-slate-500 mb-6">
@@ -187,12 +237,27 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
             <div className="flex border border-slate-800 rounded-xl overflow-hidden w-full max-w-xs">
               {[
                 { label: 'RANK', value: rank, color: 'text-sky-400' },
-                { label: 'CASES', value: `${solvedCount}/${cases.length}`, color: 'text-white' },
-                { label: 'CLEARED', value: `${clearancePct}%`, color: 'text-violet-400' },
+                {
+                  label: 'CASES',
+                  value: `${solvedCount}/${cases.length}`,
+                  color: 'text-white',
+                },
+                {
+                  label: 'CLEARED',
+                  value: `${clearancePct}%`,
+                  color: 'text-violet-400',
+                },
               ].map(({ label, value, color }, i, arr) => (
-                <div key={label} className={`flex-1 flex flex-col items-center py-4 ${i < arr.length - 1 ? 'border-r border-slate-800' : ''}`}>
-                  <span className={`text-xl xl:text-2xl font-black ${color}`}>{value}</span>
-                  <span className="text-[9px] xl:text-[10px] uppercase tracking-widest text-slate-500 mt-1">{label}</span>
+                <div
+                  key={label}
+                  className={`flex-1 flex flex-col items-center py-4 ${i < arr.length - 1 ? 'border-r border-slate-800' : ''}`}
+                >
+                  <span className={`text-xl xl:text-2xl font-black ${color}`}>
+                    {value}
+                  </span>
+                  <span className="text-[9px] xl:text-[10px] uppercase tracking-widest text-slate-500 mt-1">
+                    {label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -202,47 +267,67 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
           <div className="px-4 sm:px-8 py-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-0.5 h-4 bg-gradient-to-b from-sky-500 to-violet-600 rounded-full" />
-              <span className="text-xs xl:text-sm font-bold uppercase tracking-widest text-slate-300">Incidents</span>
+              <span className="text-xs xl:text-sm font-bold uppercase tracking-widest text-slate-300">
+                Incidents
+              </span>
               <div className="flex-1 h-px bg-slate-800" />
-              <span className="text-xs xl:text-sm text-slate-600">{solvedCount}/{cases.length} cleared</span>
+              <span className="text-xs xl:text-sm text-slate-600">
+                {solvedCount}/{cases.length} cleared
+              </span>
             </div>
 
             <div className="flex flex-col gap-3">
               {cases.map((c, i) => {
-                const prog = progress.find(p => p.caseId === c.id);
-                const status = prog?.status ?? 'locked';
-                const isLocked = status === 'locked';
-                const isSolved = status === 'solved';
+                const prog = progress.find(p => p.caseId === c.id)
+                const status = prog?.status ?? 'locked'
+                const isLocked = status === 'locked'
+                const isSolved = status === 'solved'
 
                 return (
                   <div
                     key={c.id}
                     onClick={() => !isLocked && handleSelect(c.id)}
                     className={`border rounded-xl p-4 transition-all
-                      ${isLocked ? 'border-slate-800 bg-slate-900/20 opacity-50 cursor-default' :
-                        isSolved ? 'border-slate-700 bg-slate-900/40 cursor-pointer hover:border-slate-600' :
-                        'border-slate-700 bg-slate-900/70 cursor-pointer hover:border-sky-500/50 hover:bg-slate-900'
+                      ${
+                        isLocked
+                          ? 'border-slate-800 bg-slate-900/20 opacity-50 cursor-default'
+                          : isSolved
+                            ? 'border-slate-700 bg-slate-900/40 cursor-pointer hover:border-slate-600'
+                            : 'border-slate-700 bg-slate-900/70 cursor-pointer hover:border-sky-500/50 hover:bg-slate-900'
                       }
                     `}
                   >
                     <div className="flex items-start gap-3">
                       {/* Badge */}
-                      <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm
-                        ${isSolved ? 'bg-green-950/60 text-green-400 border border-green-800/50' :
-                          isLocked ? 'bg-slate-800 text-slate-600 border border-slate-700' :
-                          'bg-sky-500/10 text-sky-400 border border-sky-500/30'
+                      <div
+                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm
+                        ${
+                          isSolved
+                            ? 'bg-green-950/60 text-green-400 border border-green-800/50'
+                            : isLocked
+                              ? 'bg-slate-800 text-slate-600 border border-slate-700'
+                              : 'bg-sky-500/10 text-sky-400 border border-sky-500/30'
                         }
-                      `}>
-                        {isSolved ? <CheckCircle2 className="w-5 h-5" /> :
-                          isLocked ? <Lock className="w-4 h-4" /> :
-                          String(i + 1).padStart(2, '0')}
+                      `}
+                      >
+                        {isSolved ? (
+                          <CheckCircle2 className="w-5 h-5" />
+                        ) : isLocked ? (
+                          <Lock className="w-4 h-4" />
+                        ) : (
+                          String(i + 1).padStart(2, '0')
+                        )}
                       </div>
 
                       {/* Text */}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                          <span className="font-bold text-sm xl:text-base text-slate-100">{c.name}</span>
-                          <span className={`text-[10px] xl:text-xs font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide ${getDifficultyColor(c.difficulty)}`}>
+                          <span className="font-bold text-sm xl:text-base text-slate-100">
+                            {c.name}
+                          </span>
+                          <span
+                            className={`text-[10px] xl:text-xs font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide ${getDifficultyColor(c.difficulty)}`}
+                          >
                             {c.difficulty}
                           </span>
                           {isSolved && (
@@ -253,14 +338,24 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                         </div>
                         <div className="flex flex-wrap gap-1 mb-2">
                           {c.concepts.map(concept => (
-                            <span key={concept} className="text-[10px] xl:text-xs px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                            <span
+                              key={concept}
+                              className="text-[10px] xl:text-xs px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700"
+                            >
                               {concept.replace(/_/g, ' ')}
                             </span>
                           ))}
                         </div>
                         {!isLocked && (
                           <p className="text-xs xl:text-sm text-slate-500 line-clamp-2 leading-relaxed">
-                            {c.phase1.description.replace(/\*\*/g, '').replace(/#+\s/g, '').trim().split('\n').filter(Boolean)[0]}
+                            {
+                              c.phase1.description
+                                .replace(/\*\*/g, '')
+                                .replace(/#+\s/g, '')
+                                .trim()
+                                .split('\n')
+                                .filter(Boolean)[0]
+                            }
                           </p>
                         )}
                       </div>
@@ -269,25 +364,31 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                     {/* CTA */}
                     {!isLocked && (
                       <div className="mt-3 flex justify-end">
-                        <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs xl:text-sm font-bold
-                          ${isSolved
-                            ? 'bg-slate-800 text-slate-400 border border-slate-700'
-                            : 'bg-gradient-to-r from-sky-500 to-violet-600 text-white shadow-lg shadow-sky-500/20'
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs xl:text-sm font-bold
+                          ${
+                            isSolved
+                              ? 'bg-slate-800 text-slate-400 border border-slate-700'
+                              : 'bg-gradient-to-r from-sky-500 to-violet-600 text-white shadow-lg shadow-sky-500/20'
                           }
-                        `}>
-                          {isSolved ? 'Revisit' : status === 'in-progress' ? 'Continue' : 'Investigate'}
+                        `}
+                        >
+                          {isSolved
+                            ? 'Revisit'
+                            : status === 'in-progress'
+                              ? 'Continue'
+                              : 'Investigate'}
                           <ChevronRight className="w-3.5 h-3.5" />
                         </span>
                       </div>
                     )}
                   </div>
-                );
+                )
               })}
             </div>
           </div>
-
         </main>
       </div>
     </div>
-  );
+  )
 }

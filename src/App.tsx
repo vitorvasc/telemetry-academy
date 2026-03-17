@@ -1,32 +1,61 @@
-import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useLocation, useRoute } from 'wouter';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  lazy,
+  Suspense,
+} from 'react'
+import { useLocation, useRoute } from 'wouter'
 
 const CodeEditor = lazy(() =>
   import('./components/CodeEditor').then(m => ({ default: m.CodeEditor }))
-);
-import { InstructionsPanel } from './components/InstructionsPanel';
-import { ValidationPanel } from './components/ValidationPanel';
-import { InvestigationView } from './components/InvestigationView';
-import { CaseSelector } from './components/CaseSelector';
-import { MobileCaseDrawer } from './components/MobileCaseDrawer';
-import { CaseSolvedScreen } from './components/CaseSolvedScreen';
-import { HomePage } from './components/HomePage';
-import { OutputPanel } from './components/terminal/OutputPanel';
-import { ReviewModal } from './components/ReviewModal';
-import { WelcomeModal } from './components/WelcomeModal';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { useCodeRunner, type Language } from './hooks/useCodeRunner';
-import { useAcademyPersistence } from './hooks/useAcademyPersistence';
-import { usePhase2Data } from './hooks/usePhase2Data';
-import type { Case, ValidationResult } from './types';
-import type { CaseProgress } from './types/progress';
-import { validateSpans, validateYaml, type SpanValidationRule } from './lib/validation';
-import { cases } from './data/cases';
-import { FlaskConical, RotateCcw, Radio, ArrowLeft, BookOpen, Code2, Terminal, LayoutPanelLeft, ChevronDown, Lock } from 'lucide-react';
-import { Group, Panel, Separator, useGroupRef, useDefaultLayout } from 'react-resizable-panels';
+)
+import { InstructionsPanel } from './components/InstructionsPanel'
+import { ValidationPanel } from './components/ValidationPanel'
+import { InvestigationView } from './components/InvestigationView'
+import { CaseSelector } from './components/CaseSelector'
+import { MobileCaseDrawer } from './components/MobileCaseDrawer'
+import { CaseSolvedScreen } from './components/CaseSolvedScreen'
+import { HomePage } from './components/HomePage'
+import { OutputPanel } from './components/terminal/OutputPanel'
+import { ReviewModal } from './components/ReviewModal'
+import { WelcomeModal } from './components/WelcomeModal'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { useCodeRunner, type Language } from './hooks/useCodeRunner'
+import { useAcademyPersistence } from './hooks/useAcademyPersistence'
+import { usePhase2Data } from './hooks/usePhase2Data'
+import type { Case, ValidationResult } from './types'
+import type { CaseProgress } from './types/progress'
+import {
+  validateSpans,
+  validateYaml,
+  type SpanValidationRule,
+} from './lib/validation'
+import { cases } from './data/cases'
+import {
+  FlaskConical,
+  RotateCcw,
+  Radio,
+  ArrowLeft,
+  BookOpen,
+  Code2,
+  Terminal,
+  LayoutPanelLeft,
+  ChevronDown,
+  Lock,
+} from 'lucide-react'
+import {
+  Group,
+  Panel,
+  Separator,
+  useGroupRef,
+  useDefaultLayout,
+} from 'react-resizable-panels'
 
-type AppPhase = 'instrumentation' | 'investigation' | 'solved';
-type MobileTab = 'instructions' | 'code' | 'output';
+type AppPhase = 'instrumentation' | 'investigation' | 'solved'
+type MobileTab = 'instructions' | 'code' | 'output'
 
 function NoTelemetryData({ onGoToPhase1 }: { onGoToPhase1: () => void }) {
   return (
@@ -35,7 +64,9 @@ function NoTelemetryData({ onGoToPhase1 }: { onGoToPhase1: () => void }) {
         <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
           <Radio className="w-8 h-8 text-slate-600" />
         </div>
-        <h3 className="text-lg font-semibold text-slate-200 mb-2">No Telemetry Data</h3>
+        <h3 className="text-lg font-semibold text-slate-200 mb-2">
+          No Telemetry Data
+        </h3>
         <p className="text-sm text-slate-500 mb-6">
           Run your code in Phase 1 to generate telemetry data for investigation.
         </p>
@@ -47,10 +78,10 @@ function NoTelemetryData({ onGoToPhase1 }: { onGoToPhase1: () => void }) {
         </button>
       </div>
     </div>
-  );
+  )
 }
 
-const FIRST_CASE_ID = '001-hello-span';
+const FIRST_CASE_ID = '001-hello-span'
 
 function initProgress(cases: Case[]): CaseProgress[] {
   return cases.map(c => ({
@@ -58,10 +89,10 @@ function initProgress(cases: Case[]): CaseProgress[] {
     status: c.id === FIRST_CASE_ID ? 'available' : 'locked',
     phase: 'instrumentation',
     attempts: 0,
-  }));
+  }))
 }
 
-const INITIAL_PROGRESS = initProgress(cases);
+const INITIAL_PROGRESS = initProgress(cases)
 
 function App() {
   // Persistence hook - handles loading from and saving to localStorage
@@ -76,332 +107,399 @@ function App() {
     isLoaded,
     hasSeenWelcome,
     markWelcomeSeen,
-  } = useAcademyPersistence(INITIAL_PROGRESS);
+  } = useAcademyPersistence(INITIAL_PROGRESS)
 
-  const [, setLocation] = useLocation();
-  const [matchCase, params] = useRoute('/case/:id');
+  const [, setLocation] = useLocation()
+  const [matchCase, params] = useRoute('/case/:id')
 
   // Derive showHome from URL — home when not on a case route
-  const showHome = !matchCase;
+  const showHome = !matchCase
 
-  const [currentCaseId, setCurrentCaseId] = useState(cases[0].id);
-  const [mobileTab, setMobileTab] = useState<MobileTab>('instructions');
-  const [appPhase, setAppPhase] = useState<AppPhase>('instrumentation');
-  const [code, setCode] = useState(cases[0].phase1.initialCode);
-  const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);
-  const [isValidating, setIsValidating] = useState(false);
-  const [investigationAttempts, setInvestigationAttempts] = useState(0);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [showMobileDrawer, setShowMobileDrawer] = useState(false);
+  const [currentCaseId, setCurrentCaseId] = useState(cases[0].id)
+  const [mobileTab, setMobileTab] = useState<MobileTab>('instructions')
+  const [appPhase, setAppPhase] = useState<AppPhase>('instrumentation')
+  const [code, setCode] = useState(cases[0].phase1.initialCode)
+  const [validationResults, setValidationResults] = useState<
+    ValidationResult[]
+  >([])
+  const [isValidating, setIsValidating] = useState(false)
+  const [investigationAttempts, setInvestigationAttempts] = useState(0)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(false)
+  const [showMobileDrawer, setShowMobileDrawer] = useState(false)
 
-  const [activeLanguage, setActiveLanguage] = useState<Language>('python');
-  const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode, loadingLabel } = useCodeRunner(activeLanguage);
-  const [workerError, setWorkerError] = useState<string | null>(null);
+  const [activeLanguage, setActiveLanguage] = useState<Language>('python')
+  const {
+    isReady: isWorkerReady,
+    initError,
+    isRunning,
+    output,
+    spans,
+    runCode,
+    loadingLabel,
+  } = useCodeRunner(activeLanguage)
+  const [workerError, setWorkerError] = useState<string | null>(null)
 
   // Clear validation results when code changes (prevents stale state)
   useEffect(() => {
-    setValidationResults([]);
-    setWorkerError(null);
-  }, [code]);
+    setValidationResults([])
+    setWorkerError(null)
+  }, [code])
 
   // Sync currentCaseId from URL params when navigating directly to /case/:id
   useEffect(() => {
     if (matchCase && params?.id) {
-      const c = cases.find(x => x.id === params.id);
+      const c = cases.find(x => x.id === params.id)
       if (c) {
-        setCurrentCaseId(params.id);
+        setCurrentCaseId(params.id)
       }
     }
-  }, [matchCase, params?.id]);
+  }, [matchCase, params?.id])
 
   // Show welcome modal on first visit
   useEffect(() => {
     if (isLoaded && !hasSeenWelcome) {
-      setShowWelcome(true);
+      setShowWelcome(true)
     }
-  }, [isLoaded, hasSeenWelcome]);
-  const initialLoadRef = useRef(true);
+  }, [isLoaded, hasSeenWelcome])
+  const initialLoadRef = useRef(true)
   // Stable ref to getSavedCode — avoids re-triggering the load effect on every keystroke
   // (getSavedCode identity changes when caseCode updates)
-  const getSavedCodeRef = useRef(getSavedCode);
-  const [lastPassedCode, setLastPassedCode] = useState<string | null>(null);
-  const mainGroupRef = useGroupRef();
+  const getSavedCodeRef = useRef(getSavedCode)
+  const [lastPassedCode, setLastPassedCode] = useState<string | null>(null)
+  const mainGroupRef = useGroupRef()
 
   // Panel persistence via useDefaultLayout (react-resizable-panels v4)
-  const mainLayout = useDefaultLayout({ id: 'ta-panel-main', storage: localStorage });
-  const rightLayout = useDefaultLayout({ id: 'ta-panel-right', storage: localStorage });
-  const bottomLayout = useDefaultLayout({ id: 'ta-panel-bottom', storage: localStorage });
+  const mainLayout = useDefaultLayout({
+    id: 'ta-panel-main',
+    storage: localStorage,
+  })
+  const rightLayout = useDefaultLayout({
+    id: 'ta-panel-right',
+    storage: localStorage,
+  })
+  const bottomLayout = useDefaultLayout({
+    id: 'ta-panel-bottom',
+    storage: localStorage,
+  })
   // Keep getSavedCodeRef in sync — intentional pattern to prevent effect re-triggering on keystroke
   // eslint-disable-next-line react-hooks/refs
-  getSavedCodeRef.current = getSavedCode;
+  getSavedCodeRef.current = getSavedCode
 
-  const currentCase = useMemo(() => cases.find(c => c.id === currentCaseId) ?? cases[0], [currentCaseId]);
-  const currentIdx = useMemo(() => cases.findIndex(c => c.id === currentCaseId), [currentCaseId]);
-  const nextCase = useMemo(() => cases[currentIdx + 1], [currentIdx]);
-  const currentProgress = useMemo(() => allProgress.find(p => p.caseId === currentCaseId)!, [allProgress, currentCaseId]);
-  const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
+  const currentCase = useMemo(
+    () => cases.find(c => c.id === currentCaseId) ?? cases[0],
+    [currentCaseId]
+  )
+  const currentIdx = useMemo(
+    () => cases.findIndex(c => c.id === currentCaseId),
+    [currentCaseId]
+  )
+  const nextCase = useMemo(() => cases[currentIdx + 1], [currentIdx])
+  const currentProgress = useMemo(
+    () => allProgress.find(p => p.caseId === currentCaseId)!,
+    [allProgress, currentCaseId]
+  )
+  const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(
+    spans,
+    currentCaseId
+  )
   // Derive phase unlock from persisted progress, not code equality. This prevents
   // switching languages (which changes `code`) from re-locking Phase 2.
   // lastPassedCode !== null covers the brief moment before progress flushes to localStorage.
-  const phaseUnlocked = currentProgress.phase === 'investigation'
-    || currentProgress.phase === 'complete'
-    || lastPassedCode !== null;
+  const phaseUnlocked =
+    currentProgress.phase === 'investigation' ||
+    currentProgress.phase === 'complete' ||
+    lastPassedCode !== null
 
-  const supportedLanguages = currentCase.languages ?? ['python'];
-  const isMultiLanguage = supportedLanguages.length > 1;
+  const supportedLanguages = currentCase.languages ?? ['python']
+  const isMultiLanguage = supportedLanguages.length > 1
 
-  const languageBar = isMultiLanguage && appPhase === 'instrumentation' ? (
-    <div
-      className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 border-b border-slate-700 bg-slate-900/50"
-      role="tablist"
-      aria-label="Language"
-    >
-      <span className="text-[10px] uppercase tracking-widest text-slate-500 mr-1" aria-hidden="true">Lang</span>
-      {supportedLanguages.map(lang => (
+  const languageBar =
+    isMultiLanguage && appPhase === 'instrumentation' ? (
+      <div
+        className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 border-b border-slate-700 bg-slate-900/50"
+        role="tablist"
+        aria-label="Language"
+      >
+        <span
+          className="text-[10px] uppercase tracking-widest text-slate-500 mr-1"
+          aria-hidden="true"
+        >
+          Lang
+        </span>
+        {supportedLanguages.map(lang => (
+          <button
+            key={lang}
+            role="tab"
+            aria-selected={activeLanguage === lang}
+            onClick={() => switchLanguage(lang)}
+            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+              activeLanguage === lang
+                ? 'bg-slate-700 text-slate-100'
+                : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            {lang === 'python' ? '🐍 Python' : '🟨 JavaScript'}
+          </button>
+        ))}
+      </div>
+    ) : null
+
+  const phaseBar =
+    currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
+      <div className="flex-shrink-0 flex border-t border-slate-700 bg-slate-900">
         <button
-          key={lang}
-          role="tab"
-          aria-selected={activeLanguage === lang}
-          onClick={() => switchLanguage(lang)}
-          className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-            activeLanguage === lang
-              ? 'bg-slate-700 text-slate-100'
+          onClick={() => setAppPhase('instrumentation')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+            appPhase === 'instrumentation'
+              ? 'bg-sky-600/20 text-sky-400 border-t-2 border-sky-500'
               : 'text-slate-500 hover:text-slate-300'
           }`}
         >
-          {lang === 'python' ? '🐍 Python' : '🟨 JavaScript'}
+          <Code2 className="w-4 h-4" />1 · Instrument
         </button>
-      ))}
-    </div>
-  ) : null;
-
-  const phaseBar = currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
-    <div className="flex-shrink-0 flex border-t border-slate-700 bg-slate-900">
-      <button
-        onClick={() => setAppPhase('instrumentation')}
-        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-          appPhase === 'instrumentation'
-            ? 'bg-sky-600/20 text-sky-400 border-t-2 border-sky-500'
-            : 'text-slate-500 hover:text-slate-300'
-        }`}
-      >
-        <Code2 className="w-4 h-4" />
-        1 · Instrument
-      </button>
-      <button
-        disabled={!phaseUnlocked}
-        onClick={() => phaseUnlocked && setAppPhase('investigation')}
-        title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
-        className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-          appPhase === 'investigation'
-            ? 'bg-amber-600/20 text-amber-400 border-t-2 border-amber-500'
-            : phaseUnlocked
-              ? 'text-slate-500 hover:text-slate-300'
-              : 'text-slate-700 cursor-not-allowed'
-        }`}
-      >
-        {!phaseUnlocked && <Lock className="w-4 h-4 opacity-40" />}
-        2 · Investigate
-      </button>
-    </div>
-  ) : null;
+        <button
+          disabled={!phaseUnlocked}
+          onClick={() => phaseUnlocked && setAppPhase('investigation')}
+          title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+            appPhase === 'investigation'
+              ? 'bg-amber-600/20 text-amber-400 border-t-2 border-amber-500'
+              : phaseUnlocked
+                ? 'text-slate-500 hover:text-slate-300'
+                : 'text-slate-700 cursor-not-allowed'
+          }`}
+        >
+          {!phaseUnlocked && <Lock className="w-4 h-4 opacity-40" />}2 ·
+          Investigate
+        </button>
+      </div>
+    ) : null
 
   // Load persisted code when persistence is ready, case switches, or language changes.
   // getSavedCode is intentionally accessed via ref so its changing reference
   // (caused by caseCode updates on every keystroke) does not re-trigger this effect.
   useEffect(() => {
-    if (!isLoaded) return;
-    const saved = getSavedCodeRef.current(currentCaseId, activeLanguage);
+    if (!isLoaded) return
+    const saved = getSavedCodeRef.current(currentCaseId, activeLanguage)
     if (saved) {
-      setCode(saved);
-      return;
+      setCode(saved)
+      return
     }
     // No saved code for this language — fall back to initial code
-    const c = cases.find(x => x.id === currentCaseId);
-    if (!c) return;
-    const initialCode = activeLanguage === 'javascript' && c.phase1.initialCodeJs
-      ? c.phase1.initialCodeJs
-      : c.phase1.initialCode;
-    setCode(initialCode);
-  }, [isLoaded, currentCaseId, activeLanguage]);
+    const c = cases.find(x => x.id === currentCaseId)
+    if (!c) return
+    const initialCode =
+      activeLanguage === 'javascript' && c.phase1.initialCodeJs
+        ? c.phase1.initialCodeJs
+        : c.phase1.initialCode
+    setCode(initialCode)
+  }, [isLoaded, currentCaseId, activeLanguage])
 
   // Code auto-save effect
   useEffect(() => {
     if (isLoaded && !initialLoadRef.current) {
-      saveCode(currentCaseId, code, activeLanguage);
+      saveCode(currentCaseId, code, activeLanguage)
     }
-    initialLoadRef.current = false;
-  }, [code, currentCaseId, isLoaded, saveCode, activeLanguage]);
+    initialLoadRef.current = false
+  }, [code, currentCaseId, isLoaded, saveCode, activeLanguage])
 
   // Switch language within a case — save current code first, then let the load effect
   // restore the target language's saved code (or fall back to initial code).
-  const switchLanguage = useCallback((lang: Language) => {
-    if (lang === activeLanguage) return;
-    saveCode(currentCaseId, code, activeLanguage);
-    setActiveLanguage(lang);
-    setValidationResults([]);
-  }, [activeLanguage, currentCaseId, code, saveCode]);
+  const switchLanguage = useCallback(
+    (lang: Language) => {
+      if (lang === activeLanguage) return
+      saveCode(currentCaseId, code, activeLanguage)
+      setActiveLanguage(lang)
+      setValidationResults([])
+    },
+    [activeLanguage, currentCaseId, code, saveCode]
+  )
 
   // Switch cases
-  const switchCase = useCallback((id: string) => {
-    const c = cases.find(x => x.id === id);
-    if (!c) return;
-    const prog = allProgress.find(p => p.caseId === id)!;
-    setCurrentCaseId(id);
-    setActiveLanguage('python'); // reset to Python when switching cases
-    // Load saved code or use initial code
-    const savedCode = getSavedCode(id, 'python') || c.phase1.initialCode;
-    setCode(savedCode);
-    setValidationResults([]);
-    setAppPhase(prog.phase as AppPhase);
-    setInvestigationAttempts(prog.attempts);
-    setShowReviewModal(false);
-    if (prog.phase === 'investigation' || prog.phase === 'complete') {
-      setLastPassedCode(savedCode);
-    } else {
-      setLastPassedCode(null);
-    }
-  }, [allProgress, getSavedCode]);
+  const switchCase = useCallback(
+    (id: string) => {
+      const c = cases.find(x => x.id === id)
+      if (!c) return
+      const prog = allProgress.find(p => p.caseId === id)!
+      setCurrentCaseId(id)
+      setActiveLanguage('python') // reset to Python when switching cases
+      // Load saved code or use initial code
+      const savedCode = getSavedCode(id, 'python') || c.phase1.initialCode
+      setCode(savedCode)
+      setValidationResults([])
+      setAppPhase(prog.phase as AppPhase)
+      setInvestigationAttempts(prog.attempts)
+      setShowReviewModal(false)
+      if (prog.phase === 'investigation' || prog.phase === 'complete') {
+        setLastPassedCode(savedCode)
+      } else {
+        setLastPassedCode(null)
+      }
+    },
+    [allProgress, getSavedCode]
+  )
 
   // Navigate to a case from home
-  const goToCase = useCallback((id: string) => {
-    switchCase(id);
-    setLocation(`/case/${id}`);
-  }, [switchCase, setLocation]);
+  const goToCase = useCallback(
+    (id: string) => {
+      switchCase(id)
+      setLocation(`/case/${id}`)
+    },
+    [switchCase, setLocation]
+  )
 
   // Update progress helper
-  const updateProgress = useCallback((id: string, patch: Partial<CaseProgress>) => {
-    setAllProgress(prev => prev.map(p => p.caseId === id ? { ...p, ...patch } : p));
-  }, [setAllProgress]);
+  const updateProgress = useCallback(
+    (id: string, patch: Partial<CaseProgress>) => {
+      setAllProgress(prev =>
+        prev.map(p => (p.caseId === id ? { ...p, ...patch } : p))
+      )
+    },
+    [setAllProgress]
+  )
 
   // Phase 1 validation
   const handleValidate = async () => {
-    setIsValidating(true);
-    setWorkerError(null);
+    setIsValidating(true)
+    setWorkerError(null)
 
     // Mark in-progress
-     
-    updateProgress(currentCaseId, { status: 'in-progress', timeStartedMs: Date.now() });
+
+    updateProgress(currentCaseId, {
+      status: 'in-progress',
+      timeStartedMs: Date.now(),
+    })
 
     // YAML-mode branch: The Collector case validates YAML directly, no Python worker
     if (currentCase.type === 'yaml-config') {
-      const currentAttemptHistory: Record<string, number> = {};
+      const currentAttemptHistory: Record<string, number> = {}
       currentCase.phase1.validations.forEach(rule => {
-        currentAttemptHistory[rule.description] = getAttemptCount(currentCaseId, rule.description);
-      });
+        currentAttemptHistory[rule.description] = getAttemptCount(
+          currentCaseId,
+          rule.description
+        )
+      })
 
       const results = validateYaml(
         currentCase.phase1.validations as SpanValidationRule[],
         { yamlContent: code, attemptHistory: currentAttemptHistory }
-      );
+      )
 
       results.forEach(r => {
         if (!r.passed) {
-          updateAttemptHistory(currentCaseId, r.description);
+          updateAttemptHistory(currentCaseId, r.description)
         }
-      });
+      })
 
-      setValidationResults(results);
+      setValidationResults(results)
 
       if (results.every(r => r.passed)) {
-        setAppPhase('investigation');
-        setLastPassedCode(code);
-        updateProgress(currentCaseId, { phase: 'investigation' });
+        setAppPhase('investigation')
+        setLastPassedCode(code)
+        updateProgress(currentCaseId, { phase: 'investigation' })
       }
 
-      setIsValidating(false);
-      return;
+      setIsValidating(false)
+      return
     }
 
     // Python worker path
-    let runSpans: typeof spans = [];
+    let runSpans: typeof spans = []
     try {
-      const runResult = await runCode(code);
-      runSpans = runResult.spans;
+      const runResult = await runCode(code)
+      runSpans = runResult.spans
     } catch (err: unknown) {
-      setWorkerError((err instanceof Error ? err.message : null) || 'Unknown execution error');
+      setWorkerError(
+        (err instanceof Error ? err.message : null) || 'Unknown execution error'
+      )
     }
 
     // Get attempt history for current case
-    const currentAttemptHistory: Record<string, number> = {};
+    const currentAttemptHistory: Record<string, number> = {}
     currentCase.phase1.validations.forEach(rule => {
-      currentAttemptHistory[rule.description] = getAttemptCount(currentCaseId, rule.description);
-    });
+      currentAttemptHistory[rule.description] = getAttemptCount(
+        currentCaseId,
+        rule.description
+      )
+    })
 
     // Run real span-based validation
     const results = validateSpans(
       currentCase.phase1.validations as SpanValidationRule[],
       { spans: runSpans, attemptHistory: currentAttemptHistory }
-    );
+    )
 
     // Update attempt history for failed rules
     results.forEach(r => {
       if (!r.passed) {
-        updateAttemptHistory(currentCaseId, r.description);
+        updateAttemptHistory(currentCaseId, r.description)
       }
-    });
+    })
 
-    setValidationResults(results);
+    setValidationResults(results)
 
     if (results.every(r => r.passed)) {
-      setAppPhase('investigation');
-      setLastPassedCode(code);
-      updateProgress(currentCaseId, { phase: 'investigation' });
+      setAppPhase('investigation')
+      setLastPassedCode(code)
+      updateProgress(currentCaseId, { phase: 'investigation' })
     }
 
-    setIsValidating(false);
-  };
+    setIsValidating(false)
+  }
 
   // Phase 2 solved
   const handleCaseSolved = () => {
-    const now = Date.now();
-    setAppPhase('solved');
+    const now = Date.now()
+    setAppPhase('solved')
     updateProgress(currentCaseId, {
       status: 'solved',
       phase: 'complete',
       timeSolvedMs: now,
       attempts: investigationAttempts,
-    });
+    })
     // Unlock next case
     if (nextCase) {
-      updateProgress(nextCase.id, { status: 'available' });
+      updateProgress(nextCase.id, { status: 'available' })
     }
-  };
+  }
 
   const handleInvestigationAttempt = () => {
-    setInvestigationAttempts(a => a + 1);
-  };
+    setInvestigationAttempts(a => a + 1)
+  }
 
   const handleResetAll = () => {
-    resetAll();
-    setCode(currentCase.phase1.initialCode);
-    setValidationResults([]);
-    setInvestigationAttempts(0);
-    setAppPhase('instrumentation');
-    setActiveLanguage('python');
-    setLastPassedCode(null);
-    setShowResetConfirm(false);
-  };
+    resetAll()
+    setCode(currentCase.phase1.initialCode)
+    setValidationResults([])
+    setInvestigationAttempts(0)
+    setAppPhase('instrumentation')
+    setActiveLanguage('python')
+    setLastPassedCode(null)
+    setShowResetConfirm(false)
+  }
 
   const handleWelcomeClose = () => {
-    setShowWelcome(false);
-    markWelcomeSeen();
-  };
+    setShowWelcome(false)
+    markWelcomeSeen()
+  }
 
   const handleResetPanels = () => {
-    localStorage.removeItem('react-resizable-panels:ta-panel-main');
-    localStorage.removeItem('react-resizable-panels:ta-panel-right');
-    localStorage.removeItem('react-resizable-panels:ta-panel-bottom');
-    mainGroupRef.current?.setLayout({ 'ta-instructions': 25, 'ta-editor-group': 75 });
-  };
+    localStorage.removeItem('react-resizable-panels:ta-panel-main')
+    localStorage.removeItem('react-resizable-panels:ta-panel-right')
+    localStorage.removeItem('react-resizable-panels:ta-panel-bottom')
+    mainGroupRef.current?.setLayout({
+      'ta-instructions': 25,
+      'ta-editor-group': 75,
+    })
+  }
 
   const goToNext = () => {
-    if (nextCase) switchCase(nextCase.id);
-  };
+    if (nextCase) switchCase(nextCase.id)
+  }
 
-  const reviewInvestigation = () => setShowReviewModal(true);
+  const reviewInvestigation = () => setShowReviewModal(true)
 
   // Loading state
   if (!isLoaded) {
@@ -412,16 +510,11 @@ function App() {
           <span className="text-slate-400">Loading...</span>
         </div>
       </div>
-    );
+    )
   }
 
   if (showHome) {
-    return (
-      <HomePage
-        progress={allProgress}
-        onSelectCase={goToCase}
-      />
-    );
+    return <HomePage progress={allProgress} onSelectCase={goToCase} />
   }
 
   return (
@@ -434,7 +527,9 @@ function App() {
             <div className="w-7 h-7 bg-gradient-to-br from-sky-500 to-violet-600 rounded-lg flex items-center justify-center">
               <FlaskConical className="w-3.5 h-3.5 text-white" />
             </div>
-            <div className="text-sm font-bold text-white">Telemetry Academy</div>
+            <div className="text-sm font-bold text-white">
+              Telemetry Academy
+            </div>
           </div>
 
           {/* Back to home */}
@@ -464,17 +559,24 @@ function App() {
             onClick={() => setShowMobileDrawer(true)}
             aria-label="Switch case"
           >
-            <span className="text-sm font-semibold text-slate-200 truncate">{currentCase.name}</span>
+            <span className="text-sm font-semibold text-slate-200 truncate">
+              {currentCase.name}
+            </span>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
           </button>
 
           {/* Difficulty badge (desktop) */}
-          <span className={`hidden sm:inline text-[10px] font-bold px-2 py-1 rounded-full border flex-shrink-0 ${
-            currentCase.difficulty === 'rookie' ? 'border-green-800 text-green-400 bg-green-950/40' :
-            currentCase.difficulty === 'junior' ? 'border-sky-800 text-sky-400 bg-sky-950/40' :
-            currentCase.difficulty === 'senior' ? 'border-violet-800 text-violet-400 bg-violet-950/40' :
-            'border-amber-800 text-amber-400 bg-amber-950/40'
-          }`}>
+          <span
+            className={`hidden sm:inline text-[10px] font-bold px-2 py-1 rounded-full border flex-shrink-0 ${
+              currentCase.difficulty === 'rookie'
+                ? 'border-green-800 text-green-400 bg-green-950/40'
+                : currentCase.difficulty === 'junior'
+                  ? 'border-sky-800 text-sky-400 bg-sky-950/40'
+                  : currentCase.difficulty === 'senior'
+                    ? 'border-violet-800 text-violet-400 bg-violet-950/40'
+                    : 'border-amber-800 text-amber-400 bg-amber-950/40'
+            }`}
+          >
             {currentCase.difficulty.toUpperCase()}
           </span>
 
@@ -492,11 +594,25 @@ function App() {
             {showResetConfirm ? (
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span className="text-xs text-slate-400">Reset?</span>
-                <button onClick={handleResetAll} className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">Yes</button>
-                <button onClick={() => setShowResetConfirm(false)} className="px-2 py-1 bg-slate-700 text-white text-xs rounded">No</button>
+                <button
+                  onClick={handleResetAll}
+                  className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="px-2 py-1 bg-slate-700 text-white text-xs rounded"
+                >
+                  No
+                </button>
               </div>
             ) : (
-              <button onClick={() => setShowResetConfirm(true)} className="p-1.5 text-slate-500 hover:text-red-400 transition-colors" title="Reset">
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+                title="Reset"
+              >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
             )}
@@ -507,16 +623,20 @@ function App() {
       {/* ── Mobile Tab Bar ── */}
       {appPhase === 'instrumentation' && (
         <div className="flex sm:hidden border-b border-slate-700 bg-slate-800 flex-shrink-0">
-          {([
-            { id: 'instructions', label: 'Guide', icon: BookOpen },
-            { id: 'code', label: 'Code', icon: Code2 },
-            { id: 'output', label: 'Output', icon: Terminal },
-          ] as { id: MobileTab; label: string; icon: React.ElementType }[]).map(({ id, label, icon: Icon }) => (
+          {(
+            [
+              { id: 'instructions', label: 'Guide', icon: BookOpen },
+              { id: 'code', label: 'Code', icon: Code2 },
+              { id: 'output', label: 'Output', icon: Terminal },
+            ] as { id: MobileTab; label: string; icon: React.ElementType }[]
+          ).map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setMobileTab(id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors border-b-2 ${
-                mobileTab === id ? 'border-sky-500 text-sky-400' : 'border-transparent text-slate-500 hover:text-slate-300'
+                mobileTab === id
+                  ? 'border-sky-500 text-sky-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-300'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -532,7 +652,9 @@ function App() {
         {showReviewModal && (
           <ReviewModal
             spans={phase2Data?.spans ?? []}
-            correctOption={phase2Data?.rootCauseOptions.find(o => o.correct) ?? null}
+            correctOption={
+              phase2Data?.rootCauseOptions.find(o => o.correct) ?? null
+            }
             onClose={() => setShowReviewModal(false)}
           />
         )}
@@ -542,166 +664,264 @@ function App() {
             cases={cases}
             progress={allProgress}
             currentCaseId={currentCaseId}
-            onSelect={(id) => { switchCase(id); setLocation(`/case/${id}`); }}
+            onSelect={id => {
+              switchCase(id)
+              setLocation(`/case/${id}`)
+            }}
             onClose={() => setShowMobileDrawer(false)}
           />
         )}
 
         <ErrorBoundary>
-        {appPhase === 'solved' ? (
-          <div className="flex-1 overflow-hidden">
-            <CaseSolvedScreen
-              solvedCase={currentCase}
-              nextCase={nextCase}
-              progress={{ ...currentProgress, attempts: investigationAttempts }}
-              onNext={goToNext}
-              onReview={reviewInvestigation}
-            />
-          </div>
-        ) : appPhase === 'instrumentation' ? (
-          <>
-            {/* ── Desktop layout (resizable panels) ── */}
-            <Group
-              orientation="horizontal"
-              groupRef={mainGroupRef}
-              className="hidden sm:flex flex-1 overflow-hidden"
-              defaultLayout={mainLayout.defaultLayout}
-              onLayoutChanged={mainLayout.onLayoutChanged}
-            >
-              <Panel id="ta-instructions" defaultSize="25%" minSize="15%" maxSize="45%" className="overflow-y-auto">
-                <InstructionsPanel
-                  case={currentCase}
-                  phaseUnlocked={phaseUnlocked}
-                  onStartInvestigation={() => setAppPhase('investigation')}
-                />
-              </Panel>
-              <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-              <Panel id="ta-editor-group" className="flex flex-col overflow-hidden">
-                <Group
-                  orientation="vertical"
-                  className="flex-1 overflow-hidden"
-                  defaultLayout={rightLayout.defaultLayout}
-                  onLayoutChanged={rightLayout.onLayoutChanged}
+          {appPhase === 'solved' ? (
+            <div className="flex-1 overflow-hidden">
+              <CaseSolvedScreen
+                solvedCase={currentCase}
+                nextCase={nextCase}
+                progress={{
+                  ...currentProgress,
+                  attempts: investigationAttempts,
+                }}
+                onNext={goToNext}
+                onReview={reviewInvestigation}
+              />
+            </div>
+          ) : appPhase === 'instrumentation' ? (
+            <>
+              {/* ── Desktop layout (resizable panels) ── */}
+              <Group
+                orientation="horizontal"
+                groupRef={mainGroupRef}
+                className="hidden sm:flex flex-1 overflow-hidden"
+                defaultLayout={mainLayout.defaultLayout}
+                onLayoutChanged={mainLayout.onLayoutChanged}
+              >
+                <Panel
+                  id="ta-instructions"
+                  defaultSize="25%"
+                  minSize="15%"
+                  maxSize="45%"
+                  className="overflow-y-auto"
                 >
-                  <Panel id="ta-editor" defaultSize="70%" minSize="25%" className="overflow-hidden flex flex-col">
+                  <InstructionsPanel
+                    case={currentCase}
+                    phaseUnlocked={phaseUnlocked}
+                    onStartInvestigation={() => setAppPhase('investigation')}
+                  />
+                </Panel>
+                <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
+                <Panel
+                  id="ta-editor-group"
+                  className="flex flex-col overflow-hidden"
+                >
+                  <Group
+                    orientation="vertical"
+                    className="flex-1 overflow-hidden"
+                    defaultLayout={rightLayout.defaultLayout}
+                    onLayoutChanged={rightLayout.onLayoutChanged}
+                  >
+                    <Panel
+                      id="ta-editor"
+                      defaultSize="70%"
+                      minSize="25%"
+                      className="overflow-hidden flex flex-col"
+                    >
+                      {languageBar}
+                      <div className="flex-1 p-4 overflow-hidden">
+                        <Suspense
+                          fallback={
+                            <div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />
+                          }
+                        >
+                          <CodeEditor
+                            value={code}
+                            onChange={setCode}
+                            language={
+                              currentCase.type === 'yaml-config'
+                                ? 'yaml'
+                                : activeLanguage
+                            }
+                            filename={
+                              currentCase.type === 'yaml-config'
+                                ? 'collector.yaml'
+                                : undefined
+                            }
+                            onRunShortcut={handleValidate}
+                            defaultWordWrap={currentCase.type === 'yaml-config'}
+                            caseKey={`${currentCaseId}-${activeLanguage}`}
+                          />
+                        </Suspense>
+                      </div>
+                    </Panel>
+                    <Separator className="h-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-row-resize flex-shrink-0" />
+                    <Panel
+                      id="ta-bottom"
+                      defaultSize="30%"
+                      minSize="15%"
+                      className="overflow-hidden bg-slate-800 border-t border-slate-700"
+                    >
+                      <Group
+                        orientation="horizontal"
+                        className="h-full"
+                        defaultLayout={bottomLayout.defaultLayout}
+                        onLayoutChanged={bottomLayout.onLayoutChanged}
+                      >
+                        <Panel
+                          id="ta-validation"
+                          defaultSize="50%"
+                          minSize="20%"
+                        >
+                          <ValidationPanel
+                            results={validationResults}
+                            isValidating={isValidating}
+                            isWorkerReady={isWorkerReady}
+                            loadingLabel={loadingLabel}
+                            onValidate={handleValidate}
+                            phaseUnlocked={phaseUnlocked}
+                            onStartInvestigation={() =>
+                              setAppPhase('investigation')
+                            }
+                          />
+                        </Panel>
+                        <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
+                        <Panel id="ta-output" defaultSize="50%" minSize="20%">
+                          <OutputPanel
+                            output={output}
+                            error={workerError || initError}
+                            isRunning={isRunning}
+                          />
+                          {spans.length > 0 && (
+                            <div className="text-xs text-slate-500 mt-1 px-4">
+                              Captured {spans.length} telemetry span(s)
+                            </div>
+                          )}
+                        </Panel>
+                      </Group>
+                    </Panel>
+                  </Group>
+                  {phaseBar}
+                </Panel>
+              </Group>
+
+              {/* ── Mobile layout (tabs) ── */}
+              <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
+                {mobileTab === 'instructions' && (
+                  <div className="flex-1 overflow-y-auto">
+                    <InstructionsPanel
+                      case={currentCase}
+                      phaseUnlocked={phaseUnlocked}
+                      onStartInvestigation={() => setAppPhase('investigation')}
+                    />
+                  </div>
+                )}
+                {mobileTab === 'code' && (
+                  <div className="flex-1 flex flex-col overflow-hidden">
                     {languageBar}
-                    <div className="flex-1 p-4 overflow-hidden">
-                      <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
+                    <div className="flex-1 p-3 overflow-hidden">
+                      <Suspense
+                        fallback={
+                          <div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />
+                        }
+                      >
                         <CodeEditor
                           value={code}
                           onChange={setCode}
-                          language={currentCase.type === 'yaml-config' ? 'yaml' : activeLanguage}
-                          filename={currentCase.type === 'yaml-config' ? 'collector.yaml' : undefined}
+                          language={
+                            currentCase.type === 'yaml-config'
+                              ? 'yaml'
+                              : activeLanguage
+                          }
+                          filename={
+                            currentCase.type === 'yaml-config'
+                              ? 'collector.yaml'
+                              : undefined
+                          }
                           onRunShortcut={handleValidate}
                           defaultWordWrap={currentCase.type === 'yaml-config'}
                           caseKey={`${currentCaseId}-${activeLanguage}`}
                         />
                       </Suspense>
                     </div>
-                  </Panel>
-                  <Separator className="h-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-row-resize flex-shrink-0" />
-                  <Panel id="ta-bottom" defaultSize="30%" minSize="15%" className="overflow-hidden bg-slate-800 border-t border-slate-700">
-                    <Group
-                      orientation="horizontal"
-                      className="h-full"
-                      defaultLayout={bottomLayout.defaultLayout}
-                      onLayoutChanged={bottomLayout.onLayoutChanged}
-                    >
-                      <Panel id="ta-validation" defaultSize="50%" minSize="20%">
-                        <ValidationPanel
-                          results={validationResults}
-                          isValidating={isValidating}
-                          isWorkerReady={isWorkerReady}
-                          loadingLabel={loadingLabel}
-                          onValidate={handleValidate}
-                          phaseUnlocked={phaseUnlocked}
-                          onStartInvestigation={() => setAppPhase('investigation')}
-                        />
-                      </Panel>
-                      <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-                      <Panel id="ta-output" defaultSize="50%" minSize="20%">
-                        <OutputPanel output={output} error={workerError || initError} isRunning={isRunning} />
-                        {spans.length > 0 && (
-                          <div className="text-xs text-slate-500 mt-1 px-4">
-                            Captured {spans.length} telemetry span(s)
-                          </div>
-                        )}
-                      </Panel>
-                    </Group>
-                  </Panel>
-                </Group>
+                  </div>
+                )}
+                {mobileTab === 'output' && (
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="flex-1 border-b border-slate-700 overflow-hidden">
+                      <ValidationPanel
+                        results={validationResults}
+                        isValidating={isValidating}
+                        isWorkerReady={isWorkerReady}
+                        loadingLabel={loadingLabel}
+                        onValidate={handleValidate}
+                        phaseUnlocked={phaseUnlocked}
+                        onStartInvestigation={() => {
+                          setAppPhase('investigation')
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <OutputPanel
+                        output={output}
+                        error={workerError || initError}
+                        isRunning={isRunning}
+                      />
+                    </div>
+                  </div>
+                )}
                 {phaseBar}
-              </Panel>
-            </Group>
-
-            {/* ── Mobile layout (tabs) ── */}
-            <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
-              {mobileTab === 'instructions' && (
-                <div className="flex-1 overflow-y-auto">
+              </div>
+            </>
+          ) : (
+            <>
+              {/* ── Desktop layout (resizable panels) ── */}
+              <Group
+                orientation="horizontal"
+                groupRef={mainGroupRef}
+                className="hidden sm:flex flex-1 overflow-hidden"
+                defaultLayout={mainLayout.defaultLayout}
+                onLayoutChanged={mainLayout.onLayoutChanged}
+              >
+                <Panel
+                  id="ta-instructions"
+                  defaultSize="25%"
+                  minSize="15%"
+                  maxSize="45%"
+                  className="overflow-y-auto"
+                >
                   <InstructionsPanel
                     case={currentCase}
                     phaseUnlocked={phaseUnlocked}
-                    onStartInvestigation={() => setAppPhase('investigation')}
                   />
-                </div>
-              )}
-              {mobileTab === 'code' && (
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  {languageBar}
-                  <div className="flex-1 p-3 overflow-hidden">
-                    <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
-                      <CodeEditor
-                        value={code}
-                        onChange={setCode}
-                        language={currentCase.type === 'yaml-config' ? 'yaml' : activeLanguage}
-                        filename={currentCase.type === 'yaml-config' ? 'collector.yaml' : undefined}
-                        onRunShortcut={handleValidate}
-                        defaultWordWrap={currentCase.type === 'yaml-config'}
-                        caseKey={`${currentCaseId}-${activeLanguage}`}
-                      />
-                    </Suspense>
-                  </div>
-                </div>
-              )}
-              {mobileTab === 'output' && (
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  <div className="flex-1 border-b border-slate-700 overflow-hidden">
-                    <ValidationPanel
-                      results={validationResults}
-                      isValidating={isValidating}
-                      isWorkerReady={isWorkerReady}
-                      loadingLabel={loadingLabel}
-                      onValidate={handleValidate}
-                      phaseUnlocked={phaseUnlocked}
-                      onStartInvestigation={() => { setAppPhase('investigation'); }}
-                    />
-                  </div>
+                </Panel>
+                <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
+                <Panel
+                  id="ta-investigation"
+                  defaultSize="75%"
+                  minSize="40%"
+                  className="flex flex-col overflow-hidden"
+                >
                   <div className="flex-1 overflow-hidden">
-                    <OutputPanel output={output} error={workerError || initError} isRunning={isRunning} />
+                    {hasPhase2Data && phase2Data ? (
+                      <InvestigationView
+                        data={phase2Data}
+                        caseName={currentCase.name}
+                        currentCaseId={currentCaseId}
+                        onCaseSolved={handleCaseSolved}
+                        onAttempt={handleInvestigationAttempt}
+                        userOutput={output}
+                      />
+                    ) : (
+                      <NoTelemetryData
+                        onGoToPhase1={() => setAppPhase('instrumentation')}
+                      />
+                    )}
                   </div>
-                </div>
-              )}
-              {phaseBar}
-            </div>
-          </>
-        ) : (
-          <>
-            {/* ── Desktop layout (resizable panels) ── */}
-            <Group
-              orientation="horizontal"
-              groupRef={mainGroupRef}
-              className="hidden sm:flex flex-1 overflow-hidden"
-              defaultLayout={mainLayout.defaultLayout}
-              onLayoutChanged={mainLayout.onLayoutChanged}
-            >
-              <Panel id="ta-instructions" defaultSize="25%" minSize="15%" maxSize="45%" className="overflow-y-auto">
-                <InstructionsPanel
-                  case={currentCase}
-                  phaseUnlocked={phaseUnlocked}
-                />
-              </Panel>
-              <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-              <Panel id="ta-investigation" defaultSize="75%" minSize="40%" className="flex flex-col overflow-hidden">
+                  {phaseBar}
+                </Panel>
+              </Group>
+
+              {/* ── Mobile layout (full-width investigation) ── */}
+              <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
                 <div className="flex-1 overflow-hidden">
                   {hasPhase2Data && phase2Data ? (
                     <InvestigationView
@@ -713,38 +933,25 @@ function App() {
                       userOutput={output}
                     />
                   ) : (
-                    <NoTelemetryData onGoToPhase1={() => setAppPhase('instrumentation')} />
+                    <NoTelemetryData
+                      onGoToPhase1={() => setAppPhase('instrumentation')}
+                    />
                   )}
                 </div>
                 {phaseBar}
-              </Panel>
-            </Group>
-
-            {/* ── Mobile layout (full-width investigation) ── */}
-            <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
-              <div className="flex-1 overflow-hidden">
-                {hasPhase2Data && phase2Data ? (
-                  <InvestigationView
-                    data={phase2Data}
-                    caseName={currentCase.name}
-                    currentCaseId={currentCaseId}
-                    onCaseSolved={handleCaseSolved}
-                    onAttempt={handleInvestigationAttempt}
-                    userOutput={output}
-                  />
-                ) : (
-                  <NoTelemetryData onGoToPhase1={() => setAppPhase('instrumentation')} />
-                )}
               </div>
-              {phaseBar}
-            </div>
-          </>
-        )}
+            </>
+          )}
         </ErrorBoundary>
       </main>
       <footer className="flex-shrink-0 border-t border-slate-800 bg-slate-950 px-4 py-2 flex items-center justify-between text-[11px] text-slate-500">
         <span>
-          <a href="https://telemetry.academy" className="hover:text-slate-300 transition-colors">telemetry.academy</a>
+          <a
+            href="https://telemetry.academy"
+            className="hover:text-slate-300 transition-colors"
+          >
+            telemetry.academy
+          </a>
           {' · '}MIT License
         </span>
         <a
@@ -757,7 +964,7 @@ function App() {
         </a>
       </footer>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
