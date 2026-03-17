@@ -125,3 +125,4 @@ MIT — see [LICENSE](LICENSE) for details.
 ---
 
 *Built by [Vitor Vasconcellos](https://github.com/vitorvasc)*
+
