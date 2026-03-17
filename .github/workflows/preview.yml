@@ -9,6 +9,8 @@ jobs:
   preview:
     runs-on: ubuntu-latest
     name: Preview Deploy
+    # Dependabot PRs don't have access to secrets — skip preview for them
+    if: github.actor != 'dependabot[bot]'
 
     permissions:
       contents: read
