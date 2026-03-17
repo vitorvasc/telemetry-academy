@@ -15,7 +15,7 @@ import { OutputPanel } from './components/terminal/OutputPanel';
 import { ReviewModal } from './components/ReviewModal';
 import { WelcomeModal } from './components/WelcomeModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { useCodeRunner } from './hooks/useCodeRunner';
+import { useCodeRunner, type Language } from './hooks/useCodeRunner';
 import { useAcademyPersistence } from './hooks/useAcademyPersistence';
 import { usePhase2Data } from './hooks/usePhase2Data';
 import type { Case, ValidationResult } from './types';
@@ -96,7 +96,8 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
 
-  const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode, loadingLabel } = useCodeRunner('python');
+  const [activeLanguage, setActiveLanguage] = useState<'python' | 'javascript'>('python');
+  const { isReady: isWorkerReady, initError, isRunning, output, spans, runCode, loadingLabel } = useCodeRunner(activeLanguage);
   const [workerError, setWorkerError] = useState<string | null>(null);
 
   // Clear validation results when code changes (prevents stale state)
@@ -141,7 +142,34 @@ function App() {
   const nextCase = useMemo(() => cases[currentIdx + 1], [currentIdx]);
   const currentProgress = useMemo(() => allProgress.find(p => p.caseId === currentCaseId)!, [allProgress, currentCaseId]);
   const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
-  const phaseUnlocked = lastPassedCode !== null && code === lastPassedCode;
+  // Derive phase unlock from persisted progress, not code equality. This prevents
+  // switching languages (which changes `code`) from re-locking Phase 2.
+  // lastPassedCode !== null covers the brief moment before progress flushes to localStorage.
+  const phaseUnlocked = currentProgress.phase === 'investigation'
+    || currentProgress.phase === 'complete'
+    || lastPassedCode !== null;
+
+  const supportedLanguages = currentCase.languages ?? ['python'];
+  const isMultiLanguage = supportedLanguages.length > 1;
+
+  const languageBar = isMultiLanguage && appPhase === 'instrumentation' ? (
+    <div className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 border-b border-slate-700 bg-slate-900/50">
+      <span className="text-[10px] uppercase tracking-widest text-slate-500 mr-1">Lang</span>
+      {supportedLanguages.map(lang => (
+        <button
+          key={lang}
+          onClick={() => switchLanguage(lang)}
+          className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+            activeLanguage === lang
+              ? 'bg-slate-700 text-slate-100'
+              : 'text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          {lang === 'python' ? '🐍 Python' : '🟨 JavaScript'}
+        </button>
+      ))}
+    </div>
+  ) : null;
 
   const phaseBar = currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
     <div className="flex-shrink-0 flex border-t border-slate-700 bg-slate-900">
@@ -174,25 +202,41 @@ function App() {
     </div>
   ) : null;
 
-  // Load persisted code when persistence is ready or case switches.
+  // Load persisted code when persistence is ready, case switches, or language changes.
   // getSavedCode is intentionally accessed via ref so its changing reference
   // (caused by caseCode updates on every keystroke) does not re-trigger this effect.
   useEffect(() => {
-    if (isLoaded) {
-      const saved = getSavedCodeRef.current(currentCaseId);
-      if (saved) {
-        setCode(saved);
-      }
+    if (!isLoaded) return;
+    const saved = getSavedCodeRef.current(currentCaseId, activeLanguage);
+    if (saved) {
+      setCode(saved);
+      return;
     }
-  }, [isLoaded, currentCaseId]);
+    // No saved code for this language — fall back to initial code
+    const c = cases.find(x => x.id === currentCaseId);
+    if (!c) return;
+    const initialCode = activeLanguage === 'javascript' && c.phase1.initialCodeJs
+      ? c.phase1.initialCodeJs
+      : c.phase1.initialCode;
+    setCode(initialCode);
+  }, [isLoaded, currentCaseId, activeLanguage]);
 
   // Code auto-save effect
   useEffect(() => {
     if (isLoaded && !initialLoadRef.current) {
-      saveCode(currentCaseId, code);
+      saveCode(currentCaseId, code, activeLanguage);
     }
     initialLoadRef.current = false;
-  }, [code, currentCaseId, isLoaded, saveCode]);
+  }, [code, currentCaseId, isLoaded, saveCode, activeLanguage]);
+
+  // Switch language within a case — save current code first, then let the load effect
+  // restore the target language's saved code (or fall back to initial code).
+  const switchLanguage = useCallback((lang: Language) => {
+    if (lang === activeLanguage) return;
+    saveCode(currentCaseId, code, activeLanguage);
+    setActiveLanguage(lang);
+    setValidationResults([]);
+  }, [activeLanguage, currentCaseId, code, saveCode]);
 
   // Switch cases
   const switchCase = useCallback((id: string) => {
@@ -200,8 +244,9 @@ function App() {
     if (!c) return;
     const prog = allProgress.find(p => p.caseId === id)!;
     setCurrentCaseId(id);
+    setActiveLanguage('python'); // reset to Python when switching cases
     // Load saved code or use initial code
-    const savedCode = getSavedCode(id) || c.phase1.initialCode;
+    const savedCode = getSavedCode(id, 'python') || c.phase1.initialCode;
     setCode(savedCode);
     setValidationResults([]);
     setAppPhase(prog.phase as AppPhase);
@@ -231,7 +276,7 @@ function App() {
     setWorkerError(null);
 
     // Mark in-progress
-    // eslint-disable-next-line react-hooks/purity
+     
     updateProgress(currentCaseId, { status: 'in-progress', timeStartedMs: Date.now() });
 
     // YAML-mode branch: The Collector case validates YAML directly, no Python worker
@@ -531,18 +576,21 @@ function App() {
                   defaultLayout={rightLayout.defaultLayout}
                   onLayoutChanged={rightLayout.onLayoutChanged}
                 >
-                  <Panel id="ta-editor" defaultSize="70%" minSize="25%" className="overflow-hidden p-4">
-                    <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
-                      <CodeEditor
-                        value={code}
-                        onChange={setCode}
-                        language={currentCase.type === 'yaml-config' ? 'yaml' : 'python'}
-                        filename={currentCase.type === 'yaml-config' ? 'collector.yaml' : undefined}
-                        onRunShortcut={handleValidate}
-                        defaultWordWrap={currentCase.type === 'yaml-config'}
-                        caseKey={currentCaseId}
-                      />
-                    </Suspense>
+                  <Panel id="ta-editor" defaultSize="70%" minSize="25%" className="overflow-hidden flex flex-col">
+                    {languageBar}
+                    <div className="flex-1 p-4 overflow-hidden">
+                      <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
+                        <CodeEditor
+                          value={code}
+                          onChange={setCode}
+                          language={currentCase.type === 'yaml-config' ? 'yaml' : activeLanguage}
+                          filename={currentCase.type === 'yaml-config' ? 'collector.yaml' : undefined}
+                          onRunShortcut={handleValidate}
+                          defaultWordWrap={currentCase.type === 'yaml-config'}
+                          caseKey={`${currentCaseId}-${activeLanguage}`}
+                        />
+                      </Suspense>
+                    </div>
                   </Panel>
                   <Separator className="h-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-row-resize flex-shrink-0" />
                   <Panel id="ta-bottom" defaultSize="30%" minSize="15%" className="overflow-hidden bg-slate-800 border-t border-slate-700">
@@ -591,18 +639,21 @@ function App() {
                 </div>
               )}
               {mobileTab === 'code' && (
-                <div className="flex-1 p-3 overflow-hidden">
-                  <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
-                    <CodeEditor
-                      value={code}
-                      onChange={setCode}
-                      language={currentCase.type === 'yaml-config' ? 'yaml' : 'python'}
-                      filename={currentCase.type === 'yaml-config' ? 'collector.yaml' : undefined}
-                      onRunShortcut={handleValidate}
-                      defaultWordWrap={currentCase.type === 'yaml-config'}
-                      caseKey={currentCaseId}
-                    />
-                  </Suspense>
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  {languageBar}
+                  <div className="flex-1 p-3 overflow-hidden">
+                    <Suspense fallback={<div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />}>
+                      <CodeEditor
+                        value={code}
+                        onChange={setCode}
+                        language={currentCase.type === 'yaml-config' ? 'yaml' : activeLanguage}
+                        filename={currentCase.type === 'yaml-config' ? 'collector.yaml' : undefined}
+                        onRunShortcut={handleValidate}
+                        defaultWordWrap={currentCase.type === 'yaml-config'}
+                        caseKey={`${currentCaseId}-${activeLanguage}`}
+                      />
+                    </Suspense>
+                  </div>
                 </div>
               )}
               {mobileTab === 'output' && (
