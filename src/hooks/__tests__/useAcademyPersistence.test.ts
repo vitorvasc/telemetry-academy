@@ -8,7 +8,7 @@ import type { CaseProgress } from '../../types/progress'
 // ============================================================================
 
 const STORAGE_KEY = 'telemetry-academy'
-const SCHEMA_VERSION = 2
+const SCHEMA_VERSION = 3
 
 const makeProgress = (
   caseId: string,
@@ -29,7 +29,7 @@ function seedLocalStorage(overrides: Record<string, unknown> = {}) {
   const state = {
     version: SCHEMA_VERSION,
     progress: initialProgress,
-    caseCode: { '001-hello-span': 'print("hello")' },
+    caseCode: { '001-hello-span:python': 'print("hello")' },
     attemptHistory: { '001-hello-span': { 'must create span': 2 } },
     hasSeenWelcome: true,
     timestamp: Date.now(),
@@ -72,7 +72,9 @@ describe('useAcademyPersistence — load from localStorage', () => {
     const { result } = renderHook(() => useAcademyPersistence(initialProgress))
     await act(async () => {})
 
-    expect(result.current.getSavedCode('001-hello-span')).toBe('print("hello")')
+    expect(result.current.getSavedCode('001-hello-span', 'python')).toBe(
+      'print("hello")'
+    )
   })
 
   it('loads seeded attemptHistory from localStorage', async () => {
@@ -115,7 +117,9 @@ describe('useAcademyPersistence — schema migration', () => {
 
     expect(result.current.isLoaded).toBe(true)
     // After migration, code should be cleared
-    expect(result.current.getSavedCode('001-hello-span')).toBeUndefined()
+    expect(
+      result.current.getSavedCode('001-hello-span', 'python')
+    ).toBeUndefined()
     // localStorage key should be removed
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
   })
@@ -125,7 +129,9 @@ describe('useAcademyPersistence — schema migration', () => {
     const { result } = renderHook(() => useAcademyPersistence(initialProgress))
     await act(async () => {})
 
-    expect(result.current.getSavedCode('001-hello-span')).toBe('print("hello")')
+    expect(result.current.getSavedCode('001-hello-span', 'python')).toBe(
+      'print("hello")'
+    )
   })
 })
 
@@ -156,11 +162,13 @@ describe('useAcademyPersistence — saveCode', () => {
     await act(async () => {})
 
     act(() => {
-      result.current.saveCode('002-auto-magic', 'new code for case 2')
+      result.current.saveCode('002-auto-magic', 'new code for case 2', 'python')
     })
 
-    expect(result.current.getSavedCode('001-hello-span')).toBe('print("hello")')
-    expect(result.current.getSavedCode('002-auto-magic')).toBe(
+    expect(result.current.getSavedCode('001-hello-span', 'python')).toBe(
+      'print("hello")'
+    )
+    expect(result.current.getSavedCode('002-auto-magic', 'python')).toBe(
       'new code for case 2'
     )
   })
@@ -243,7 +251,9 @@ describe('useAcademyPersistence — resetAll', () => {
     await act(async () => {})
 
     // Confirm data was loaded
-    expect(result.current.getSavedCode('001-hello-span')).toBe('print("hello")')
+    expect(result.current.getSavedCode('001-hello-span', 'python')).toBe(
+      'print("hello")'
+    )
 
     act(() => result.current.resetAll())
 
@@ -310,7 +320,7 @@ describe('useAcademyPersistence — auto-save', () => {
     await act(async () => {})
 
     act(() => {
-      result.current.saveCode('001-hello-span', 'saved-code')
+      result.current.saveCode('001-hello-span', 'saved-code', 'python')
     })
 
     // Advance past the 300ms debounce
@@ -321,7 +331,7 @@ describe('useAcademyPersistence — auto-save', () => {
     const stored = localStorage.getItem(STORAGE_KEY)
     expect(stored).not.toBeNull()
     const parsed = JSON.parse(stored!)
-    expect(parsed.caseCode['001-hello-span']).toBe('saved-code')
+    expect(parsed.caseCode['001-hello-span:python']).toBe('saved-code')
     expect(parsed.version).toBe(SCHEMA_VERSION)
 
     vi.useRealTimers()
