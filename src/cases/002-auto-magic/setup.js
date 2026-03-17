@@ -1,32 +1,24 @@
 // trace, context, SpanStatusCode are available as globals
 
-// In JavaScript/Node.js, auto-instrumentation is done via
-// @opentelemetry/auto-instrumentations-node or manual SDK setup.
-// Here we'll practice the manual SDK setup pattern.
+// In Python, URLLibInstrumentor patches urllib automatically.
+// In JavaScript there's no WASM-compatible auto-instrumentation,
+// so we manually create the same span that the instrumentor would produce:
+// a root span named "HTTP GET" with http.url and http.status_code attributes.
 
-const tracer = trace.getTracer('user-service', '1.0.0');
+const tracer = trace.getTracer('checkout-service', '1.0.0');
 
-async function getUser(userId) {
-  // TODO: Wrap this function with a span
-  // Hint: Use tracer.startActiveSpan('http.get /users/:id', span => { ... })
+async function fetchPaymentApi(url) {
+  // TODO: Wrap this in a span named exactly "HTTP GET"
+  // Hint: tracer.startActiveSpan('HTTP GET', async (span) => { ... })
 
-  // TODO: Add HTTP attributes to the span
-  // Hint: span.setAttribute('http.method', 'GET')
-  //       span.setAttribute('http.url', `/users/${userId}`)
+  // TODO: Add the attributes that URLLibInstrumentor sets automatically:
+  //   span.setAttribute('http.url', url)
+  //   span.setAttribute('http.method', 'GET')
 
-  // Simulated HTTP call that sometimes fails
-  if (userId === 999) {
-    throw new Error('External API returned 500');
-  }
-
-  console.log(`Fetched user ${userId}`);
-  return { id: userId, name: 'Alice' };
+  // Simulated HTTP call (replace with span-wrapped version)
+  console.log(`GET ${url}`);
+  return { status: 200 };
 }
 
-// Run the function
-try {
-  await getUser(42);
-  await getUser(999);
-} catch (err) {
-  console.log('Error caught:', err.message);
-}
+// TODO: Call span.end() when done, then return inside the span callback
+await fetchPaymentApi('https://payment-api.internal/charge');
