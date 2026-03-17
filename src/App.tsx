@@ -142,7 +142,12 @@ function App() {
   const nextCase = useMemo(() => cases[currentIdx + 1], [currentIdx]);
   const currentProgress = useMemo(() => allProgress.find(p => p.caseId === currentCaseId)!, [allProgress, currentCaseId]);
   const { data: phase2Data, hasData: hasPhase2Data } = usePhase2Data(spans, currentCaseId);
-  const phaseUnlocked = lastPassedCode !== null && code === lastPassedCode;
+  // Derive phase unlock from persisted progress, not code equality. This prevents
+  // switching languages (which changes `code`) from re-locking Phase 2.
+  // lastPassedCode !== null covers the brief moment before progress flushes to localStorage.
+  const phaseUnlocked = currentProgress.phase === 'investigation'
+    || currentProgress.phase === 'complete'
+    || lastPassedCode !== null;
 
   const supportedLanguages = currentCase.languages ?? ['python'];
   const isMultiLanguage = supportedLanguages.length > 1;
@@ -197,38 +202,41 @@ function App() {
     </div>
   ) : null;
 
-  // Load persisted code when persistence is ready or case switches.
+  // Load persisted code when persistence is ready, case switches, or language changes.
   // getSavedCode is intentionally accessed via ref so its changing reference
   // (caused by caseCode updates on every keystroke) does not re-trigger this effect.
   useEffect(() => {
-    if (isLoaded) {
-      const saved = getSavedCodeRef.current(currentCaseId);
-      if (saved) {
-        setCode(saved);
-      }
+    if (!isLoaded) return;
+    const saved = getSavedCodeRef.current(currentCaseId, activeLanguage);
+    if (saved) {
+      setCode(saved);
+      return;
     }
-  }, [isLoaded, currentCaseId]);
+    // No saved code for this language — fall back to initial code
+    const c = cases.find(x => x.id === currentCaseId);
+    if (!c) return;
+    const initialCode = activeLanguage === 'javascript' && c.phase1.initialCodeJs
+      ? c.phase1.initialCodeJs
+      : c.phase1.initialCode;
+    setCode(initialCode);
+  }, [isLoaded, currentCaseId, activeLanguage]);
 
   // Code auto-save effect
   useEffect(() => {
     if (isLoaded && !initialLoadRef.current) {
-      saveCode(currentCaseId, code);
+      saveCode(currentCaseId, code, activeLanguage);
     }
     initialLoadRef.current = false;
-  }, [code, currentCaseId, isLoaded, saveCode]);
+  }, [code, currentCaseId, isLoaded, saveCode, activeLanguage]);
 
-  // Switch language within a case
+  // Switch language within a case — save current code first, then let the load effect
+  // restore the target language's saved code (or fall back to initial code).
   const switchLanguage = useCallback((lang: Language) => {
+    if (lang === activeLanguage) return;
+    saveCode(currentCaseId, code, activeLanguage);
     setActiveLanguage(lang);
-    const c = cases.find(x => x.id === currentCaseId);
-    if (!c) return;
-    if (lang === 'javascript' && c.phase1.initialCodeJs) {
-      setCode(c.phase1.initialCodeJs);
-    } else {
-      setCode(getSavedCode(currentCaseId) || c.phase1.initialCode);
-    }
     setValidationResults([]);
-  }, [currentCaseId, getSavedCode]);
+  }, [activeLanguage, currentCaseId, code, saveCode]);
 
   // Switch cases
   const switchCase = useCallback((id: string) => {
@@ -238,7 +246,7 @@ function App() {
     setCurrentCaseId(id);
     setActiveLanguage('python'); // reset to Python when switching cases
     // Load saved code or use initial code
-    const savedCode = getSavedCode(id) || c.phase1.initialCode;
+    const savedCode = getSavedCode(id, 'python') || c.phase1.initialCode;
     setCode(savedCode);
     setValidationResults([]);
     setAppPhase(prog.phase as AppPhase);
@@ -268,7 +276,7 @@ function App() {
     setWorkerError(null);
 
     // Mark in-progress
-    // eslint-disable-next-line react-hooks/purity
+     
     updateProgress(currentCaseId, { status: 'in-progress', timeStartedMs: Date.now() });
 
     // YAML-mode branch: The Collector case validates YAML directly, no Python worker
