@@ -81,6 +81,23 @@ When creating a new case:
 6. Verify: each root cause rule references a real span attribute from the phase2 traces
 7. Verify: `caseLoader.ts` auto-discovers the new directory (check console on dev startup)
 
+## External Dependencies & CSP
+
+All external domains must be listed in `public/_headers` (`Content-Security-Policy`)
+**and** in `scripts/check-csp.mjs` + `src/tests/csp.test.ts`. The test suite enforces this.
+
+| Domain | Directives | Why |
+|---|---|---|
+| `cdn.jsdelivr.net` | `script-src`, `connect-src`, `style-src` | Pyodide WASM runtime + Monaco Editor CSS |
+| `static.cloudflareinsights.com` | `script-src`, `connect-src` | Cloudflare Web Analytics (auto-injected by CF Pages) |
+| `https://pypi.org` | `connect-src` | micropip fetches package metadata for opentelemetry-api/sdk |
+| `https://files.pythonhosted.org` | `connect-src` | micropip downloads Python wheels at runtime |
+
+**When adding a new external dependency:**
+1. Add the domain to the correct directive(s) in `public/_headers`
+2. Add the entry to `REQUIRED_DOMAINS` in both `scripts/check-csp.mjs` and `src/tests/csp.test.ts`
+3. Run `npm run check:csp` to verify
+
 ## Current Phase: 4 (Content & Polish)
 
 9 cases planned, 2 complete (`001-hello-span`, `002-auto-magic`).
