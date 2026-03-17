@@ -1,5 +1,5 @@
 import { BasicTracerProvider, InMemorySpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { trace, context, ROOT_CONTEXT, SpanStatusCode, propagation, baggage, metrics } from '@opentelemetry/api';
+import { trace, context, ROOT_CONTEXT, SpanStatusCode, propagation, metrics } from '@opentelemetry/api';
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import type { RawOTelSpan } from '../hooks/usePhase2Data';
 
@@ -94,10 +94,11 @@ self.onmessage = async (event: MessageEvent) => {
     // Inject OTel globals into user code.
     // propagation, baggage, and metrics are included so cases can use them directly
     // without dynamic imports.
-    const globals = { trace, context, ROOT_CONTEXT, SpanStatusCode, propagation, baggage, metrics };
+    const globals = { trace, context, ROOT_CONTEXT, SpanStatusCode, propagation, metrics };
 
     // Use AsyncFunction so user code can contain top-level `await` (e.g. await import(...)).
-    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor as (
+    // Cast via unknown to avoid TS7009 (AsyncFunction has no typed construct signature).
+    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor as unknown as new (
       ...args: string[]
     ) => (...fnArgs: unknown[]) => Promise<unknown>;
     const fn = new AsyncFunction(
