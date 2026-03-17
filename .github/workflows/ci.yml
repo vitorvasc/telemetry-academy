@@ -12,8 +12,6 @@ jobs:
 
     permissions:
       contents: read
-      deployments: write
-      pull-requests: write
 
     steps:
       - name: Checkout
@@ -39,39 +37,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Preview Deploy
-        uses: cloudflare/wrangler-action@v3
-        id: preview
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=telemetry-academy --branch=pr-${{ github.event.pull_request.number }}
-
-      - name: Comment preview URL on PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const url = `https://pr-${{ github.event.pull_request.number }}.telemetry-academy.pages.dev`;
-            const body = `## 🚀 Preview Deploy\n\n**URL:** ${url}\n\n> Deployed from commit \`${{ github.sha }}\``;
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const existing = comments.find(c => c.body?.startsWith('## 🚀 Preview Deploy'));
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
