@@ -52,8 +52,8 @@ function spansToRaw(spans: ReadableSpan[]): RawOTelSpan[] {
     // SpanStatusCode: UNSET=0, OK=1, ERROR=2
     const statusStr = statusCode === 2 ? 'ERROR' : statusCode === 1 ? 'OK' : 'UNSET';
 
-    // parentSpanId is available via the internal _parentSpanId field
-    const parentSpanId = (span as unknown as Record<string, unknown>)['_parentSpanId'] as string | undefined ?? null;
+    // parentSpanContext is the public API for accessing the parent span ID
+    const parentSpanId = span.parentSpanContext?.spanId ?? null;
 
     return {
       name: span.name,
@@ -80,18 +80,21 @@ self.onmessage = async (event: MessageEvent) => {
   const { provider, exporter } = setupProvider();
   const { lines, restore } = captureConsole();
 
+  // 5s matches the Python worker convention. Note: setTimeout cannot interrupt a
+  // synchronous infinite loop (e.g. while(true){}) because the JS event loop is
+  // blocked — the host-side Worker.terminate() handles that case via useCodeRunner.
   const timeout = setTimeout(() => {
     if (runId === currentRun) {
       restore();
-      self.postMessage({ type: 'error', id, error: 'Execution timed out (10s)' });
+      self.postMessage({ type: 'error', id, error: 'Execution timed out (5s)' });
     }
-  }, 10000);
+  }, 5000);
 
   try {
     // Inject OTel globals into user code
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval -- intentional sandboxing pattern for user code execution
+     
     const globals = { trace, context, ROOT_CONTEXT, SpanStatusCode };
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const fn = new Function(
       ...Object.keys(globals),
       `"use strict";\n${code}`
