@@ -12,7 +12,7 @@ export default defineConfig({
     target: 'es2020',
   },
   worker: {
-    format: 'es'
+    format: 'es',
   },
   test: {
     environment: 'jsdom',

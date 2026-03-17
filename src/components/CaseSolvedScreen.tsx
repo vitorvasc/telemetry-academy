@@ -1,21 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import type { Case } from '../types';
-import type { CaseProgress } from '../types/progress';
-import { Trophy, Clock, Target, ChevronRight, Star, BookOpen } from 'lucide-react';
-import { formatElapsedMs } from '../lib/formatters';
+import React, { useEffect, useState } from 'react'
+import type { Case } from '../types'
+import type { CaseProgress } from '../types/progress'
+import {
+  Trophy,
+  Clock,
+  Target,
+  ChevronRight,
+  Star,
+  BookOpen,
+} from 'lucide-react'
+import { formatElapsedMs } from '../lib/formatters'
 
 interface CaseSolvedScreenProps {
-  solvedCase: Case;
-  nextCase?: Case;
-  progress: CaseProgress;
-  onNext: () => void;
-  onReview: () => void;
+  solvedCase: Case
+  nextCase?: Case
+  progress: CaseProgress
+  onNext: () => void
+  onReview: () => void
 }
 
-function getScore(attempts: number, durationMs: number): { stars: number; label: string } {
-  if (attempts === 1 && durationMs < 120_000) return { stars: 3, label: 'Perfect' };
-  if (attempts <= 2 && durationMs < 300_000) return { stars: 2, label: 'Great' };
-  return { stars: 1, label: 'Solved' };
+function getScore(
+  attempts: number,
+  durationMs: number
+): { stars: number; label: string } {
+  if (attempts === 1 && durationMs < 120_000)
+    return { stars: 3, label: 'Perfect' }
+  if (attempts <= 2 && durationMs < 300_000) return { stars: 2, label: 'Great' }
+  return { stars: 1, label: 'Solved' }
 }
 
 export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
@@ -25,22 +36,26 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
   onNext,
   onReview,
 }) => {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => { setTimeout(() => setVisible(true), 50); }, []);
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    setTimeout(() => setVisible(true), 50)
+  }, [])
 
-  const durationMs = progress.timeSolvedMs && progress.timeStartedMs
-    ? progress.timeSolvedMs - progress.timeStartedMs
-    : 0;
+  const durationMs =
+    progress.timeSolvedMs && progress.timeStartedMs
+      ? progress.timeSolvedMs - progress.timeStartedMs
+      : 0
 
-  const { stars, label } = getScore(progress.attempts, durationMs);
+  const { stars, label } = getScore(progress.attempts, durationMs)
 
   return (
-    <div className={`
+    <div
+      className={`
       h-full flex flex-col items-center justify-center bg-slate-900 p-8
       transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
-    `}>
+    `}
+    >
       <div className="max-w-lg w-full space-y-8 text-center">
-
         {/* Trophy */}
         <div className="flex flex-col items-center gap-4">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-900/40">
@@ -65,7 +80,10 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
           <div>
             <div className="text-3xl font-bold text-white">{label}!</div>
             <div className="text-slate-400 text-sm mt-1">
-              Case solved — <span className="text-green-400 font-medium">{solvedCase.name}</span>
+              Case solved —{' '}
+              <span className="text-green-400 font-medium">
+                {solvedCase.name}
+              </span>
             </div>
           </div>
         </div>
@@ -77,7 +95,12 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
               icon: Target,
               label: 'Attempts',
               value: progress.attempts,
-              color: progress.attempts === 1 ? 'text-green-400' : progress.attempts <= 2 ? 'text-sky-400' : 'text-amber-400',
+              color:
+                progress.attempts === 1
+                  ? 'text-green-400'
+                  : progress.attempts <= 2
+                    ? 'text-sky-400'
+                    : 'text-amber-400',
             },
             {
               icon: Clock,
@@ -92,7 +115,10 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
               color: 'text-amber-400',
             },
           ].map(({ icon: Icon, label, value, color }) => (
-            <div key={label} className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+            <div
+              key={label}
+              className="bg-slate-800/60 border border-slate-700 rounded-xl p-4"
+            >
               <Icon className={`w-4 h-4 ${color} mx-auto mb-2`} />
               <div className={`text-xl font-bold ${color}`}>{value}</div>
               <div className="text-xs text-slate-500 mt-0.5">{label}</div>
@@ -104,11 +130,16 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
         <div className="bg-slate-800/40 border border-slate-700 rounded-xl p-4 text-left">
           <div className="flex items-center gap-2 mb-3">
             <BookOpen className="w-4 h-4 text-sky-400" />
-            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">What you learned</span>
+            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              What you learned
+            </span>
           </div>
           <ul className="space-y-1.5">
             {solvedCase.concepts.map(concept => (
-              <li key={concept} className="flex items-center gap-2 text-sm text-slate-400">
+              <li
+                key={concept}
+                className="flex items-center gap-2 text-sm text-slate-400"
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-500 flex-shrink-0" />
                 {concept.replace(/_/g, ' ')}
               </li>
@@ -140,5 +171,5 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

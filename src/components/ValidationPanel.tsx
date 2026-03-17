@@ -1,5 +1,5 @@
-import React from 'react';
-import type { ValidationResult } from '../types';
+import React from 'react'
+import type { ValidationResult } from '../types'
 import {
   Play,
   Loader2,
@@ -8,17 +8,17 @@ import {
   AlertCircle,
   Unlock,
   Sparkles,
-  Lightbulb
-} from 'lucide-react';
+  Lightbulb,
+} from 'lucide-react'
 
 interface ValidationPanelProps {
-  results: ValidationResult[];
-  isValidating: boolean;
-  onValidate: () => void | Promise<void>;
-  phaseUnlocked: boolean;
-  onStartInvestigation?: () => void;
-  isWorkerReady?: boolean; // Add to distinguish init vs execution
-  loadingLabel?: string; // Progressive loading stage label from useCodeRunner
+  results: ValidationResult[]
+  isValidating: boolean
+  onValidate: () => void | Promise<void>
+  phaseUnlocked: boolean
+  onStartInvestigation?: () => void
+  isWorkerReady?: boolean // Add to distinguish init vs execution
+  loadingLabel?: string // Progressive loading stage label from useCodeRunner
 }
 
 export const ValidationPanel: React.FC<ValidationPanelProps> = ({
@@ -30,10 +30,13 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
   isWorkerReady = true, // Default to true for backward compatibility
   loadingLabel,
 }) => {
-  const isMac = navigator.userAgent.toUpperCase().includes('MAC');
-  const buttonTitle = (!isWorkerReady || isValidating || phaseUnlocked)
-    ? undefined
-    : isMac ? 'Run code (⌘↵)' : 'Run code (Ctrl+↵)';
+  const isMac = navigator.userAgent.toUpperCase().includes('MAC')
+  const buttonTitle =
+    !isWorkerReady || isValidating || phaseUnlocked
+      ? undefined
+      : isMac
+        ? 'Run code (⌘↵)'
+        : 'Run code (Ctrl+↵)'
 
   return (
     <div className="h-full flex flex-col">
@@ -43,26 +46,31 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
           <AlertCircle className="w-4 h-4 text-sky-400" />
           <span className="font-medium text-white">Validation</span>
         </div>
-        
+
         <button
-          onClick={() => { void onValidate(); }}
+          onClick={() => {
+            void onValidate()
+          }}
           title={buttonTitle}
           disabled={!isWorkerReady || isValidating || phaseUnlocked}
           className={`
             flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
             transition-all duration-200
-            ${phaseUnlocked 
-              ? 'bg-success/20 text-green-400 cursor-default' 
-              : !isWorkerReady || isValidating
-                ? 'bg-primary/50 text-white cursor-not-allowed'
-                : 'bg-sky-500 hover:bg-sky-600 text-white active:scale-95'
+            ${
+              phaseUnlocked
+                ? 'bg-success/20 text-green-400 cursor-default'
+                : !isWorkerReady || isValidating
+                  ? 'bg-primary/50 text-white cursor-not-allowed'
+                  : 'bg-sky-500 hover:bg-sky-600 text-white active:scale-95'
             }
           `}
         >
           {!isWorkerReady ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-xs">{loadingLabel || 'Loading Python...'}</span>
+              <span className="text-xs">
+                {loadingLabel || 'Loading Python...'}
+              </span>
             </>
           ) : isValidating ? (
             <>
@@ -93,22 +101,24 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
         ) : results.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Play className="w-12 h-12 mb-3 opacity-50" />
-            <p className="text-sm">Click "Check Code" to validate your instrumentation</p>
+            <p className="text-sm">
+              Click "Check Code" to validate your instrumentation
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
             {results.map((result, index) => {
-              const isGuided = result.attemptsOnThisRule >= 3;
+              const isGuided = result.attemptsOnThisRule >= 3
               const bgClass = result.passed
                 ? 'bg-green-400/10 border-success/30'
                 : isGuided
-                  ? 'bg-amber-400/10 border-amber-500/30'  // Amber for guided help
-                  : 'bg-red-400/10 border-error/30';       // Red for errors
+                  ? 'bg-amber-400/10 border-amber-500/30' // Amber for guided help
+                  : 'bg-red-400/10 border-error/30' // Red for errors
               const textClass = result.passed
                 ? 'text-green-400'
                 : isGuided
                   ? 'text-amber-400'
-                  : 'text-red-400';
+                  : 'text-red-400'
 
               return (
                 <div
@@ -120,44 +130,52 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                   `}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
-                  {result.passed ? (
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                  ) : isGuided ? (
-                    <XCircle className="w-5 h-5 text-amber-400" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-red-400" />
-                  )}
-                  {!result.passed && result.attemptsOnThisRule >= 1 && (
-                    <Lightbulb className="w-3.5 h-3.5 text-amber-400/70" aria-label="Hint available" />
-                  )}
-                </div>
-
-                <div className="flex-1">
-                  <p className={`text-sm font-medium ${textClass}`}>
-                    {result.message}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-slate-400">
-                      {result.description}
-                    </p>
-                    {!result.passed && result.attemptsOnThisRule > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-slate-700 text-slate-300 rounded">
-                        Attempt {result.attemptsOnThisRule + 1}
-                      </span>
+                  <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                    {result.passed ? (
+                      <CheckCircle className="w-5 h-5 text-green-400" />
+                    ) : isGuided ? (
+                      <XCircle className="w-5 h-5 text-amber-400" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-400" />
+                    )}
+                    {!result.passed && result.attemptsOnThisRule >= 1 && (
+                      <Lightbulb
+                        className="w-3.5 h-3.5 text-amber-400/70"
+                        aria-label="Hint available"
+                      />
                     )}
                   </div>
-                  {!result.passed && result.hintMessage && result.attemptsOnThisRule >= 1 && result.attemptsOnThisRule < 3 && (
-                    <p className="mt-1.5 text-xs text-slate-400">{result.hintMessage}</p>
-                  )}
-                  {!result.passed && isGuided && result.guidedMessage && (
-                    <div className="mt-2 px-3 py-2 rounded bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 animate-slide-in">
-                      {result.guidedMessage}
+
+                  <div className="flex-1">
+                    <p className={`text-sm font-medium ${textClass}`}>
+                      {result.message}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-slate-400">
+                        {result.description}
+                      </p>
+                      {!result.passed && result.attemptsOnThisRule > 0 && (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-slate-700 text-slate-300 rounded">
+                          Attempt {result.attemptsOnThisRule + 1}
+                        </span>
+                      )}
                     </div>
-                  )}
+                    {!result.passed &&
+                      result.hintMessage &&
+                      result.attemptsOnThisRule >= 1 &&
+                      result.attemptsOnThisRule < 3 && (
+                        <p className="mt-1.5 text-xs text-slate-400">
+                          {result.hintMessage}
+                        </p>
+                      )}
+                    {!result.passed && isGuided && result.guidedMessage && (
+                      <div className="mt-2 px-3 py-2 rounded bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 animate-slide-in">
+                        {result.guidedMessage}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              );
+              )
             })}
 
             {/* Success Message */}
@@ -169,14 +187,17 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                   <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center animate-pulse">
                     <Sparkles className="w-5 h-5 text-green-400" />
                   </div>
-                  
+
                   <div className="flex-1">
-                    <h4 className="font-semibold text-green-400">Phase 1 Complete!</h4>
+                    <h4 className="font-semibold text-green-400">
+                      Phase 1 Complete!
+                    </h4>
                     <p className="text-sm text-slate-400">
-                      Your instrumentation is working. The investigation phase is now unlocked.
+                      Your instrumentation is working. The investigation phase
+                      is now unlocked.
                     </p>
                   </div>
-                  
+
                   <button
                     onClick={onStartInvestigation}
                     className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-medium text-sm transition-colors"
@@ -191,5 +212,5 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
