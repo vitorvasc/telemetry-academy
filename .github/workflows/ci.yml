@@ -35,5 +35,8 @@ jobs:
       - name: Tests
         run: npm run test
 
+      - name: CSP audit
+        run: npm run check:csp
+
       - name: Build
         run: npm run build
