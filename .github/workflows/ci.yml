@@ -33,7 +33,8 @@ jobs:
         run: npm run lint
 
       - name: Tests
-        run: npm run test || true
+        run: npm run test
+        continue-on-error: true # No tests exist yet; remove this when tests are added
 
       - name: Build
         run: npm run build

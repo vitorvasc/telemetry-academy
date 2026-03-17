@@ -1,5 +1,5 @@
 import { BasicTracerProvider, InMemorySpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { trace, context, ROOT_CONTEXT, SpanStatusCode } from '@opentelemetry/api';
+import { trace, context, ROOT_CONTEXT, SpanStatusCode, propagation, metrics } from '@opentelemetry/api';
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import type { RawOTelSpan } from '../hooks/usePhase2Data';
 
@@ -66,7 +66,7 @@ function spansToRaw(spans: ReadableSpan[]): RawOTelSpan[] {
       end_time: span.endTime[0] * 1000 + span.endTime[1] / 1e6,
       attributes: attrs,
       status: { status_code: statusStr },
-      events: (span.events ?? []).map(e => ({ name: e.name, timestamp: e.time[0] * 1000 })),
+      events: (span.events ?? []).map(e => ({ name: e.name, timestamp: e.time[0] * 1000 + e.time[1] / 1e6 })),
     } satisfies RawOTelSpan;
   });
 }
@@ -91,16 +91,22 @@ self.onmessage = async (event: MessageEvent) => {
   }, 5000);
 
   try {
-    // Inject OTel globals into user code
-     
-    const globals = { trace, context, ROOT_CONTEXT, SpanStatusCode };
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const fn = new Function(
+    // Inject OTel globals into user code.
+    // propagation, baggage, and metrics are included so cases can use them directly
+    // without dynamic imports.
+    const globals = { trace, context, ROOT_CONTEXT, SpanStatusCode, propagation, metrics };
+
+    // Use AsyncFunction so user code can contain top-level `await` (e.g. await import(...)).
+    // Cast via unknown to avoid TS7009 (AsyncFunction has no typed construct signature).
+    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor as unknown as new (
+      ...args: string[]
+    ) => (...fnArgs: unknown[]) => Promise<unknown>;
+    const fn = new AsyncFunction(
       ...Object.keys(globals),
       `"use strict";\n${code}`
     );
 
-    await Promise.resolve(fn(...Object.values(globals)));
+    await fn(...Object.values(globals));
 
     clearTimeout(timeout);
     restore();
