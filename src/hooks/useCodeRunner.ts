@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import setupScript from '../workers/python/setup_telemetry.py?raw';
 import type { RawOTelSpan } from './usePhase2Data';
 
-export type Language = 'python';
+export type Language = 'python' | 'javascript';
 
 interface WorkerMessage {
   type: string;
@@ -21,6 +21,9 @@ function createWorker(language: Language): Worker {
   // Each language branch must use a literal string in new URL().
   if (language === 'python') {
     return new Worker(new URL('../workers/python.worker.ts', import.meta.url), { type: 'module' });
+  }
+  if (language === 'javascript') {
+    return new Worker(new URL('../workers/js.worker.ts', import.meta.url), { type: 'module' });
   }
   // language is narrowed to never here; cast to string for the error message
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -66,7 +69,12 @@ export function useCodeRunner(language: Language = 'python') {
       setInitError(String(error.message || 'Worker global error'));
     };
 
-    worker.postMessage({ type: 'init', setupScript });
+    if (language === 'python') {
+      worker.postMessage({ type: 'init', setupScript });
+    } else {
+      // JS worker is ready immediately — no init needed
+      setIsReady(true);
+    }
   }, [language]);
 
   useEffect(() => {
@@ -104,7 +112,7 @@ export function useCodeRunner(language: Language = 'python') {
         reject(new Error(`Execution timed out after ${timeoutMs}ms`));
       }, timeoutMs);
 
-      const messageHandler = (event: MessageEvent<WorkerMessage>) => {
+      const messageHandler = (event: MessageEvent<WorkerMessage & { spans?: RawOTelSpan[]; output?: string[] }>) => {
         const data = event.data;
 
         const { type, id, result, error, message, span } = data;
@@ -124,6 +132,19 @@ export function useCodeRunner(language: Language = 'python') {
 
         if (id !== runId) return;
 
+        // JS worker sends 'complete' with spans[] and output[] in one shot
+        if (type === 'complete') {
+          clearTimeout(timeoutId);
+          workerRef.current?.removeEventListener('message', messageHandler);
+          const jsSpans = data.spans ?? [];
+          const jsLines = data.output ?? [];
+          setOutput(jsLines);
+          setSpans(jsSpans);
+          setIsRunning(false);
+          resolve({ result: undefined, spans: jsSpans });
+          return;
+        }
+
         if (type === 'success') {
           clearTimeout(timeoutId);
           workerRef.current?.removeEventListener('message', messageHandler);
@@ -134,7 +155,9 @@ export function useCodeRunner(language: Language = 'python') {
         } else if (type === 'error') {
           clearTimeout(timeoutId);
           workerRef.current?.removeEventListener('message', messageHandler);
-          setOutput(collectedLines);
+          // JS worker may include output even on error
+          const errLines = data.output ?? collectedLines;
+          setOutput(errLines);
           setSpans(collectedSpans);
           setIsRunning(false);
           reject(new Error(error));

@@ -5,8 +5,9 @@ export interface Case {
   id: string;
   name: string;
   type?: 'python' | 'yaml-config';  // defaults to 'python' — 'yaml-config' skips Python worker
-  difficulty: 'rookie' | 'junior' | 'senior' | 'staff';
+  difficulty: 'rookie' | 'junior' | 'senior' | 'staff' | 'intermediate' | 'expert';
   concepts: string[];
+  languages?: ('python' | 'javascript')[];  // defaults to ['python']
   phase1: Phase1Config;
   phase2?: Phase2Config;
 }
@@ -15,6 +16,7 @@ export interface Phase1Config {
   description: string;
   hints: string[];
   initialCode: string;
+  initialCodeJs?: string;  // JavaScript equivalent of initialCode
   validations: ValidationRule[];
 }
 

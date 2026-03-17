@@ -22,7 +22,8 @@ function getDifficultyColor(difficulty: Case['difficulty']) {
     case 'junior': return 'text-sky-400 border-sky-800 bg-sky-950/40';
     case 'senior': return 'text-violet-400 border-violet-800 bg-violet-950/40';
     case 'staff': return 'text-amber-400 border-amber-800 bg-amber-950/40';
-    default: return 'text-slate-400 border-slate-700 bg-slate-900/40';
+    case 'intermediate': return 'text-sky-400 border-sky-800 bg-sky-950/40';
+    case 'expert': return 'text-red-400 border-red-800 bg-red-950/40';
   }
 }
 
