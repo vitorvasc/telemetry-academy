@@ -1,8 +1,6 @@
 # Contributing to Telemetry Academy
 
-Thanks for your interest! Telemetry Academy is an open source, browser-based OTel
-learning platform. Contributions of all kinds are welcome — new cases, bug fixes,
-UI improvements, and documentation.
+Thanks for your interest! Telemetry Academy is an open source, browser-based OTel learning platform. Contributions of all kinds are welcome — new cases, bug fixes, UI improvements, and documentation.
 
 ## Getting Started
 
@@ -12,69 +10,55 @@ cd telemetry-academy
 npm install
 npm run dev        # http://localhost:5173
 npm run build      # production build
-npm run lint       # ESLint check (0 errors required)
+npm run lint       # ESLint check
 npm run test       # unit tests
 ```
 
-## Branch Strategy
+## How to Contribute
 
-- `main` — protected, always deployable. Direct pushes are blocked.
-- Feature branches: `feat/<description>`, `fix/<description>`, `chore/<description>`
-- Open a PR to merge into `main`. CI must pass before merging.
+### Reporting a bug
 
-## Adding Cases
+Use the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md) — include browser, OS, and which case/language you were using.
 
-The fastest way to contribute is to author a new case. See [docs/ADDING_CASES.md](docs/ADDING_CASES.md)
-for the full guide. The short version:
+### Proposing a new case
 
-1. Create `src/cases/<id>/case.yaml` — content, validations, root cause options
-2. Create `src/cases/<id>/setup.py` — initial Python code
-3. Optionally add `src/cases/<id>/setup.js` for JavaScript support
-4. Cases are auto-discovered at build time — no TypeScript changes needed
+Use the [new case template](.github/ISSUE_TEMPLATE/new_case.md). Cases are the heart of the project — great proposals include a clear OTel concept, a realistic incident scenario, and a well-defined root cause.
 
-Use the [new case issue template](.github/ISSUE_TEMPLATE/new_case.md) to propose a case before implementing.
+### Opening a PR
 
-## Commit Conventions
+1. Fork the repo and create a branch: `git checkout -b feat/your-feature`
+2. Make your changes
+3. Ensure `npm run build` and `npm run lint` pass with 0 errors
+4. Open a PR against `main` — fill in the PR template
 
-This project follows [Conventional Commits](https://www.conventionalcommits.org/):
+All PRs run CI automatically (build + lint). The `main` branch is protected and requires a passing CI check before merge.
+
+## Adding a New Case
+
+Cases live in `src/cases/<id>/` and are auto-discovered at build time. No TypeScript changes needed.
 
 ```
-feat: add JavaScript support for Hello Span case
-fix: clear validation state on code change
-chore: update dependencies
-docs: improve contributing guide
-test: add unit tests for rootCauseEngine
+src/cases/my-new-case/
+├── case.yaml   # content, validations, root cause options
+├── setup.py    # Python starter code
+└── setup.js    # JavaScript starter code (optional)
 ```
 
-## Code Standards
+See [docs/ADDING_CASES.md](docs/ADDING_CASES.md) for the full schema reference and examples.
 
-- **TypeScript strict** — `npm run build` must pass with no TS errors
-- **ESLint** — `npm run lint` must report 0 errors before pushing
-- **Tailwind v4** — use utility classes; no inline styles
-- **No `any` escapes** — use `unknown` + type guards or targeted `eslint-disable` with a comment
-- **Validation rules** — declarative JSON only; reference real span attribute names
+## Development Workflow
 
-## Pull Request Guidelines
+This project uses a structured planning workflow for larger features. Planning artifacts live in `.planning/` and are not required for small contributions.
 
-1. Fork the repo and create a branch from `main`
-2. Make your changes, ensuring `npm run build` and `npm run lint` pass
-3. Open a PR using the [PR template](.github/pull_request_template.md)
-4. CI will run TypeScript check + lint + build automatically
-5. At least one review is required before merging
+For substantial changes (new phases, architecture changes), open an issue first to discuss the approach before writing code.
 
-Keep PRs focused — one feature or fix per PR. For new cases, include a short
-description of the OTel concept being taught. Screenshots or recordings welcome
-for UI changes.
+## Code Style
 
-## Reporting Bugs & Security Issues
+- TypeScript strict mode — all files must pass `tsc --noEmit`
+- ESLint with `@typescript-eslint/recommended-type-checked` — 0 errors required
+- Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`
+- Commits are signed (`git commit -s`)
 
-- **Bugs:** Open a [bug report](.github/ISSUE_TEMPLATE/bug_report.md)
-- **Security:** See [SECURITY.md](SECURITY.md) — please do **not** open public issues for vulnerabilities
+## License
 
-## Project Structure
-
-See [README.md](README.md) for the full directory layout and architecture overview.
-
-## Questions?
-
-Open an issue or start a discussion on GitHub.
+By contributing, you agree your contributions are licensed under the [MIT License](LICENSE).
