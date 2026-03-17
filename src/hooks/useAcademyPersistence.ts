@@ -26,8 +26,8 @@ interface UseAcademyPersistenceReturn {
   attemptHistory: Record<string, Record<string, number>>;
   updateAttemptHistory: (caseId: string, ruleDescription: string) => void;
   getAttemptCount: (caseId: string, ruleDescription: string) => number;
-  getSavedCode: (caseId: string, language?: string) => string | undefined;
-  saveCode: (caseId: string, code: string, language?: string) => void;
+  getSavedCode: (caseId: string, language: string) => string | undefined;
+  saveCode: (caseId: string, code: string, language: string) => void;
   resetAll: () => void;
   isLoaded: boolean;
   hasSeenWelcome: boolean;
@@ -159,17 +159,15 @@ export function useAcademyPersistence(
   }, [attemptHistory]);
 
   // Get saved code for a specific case (language-aware: key is caseId:language)
-  const getSavedCode = useCallback((caseId: string, language?: string): string | undefined => {
-    const key = language ? `${caseId}:${language}` : caseId;
-    return caseCode[key];
+  const getSavedCode = useCallback((caseId: string, language: string): string | undefined => {
+    return caseCode[`${caseId}:${language}`];
   }, [caseCode]);
 
   // Save code for a specific case (language-aware: key is caseId:language)
-  const saveCode = useCallback((caseId: string, code: string, language?: string) => {
-    const key = language ? `${caseId}:${language}` : caseId;
+  const saveCode = useCallback((caseId: string, code: string, language: string) => {
     setCaseCode(prev => ({
       ...prev,
-      [key]: code,
+      [`${caseId}:${language}`]: code,
     }));
   }, []);
 

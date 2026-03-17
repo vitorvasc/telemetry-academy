@@ -1,7 +1,4 @@
-// trace, context, SpanStatusCode are available as globals
-// OTel JS context propagation uses @opentelemetry/api propagation helpers
-
-const { propagation, ROOT_CONTEXT } = await import('@opentelemetry/api').catch(() => ({ propagation: null, ROOT_CONTEXT: null }));
+// trace, context, ROOT_CONTEXT, SpanStatusCode, propagation are available as globals
 
 const tracer = trace.getTracer('checkout-service');
 
