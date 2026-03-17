@@ -2,6 +2,9 @@ id: 008-sampling-sleuth
 name: "Sampling Sleuth"
 order: 8
 difficulty: senior
+languages:
+  - python
+  - javascript
 concepts:
   - sampling
   - head_sampling

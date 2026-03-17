@@ -2,6 +2,9 @@ id: 004-broken-context
 name: "Broken Context"
 order: 4
 difficulty: intermediate
+languages:
+  - python
+  - javascript
 concepts:
   - context_propagation
   - trace_context

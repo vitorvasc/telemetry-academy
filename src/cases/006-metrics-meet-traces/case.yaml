@@ -2,6 +2,9 @@ id: 006-metrics-meet-traces
 name: "Metrics Meet Traces"
 order: 6
 difficulty: senior
+languages:
+  - python
+  - javascript
 concepts:
   - metrics
   - multi_signal

@@ -2,6 +2,9 @@ id: 005-the-baggage
 name: "The Baggage"
 order: 5
 difficulty: intermediate
+languages:
+  - python
+  - javascript
 concepts:
   - baggage
   - context_propagation

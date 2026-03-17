@@ -2,6 +2,9 @@ id: 009-the-perfect-storm
 name: "The Perfect Storm"
 order: 9
 difficulty: expert
+languages:
+  - python
+  - javascript
 concepts:
   - cascading_failure
   - multi_signal
