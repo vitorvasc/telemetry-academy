@@ -59,6 +59,44 @@ For substantial changes (new phases, architecture changes), open an issue first 
 - Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`
 - Commits are signed (`git commit -s`)
 
+## Issue Labels
+
+We use a standardized set of labels to categorize issues and PRs.
+
+### Priority
+
+| Label | Meaning |
+|-------|---------|
+| `critical` | P0 — must fix before any deploy |
+| `high` | P1 — fix in current sprint |
+| `medium` | P2 — fix in next sprint |
+| `low` | P3 — nice to have |
+
+### Type
+
+| Label | Meaning |
+|-------|---------|
+| `fix` | Bug fix |
+| `feat` | New feature |
+| `ux` | User experience improvement |
+| `chore` | Maintenance, cleanup, tooling |
+| `docs` | Documentation |
+| `perf` | Performance improvement |
+| `security` | Security-related issue |
+| `analytics` | Analytics & tracking |
+| `content` | Case content, curriculum |
+
+### Other
+
+| Label | Meaning |
+|-------|---------|
+| `good first issue` | Good for newcomers |
+| `dependencies` | Dependency updates (Dependabot) |
+
+When opening an issue, apply at least one **priority** label and one **type** label.
+
+---
+
 ## License
 
 By contributing, you agree your contributions are licensed under the [MIT License](LICENSE).
