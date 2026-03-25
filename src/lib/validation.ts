@@ -246,6 +246,21 @@ export function validateYaml(
   rules: SpanValidationRule[],
   context: YamlValidationContext
 ): ValidationResult[] {
+  // Pre-validate YAML syntax before running rules.
+  // Return a single synthetic error result if the YAML is malformed,
+  // so students get actionable feedback instead of silent failures.
+  try {
+    yaml.load(context.yamlContent)
+  } catch (err: unknown) {
+    const detail = err instanceof Error ? err.message : String(err)
+    return rules.map(rule => ({
+      ...rule,
+      passed: false,
+      message: `✗ Invalid YAML syntax: ${detail}`,
+      attemptsOnThisRule: context.attemptHistory[rule.description] || 0,
+    }))
+  }
+
   return rules.map(rule => {
     const attempts = context.attemptHistory[rule.description] || 0
     const passed =
