@@ -26,6 +26,7 @@ class JSSpanExporter(SpanExporter):
                 }))
             except Exception as e:
                 js.postMessage(json.dumps({"type": "error", "message": f"Span export error: {str(e)}"}))
+        # All spans exported — return is intentionally outside the for-loop (not inside)
         return SpanExportResult.SUCCESS
     
     def shutdown(self):
