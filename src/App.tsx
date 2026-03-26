@@ -16,6 +16,7 @@ import { InstructionsPanel } from './components/InstructionsPanel'
 import { ValidationPanel } from './components/ValidationPanel'
 import { InvestigationView } from './components/InvestigationView'
 import { CaseSelector } from './components/CaseSelector'
+import { PythonIcon, JavaScriptIcon } from './components/LanguageIcon'
 import { MobileCaseDrawer } from './components/MobileCaseDrawer'
 import { CaseSolvedScreen } from './components/CaseSolvedScreen'
 import { HomePage } from './components/HomePage'
@@ -199,18 +200,15 @@ function App() {
 
   // Resolve the code for a given case+language: saved code → initial code fallback.
   // Uses getSavedCodeRef to avoid re-triggering effects on every keystroke.
-  const resolveCode = useCallback(
-    (caseId: string, lang: Language): string => {
-      const saved = getSavedCodeRef.current(caseId, lang)
-      if (saved !== undefined) return saved
-      const c = cases.find(x => x.id === caseId)
-      if (!c) return ''
-      return lang === 'javascript' && c.phase1.initialCodeJs
-        ? c.phase1.initialCodeJs
-        : c.phase1.initialCode
-    },
-    [cases]
-  )
+  const resolveCode = useCallback((caseId: string, lang: Language): string => {
+    const saved = getSavedCodeRef.current(caseId, lang)
+    if (saved !== undefined) return saved
+    const c = cases.find(x => x.id === caseId)
+    if (!c) return ''
+    return lang === 'javascript' && c.phase1.initialCodeJs
+      ? c.phase1.initialCodeJs
+      : c.phase1.initialCode
+  }, [cases])
 
   const currentCase = useMemo(
     () => cases.find(c => c.id === currentCaseId) ?? cases[0],
@@ -259,13 +257,23 @@ function App() {
             role="tab"
             aria-selected={activeLanguage === lang}
             onClick={() => switchLanguage(lang)}
-            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
               activeLanguage === lang
                 ? 'bg-slate-700 text-slate-100'
                 : 'text-slate-500 hover:text-slate-300'
             }`}
           >
-            {lang === 'python' ? '🐍 Python' : '🟨 JavaScript'}
+            {lang === 'python' ? (
+              <>
+                <PythonIcon />
+                <span>Python</span>
+              </>
+            ) : (
+              <>
+                <JavaScriptIcon />
+                <span>JavaScript</span>
+              </>
+            )}
           </button>
         ))}
       </div>

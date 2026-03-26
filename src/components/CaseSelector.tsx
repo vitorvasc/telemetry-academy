@@ -59,7 +59,7 @@ export const CaseSelector: React.FC<CaseSelectorProps> = ({
   const getProgress = (id: string) => progress.find(p => p.caseId === id)
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
       {cases.map((c, idx) => {
         const prog = getProgress(c.id)
         const status = prog?.status ?? 'locked'
@@ -75,7 +75,7 @@ export const CaseSelector: React.FC<CaseSelectorProps> = ({
             title={isLocked ? 'Complete previous case to unlock' : c.name}
             className={`
               relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium
-              transition-all duration-150 border
+              transition-all duration-150 border flex-shrink-0 whitespace-nowrap
               ${
                 isCurrent
                   ? 'bg-slate-700 border-slate-500 text-white'

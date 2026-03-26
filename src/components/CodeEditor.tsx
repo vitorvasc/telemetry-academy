@@ -1,5 +1,6 @@
 import Editor, { type OnMount } from '@monaco-editor/react'
 import React, { useRef, useEffect, useState } from 'react'
+import { registerOTelCompletions } from '../lib/otelCompletions'
 
 interface CodeEditorProps {
   value: string
@@ -75,6 +76,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       })
       observerRef.current.observe(containerRef.current)
     }
+
+    // Register OTel autocomplete for all supported languages.
+    registerOTelCompletions(monaco)
   }
 
   useEffect(() => {
@@ -171,6 +175,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             smoothScrolling: true,
             tabSize: 4,
             wordWrap: wordWrap ? 'on' : 'off',
+            quickSuggestions: true,
+            suggestOnTriggerCharacters: true,
           }}
         />
       </div>
