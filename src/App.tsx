@@ -800,7 +800,9 @@ function App() {
                             filename={
                               currentCase.type === 'yaml-config'
                                 ? 'collector.yaml'
-                                : undefined
+                                : activeLanguage === 'javascript'
+                                  ? 'payment_service.js'
+                                  : 'payment_service.py'
                             }
                             onRunShortcut={handleValidate}
                             defaultWordWrap={currentCase.type === 'yaml-config'}
@@ -890,7 +892,9 @@ function App() {
                           filename={
                             currentCase.type === 'yaml-config'
                               ? 'collector.yaml'
-                              : undefined
+                              : activeLanguage === 'javascript'
+                                ? 'payment_service.js'
+                                : 'payment_service.py'
                           }
                           onRunShortcut={handleValidate}
                           defaultWordWrap={currentCase.type === 'yaml-config'}
