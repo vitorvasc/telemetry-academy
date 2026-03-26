@@ -201,7 +201,10 @@ export function checkAttributeValue(
     // Compare as strings to handle type mismatches between rule definitions
     // (e.g. number 200) and span attributes (stored as string "200" after
     // normalizeAttributes). Strict equality is tried first for exact matches.
-    return actual === attributeValue || String(actual) === String(attributeValue)
+    return (
+      actual === attributeValue ||
+      `${actual as string | number}` === `${attributeValue as string | number}`
+    )
   })
 }
 
