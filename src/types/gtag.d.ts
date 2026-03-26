@@ -4,9 +4,9 @@ interface GtagEventParams {
 
 interface GtagConsentParams {
   analytics_storage?: 'granted' | 'denied'
-  ad_storage?: 'denied'
-  ad_user_data?: 'denied'
-  ad_personalization?: 'denied'
+  ad_storage?: 'granted' | 'denied'
+  ad_user_data?: 'granted' | 'denied'
+  ad_personalization?: 'granted' | 'denied'
   [key: string]: unknown
 }
 

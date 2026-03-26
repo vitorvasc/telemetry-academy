@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Signal } from 'lucide-react'
-import { registerBannerOpener } from '../lib/cookieConsent'
+import { CONSENT_STORAGE_KEY, registerBannerOpener } from '../lib/cookieConsent'
+import { invalidateConsentCache } from '../hooks/useAnalytics'
 
-const STORAGE_KEY = 'ta-cookie-consent'
+const STORAGE_KEY = CONSENT_STORAGE_KEY
 type ConsentValue = 'accepted' | 'rejected'
 
 function getStoredConsent(): ConsentValue | null {
@@ -50,12 +51,14 @@ export function CookieConsent() {
 
   const handleAccept = useCallback(() => {
     storeConsent('accepted')
+    invalidateConsentCache()
     updateGtagConsent(true)
     setVisible(false)
   }, [])
 
   const handleReject = useCallback(() => {
     storeConsent('rejected')
+    invalidateConsentCache()
     updateGtagConsent(false)
     setVisible(false)
   }, [])
@@ -65,6 +68,7 @@ export function CookieConsent() {
   return (
     <div
       role="dialog"
+      aria-modal="true"
       aria-label="Cookie consent"
       aria-describedby="cookie-consent-description"
       className="fixed z-50 bottom-4 inset-x-4 md:inset-x-0 md:bottom-6 md:mx-auto md:max-w-lg animate-consent-in"
