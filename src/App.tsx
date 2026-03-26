@@ -200,18 +200,15 @@ function App() {
 
   // Resolve the code for a given case+language: saved code → initial code fallback.
   // Uses getSavedCodeRef to avoid re-triggering effects on every keystroke.
-  const resolveCode = useCallback(
-    (caseId: string, lang: Language): string => {
-      const saved = getSavedCodeRef.current(caseId, lang)
-      if (saved !== undefined) return saved
-      const c = cases.find(x => x.id === caseId)
-      if (!c) return ''
-      return lang === 'javascript' && c.phase1.initialCodeJs
-        ? c.phase1.initialCodeJs
-        : c.phase1.initialCode
-    },
-    [cases]
-  )
+  const resolveCode = useCallback((caseId: string, lang: Language): string => {
+    const saved = getSavedCodeRef.current(caseId, lang)
+    if (saved !== undefined) return saved
+    const c = cases.find(x => x.id === caseId)
+    if (!c) return ''
+    return lang === 'javascript' && c.phase1.initialCodeJs
+      ? c.phase1.initialCodeJs
+      : c.phase1.initialCode
+  }, [])
 
   const currentCase = useMemo(
     () => cases.find(c => c.id === currentCaseId) ?? cases[0],
@@ -267,9 +264,15 @@ function App() {
             }`}
           >
             {lang === 'python' ? (
-              <><PythonIcon /><span>Python</span></>
+              <>
+                <PythonIcon />
+                <span>Python</span>
+              </>
             ) : (
-              <><JavaScriptIcon /><span>JavaScript</span></>
+              <>
+                <JavaScriptIcon />
+                <span>JavaScript</span>
+              </>
             )}
           </button>
         ))}

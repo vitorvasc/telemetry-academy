@@ -56,7 +56,8 @@ const OTEL_MEMBER_COMPLETIONS: Record<string, CompletionItem[]> = {
         snake_case: 'start_as_current_span',
       },
       insertText: {
-        camelCase: "startActiveSpan('${1:span-name}', (${2:span}) => {\n\t$0\n})",
+        camelCase:
+          "startActiveSpan('${1:span-name}', (${2:span}) => {\n\t$0\n})",
         snake_case: 'start_as_current_span(${1:name})',
       },
       detail: '(name, fn?) -> Span',
@@ -138,14 +139,44 @@ const OTEL_MEMBER_COMPLETIONS: Record<string, CompletionItem[]> = {
     },
   ],
   SpanStatusCode: [
-    { label: { camelCase: 'OK', snake_case: 'OK' }, insertText: { camelCase: 'OK', snake_case: 'OK' }, detail: 'SpanStatusCode.OK', kind: 1 },
-    { label: { camelCase: 'ERROR', snake_case: 'ERROR' }, insertText: { camelCase: 'ERROR', snake_case: 'ERROR' }, detail: 'SpanStatusCode.ERROR', kind: 1 },
-    { label: { camelCase: 'UNSET', snake_case: 'UNSET' }, insertText: { camelCase: 'UNSET', snake_case: 'UNSET' }, detail: 'SpanStatusCode.UNSET', kind: 1 },
+    {
+      label: { camelCase: 'OK', snake_case: 'OK' },
+      insertText: { camelCase: 'OK', snake_case: 'OK' },
+      detail: 'SpanStatusCode.OK',
+      kind: 1,
+    },
+    {
+      label: { camelCase: 'ERROR', snake_case: 'ERROR' },
+      insertText: { camelCase: 'ERROR', snake_case: 'ERROR' },
+      detail: 'SpanStatusCode.ERROR',
+      kind: 1,
+    },
+    {
+      label: { camelCase: 'UNSET', snake_case: 'UNSET' },
+      insertText: { camelCase: 'UNSET', snake_case: 'UNSET' },
+      detail: 'SpanStatusCode.UNSET',
+      kind: 1,
+    },
   ],
   StatusCode: [
-    { label: { camelCase: 'OK', snake_case: 'OK' }, insertText: { camelCase: 'OK', snake_case: 'OK' }, detail: 'StatusCode.OK', kind: 1 },
-    { label: { camelCase: 'ERROR', snake_case: 'ERROR' }, insertText: { camelCase: 'ERROR', snake_case: 'ERROR' }, detail: 'StatusCode.ERROR', kind: 1 },
-    { label: { camelCase: 'UNSET', snake_case: 'UNSET' }, insertText: { camelCase: 'UNSET', snake_case: 'UNSET' }, detail: 'StatusCode.UNSET', kind: 1 },
+    {
+      label: { camelCase: 'OK', snake_case: 'OK' },
+      insertText: { camelCase: 'OK', snake_case: 'OK' },
+      detail: 'StatusCode.OK',
+      kind: 1,
+    },
+    {
+      label: { camelCase: 'ERROR', snake_case: 'ERROR' },
+      insertText: { camelCase: 'ERROR', snake_case: 'ERROR' },
+      detail: 'StatusCode.ERROR',
+      kind: 1,
+    },
+    {
+      label: { camelCase: 'UNSET', snake_case: 'UNSET' },
+      insertText: { camelCase: 'UNSET', snake_case: 'UNSET' },
+      detail: 'StatusCode.UNSET',
+      kind: 1,
+    },
   ],
 }
 
@@ -236,6 +267,8 @@ const registeredLanguages = new Set<string>()
  * Safe to call multiple times — each language is registered only once.
  */
 export function registerOTelCompletions(monaco: Monaco) {
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+
   // JS/TS get native type-based autocomplete via addExtraLib
   monaco.languages.typescript.javascriptDefaults.addExtraLib(
     OTEL_GLOBALS_DTS,
@@ -247,10 +280,8 @@ export function registerOTelCompletions(monaco: Monaco) {
     if (languageId === 'javascript' || languageId === 'typescript') continue
     if (registeredLanguages.has(languageId)) continue
     registeredLanguages.add(languageId)
-
     monaco.languages.registerCompletionItemProvider(languageId, {
       triggerCharacters: ['.'],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       provideCompletionItems(model: any, position: any) {
         const word = model.getWordUntilPosition(position)
         const range = {
@@ -261,10 +292,7 @@ export function registerOTelCompletions(monaco: Monaco) {
         }
 
         const lineContent = model.getLineContent(position.lineNumber)
-        const textBeforeCursor = lineContent.substring(
-          0,
-          position.column - 1
-        )
+        const textBeforeCursor = lineContent.substring(0, position.column - 1)
         const dotMatch = textBeforeCursor.match(/(\w+)\.\s*$/)
 
         if (dotMatch) {
@@ -279,11 +307,9 @@ export function registerOTelCompletions(monaco: Monaco) {
                     ? monaco.languages.CompletionItemKind.Method
                     : monaco.languages.CompletionItemKind.Property,
                 insertText:
-                  item.insertText[convention] ??
-                  item.insertText['camelCase'],
+                  item.insertText[convention] ?? item.insertText['camelCase'],
                 insertTextRules:
-                  monaco.languages.CompletionItemInsertTextRule
-                    .InsertAsSnippet,
+                  monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                 detail: item.detail,
                 range,
               })),
@@ -303,4 +329,6 @@ export function registerOTelCompletions(monaco: Monaco) {
       },
     })
   }
+
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 }
