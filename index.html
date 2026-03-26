@@ -37,22 +37,8 @@
     <!-- Robots -->
     <meta name="robots" content="index, follow" />
 
-    <!-- Google Analytics 4 (only loads when VITE_GA_MEASUREMENT_ID is set) -->
-    <script>
-      (function() {
-        var id = '%VITE_GA_MEASUREMENT_ID%';
-        if (!id || id.indexOf('VITE_GA') !== -1) return;
-        var s = document.createElement('script');
-        s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
-        document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        window.gtag = gtag;
-        gtag('js', new Date());
-        gtag('config', id);
-      })();
-    </script>
+    <!-- Google Analytics 4 with Consent Mode (loaded via external script to avoid inline CSP issues for GA) -->
+    <script src="/ga.js" data-id="%VITE_GA_MEASUREMENT_ID%"></script>
 
     <!-- Theme -->
     <meta name="theme-color" content="#0f172a" />
