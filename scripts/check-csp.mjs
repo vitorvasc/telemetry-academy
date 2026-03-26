@@ -41,6 +41,16 @@ const REQUIRED_DOMAINS = [
     directives: ['connect-src'],
     reason: 'micropip downloads Python package wheels at runtime',
   },
+  {
+    domain: 'https://www.googletagmanager.com',
+    directives: ['script-src', 'connect-src'],
+    reason: 'Google Analytics 4 gtag.js loader',
+  },
+  {
+    domain: 'https://www.google-analytics.com',
+    directives: ['connect-src'],
+    reason: 'Google Analytics 4 event collection endpoint',
+  },
 ];
 
 // ─── Parse _headers ───────────────────────────────────────────────────────────

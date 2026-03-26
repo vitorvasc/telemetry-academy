@@ -92,6 +92,8 @@ All external domains must be listed in `public/_headers` (`Content-Security-Poli
 | `static.cloudflareinsights.com` | `script-src`, `connect-src` | Cloudflare Web Analytics (auto-injected by CF Pages) |
 | `https://pypi.org` | `connect-src` | micropip fetches package metadata for opentelemetry-api/sdk |
 | `https://files.pythonhosted.org` | `connect-src` | micropip downloads Python wheels at runtime |
+| `https://www.googletagmanager.com` | `script-src`, `connect-src` | Google Analytics 4 gtag.js loader |
+| `https://www.google-analytics.com` | `connect-src` | Google Analytics 4 event collection endpoint |
 
 **When adding a new external dependency:**
 1. Add the domain to the correct directive(s) in `public/_headers`
