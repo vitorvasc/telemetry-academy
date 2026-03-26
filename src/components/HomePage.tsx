@@ -212,7 +212,7 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
         </aside>
 
         {/* Content */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 bg-slate-950">
           {/* Hero */}
           <div className="flex flex-col items-center text-center px-4 py-10 border-b border-slate-800">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center mb-5 shadow-xl shadow-sky-500/20">
@@ -290,10 +290,10 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                     className={`border rounded-xl p-4 transition-all
                       ${
                         isLocked
-                          ? 'border-slate-800 bg-slate-900/20 opacity-50 cursor-default'
+                          ? 'border-slate-800 bg-slate-900 opacity-50 cursor-default'
                           : isSolved
-                            ? 'border-slate-700 bg-slate-900/40 cursor-pointer hover:border-slate-600'
-                            : 'border-slate-700 bg-slate-900/70 cursor-pointer hover:border-sky-500/50 hover:bg-slate-900'
+                            ? 'border-slate-700 bg-slate-900 cursor-pointer hover:border-slate-600'
+                            : 'border-slate-700 bg-slate-900 cursor-pointer hover:border-sky-500/50 hover:bg-slate-800'
                       }
                     `}
                   >

@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Signal } from 'lucide-react'
+import { registerBannerOpener } from '../lib/cookieConsent'
 
 const STORAGE_KEY = 'ta-cookie-consent'
 type ConsentValue = 'accepted' | 'rejected'
@@ -31,13 +33,16 @@ function updateGtagConsent(granted: boolean): void {
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(() => getStoredConsent() === null)
-  const bannerRef = useRef<HTMLDivElement>(null)
   const acceptBtnRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    registerBannerOpener(() => setVisible(true))
+    return () => registerBannerOpener(null)
+  }, [])
 
   // Focus the accept button when the banner becomes visible
   useEffect(() => {
     if (visible) {
-      // Small delay so the DOM has rendered
       const timer = setTimeout(() => acceptBtnRef.current?.focus(), 100)
       return () => clearTimeout(timer)
     }
@@ -59,36 +64,53 @@ export function CookieConsent() {
 
   return (
     <div
-      ref={bannerRef}
       role="dialog"
       aria-label="Cookie consent"
       aria-describedby="cookie-consent-description"
-      className="fixed bottom-0 inset-x-0 z-50 p-4 md:p-6"
+      className="fixed z-50 bottom-4 inset-x-4 md:inset-x-0 md:bottom-6 md:mx-auto md:max-w-lg animate-consent-in"
     >
-      <div className="max-w-3xl mx-auto bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-5 md:p-6">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
+      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-700/50 rounded-xl shadow-2xl shadow-black/20 overflow-hidden">
+        {/* Cyan accent bar */}
+        <div className="h-0.5 bg-gradient-to-r from-cyan-500 to-cyan-500/0" />
+
+        <div className="p-4 space-y-3">
+          {/* Header */}
+          <div className="flex items-center gap-2">
+            <Signal
+              className="size-4 text-cyan-400 shrink-0"
+              aria-hidden="true"
+            />
+            <h2 className="text-sm font-semibold text-slate-100">
+              Your privacy
+            </h2>
+          </div>
+
+          {/* Body */}
           <p
             id="cookie-consent-description"
-            className="text-sm text-slate-300 flex-1"
+            className="text-[13px] leading-relaxed text-slate-400"
           >
-            We use cookies for{' '}
-            <span className="text-cyan-400 font-medium">analytics only</span>{' '}
-            to understand how the platform is used and improve the learning
-            experience. No personal data is sold or shared with third parties.
+            We use basic analytics to see which exercises get the most traction
+            and where people get stuck. No ads, no cross-site tracking. You can
+            update this anytime via{' '}
+            <span className="text-slate-300">Cookie Preferences</span> in the
+            footer.
           </p>
-          <div className="flex flex-col md:flex-row gap-2 md:gap-3 shrink-0">
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 pt-0.5">
             <button
               ref={acceptBtnRef}
               onClick={handleAccept}
-              className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-800"
+              className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-800"
             >
-              Accept
+              Allow analytics
             </button>
             <button
               onClick={handleReject}
-              className="px-5 py-2 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-300 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-800"
+              className="flex-1 px-4 py-2 border border-slate-600 hover:border-slate-500 hover:bg-slate-700/50 active:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-800"
             >
-              Reject
+              Decline
             </button>
           </div>
         </div>

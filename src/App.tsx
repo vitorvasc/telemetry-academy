@@ -24,6 +24,8 @@ import { ReviewModal } from './components/ReviewModal'
 import { WelcomeModal } from './components/WelcomeModal'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
+import { Footer } from './components/Footer'
+import { reopenCookieConsent } from './lib/cookieConsent'
 import { useCodeRunner, type Language } from './hooks/useCodeRunner'
 import { useAnalytics } from './hooks/useAnalytics'
 import { useAcademyPersistence } from './hooks/useAcademyPersistence'
@@ -538,10 +540,13 @@ function App() {
 
   if (showHome) {
     return (
-      <>
-        <HomePage progress={allProgress} onSelectCase={goToCase} />
+      <div className="h-screen flex flex-col bg-slate-950">
+        <div className="flex-1 overflow-y-auto">
+          <HomePage progress={allProgress} onSelectCase={goToCase} />
+        </div>
+        <Footer onManageCookies={reopenCookieConsent} />
         <CookieConsent />
-      </>
+      </div>
     )
   }
 
@@ -972,25 +977,7 @@ function App() {
           )}
         </ErrorBoundary>
       </main>
-      <footer className="flex-shrink-0 border-t border-slate-800 bg-slate-950 px-4 py-2 flex items-center justify-between text-[11px] text-slate-500">
-        <span>
-          <a
-            href="https://telemetry.academy"
-            className="hover:text-slate-300 transition-colors"
-          >
-            telemetry.academy
-          </a>
-          {' · '}MIT License
-        </span>
-        <a
-          href="https://github.com/vitorvasc/telemetry-academy"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:text-slate-300 transition-colors"
-        >
-          GitHub ↗
-        </a>
-      </footer>
+      <Footer onManageCookies={reopenCookieConsent} />
       <CookieConsent />
     </div>
   )
