@@ -196,7 +196,6 @@ const OTEL_GLOBALS: GlobalItem[] = [
 const LANGUAGE_CONVENTION: Record<string, string> = {
   python: 'snake_case',
   javascript: 'camelCase',
-  typescript: 'camelCase',
 }
 
 // ── JS/TS type stubs (addExtraLib handles autocomplete natively) ──
@@ -260,6 +259,7 @@ declare const metrics: MetricsAPI;
 // ── Registration ──
 
 const registeredLanguages = new Set<string>()
+let jsLibRegistered = false
 
 /**
  * Register OTel completion providers for all supported languages.
@@ -270,10 +270,13 @@ export function registerOTelCompletions(monaco: Monaco) {
   /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 
   // JS/TS get native type-based autocomplete via addExtraLib
-  monaco.languages.typescript.javascriptDefaults.addExtraLib(
-    OTEL_GLOBALS_DTS,
-    'otel-globals.d.ts'
-  )
+  if (!jsLibRegistered) {
+    jsLibRegistered = true
+    monaco.languages.typescript.javascriptDefaults.addExtraLib(
+      OTEL_GLOBALS_DTS,
+      'otel-globals.d.ts'
+    )
+  }
 
   // For non-TS languages (Python, future additions), register a completion provider
   for (const [languageId, convention] of Object.entries(LANGUAGE_CONVENTION)) {
@@ -293,7 +296,7 @@ export function registerOTelCompletions(monaco: Monaco) {
 
         const lineContent = model.getLineContent(position.lineNumber)
         const textBeforeCursor = lineContent.substring(0, position.column - 1)
-        const dotMatch = textBeforeCursor.match(/(\w+)\.\s*$/)
+        const dotMatch = textBeforeCursor.match(/(\w+)\.\w*$/)
 
         if (dotMatch) {
           const objectName = dotMatch[1]
