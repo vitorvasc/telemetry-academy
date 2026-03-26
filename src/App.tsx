@@ -287,14 +287,15 @@ function App() {
   // getSavedCode is intentionally accessed via ref so its changing reference
   // (caused by caseCode updates on every keystroke) does not re-trigger this effect.
   useEffect(() => {
-    if (!isLoaded) return
-    // switchLanguage already set the code inline — skip to avoid double-set
+    // switchLanguage already set the code inline — skip to avoid double-set.
+    // Clear the ref before the isLoaded guard so it doesn't persist across loads.
     if (languageSwitchRef.current) {
       languageSwitchRef.current = false
       return
     }
+    if (!isLoaded) return
     const saved = getSavedCodeRef.current(currentCaseId, activeLanguage)
-    if (saved) {
+    if (saved !== undefined) {
       setCode(saved)
       return
     }
@@ -325,7 +326,7 @@ function App() {
       // Load the target language's code NOW so it batches with setActiveLanguage,
       // preventing the caseKey effect in CodeEditor from reading stale content.
       const saved = getSavedCodeRef.current(currentCaseId, lang)
-      if (saved) {
+      if (saved !== undefined) {
         setCode(saved)
       } else {
         const c = cases.find(x => x.id === currentCaseId)
