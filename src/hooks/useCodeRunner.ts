@@ -4,6 +4,11 @@ import type { RawOTelSpan } from './usePhase2Data'
 
 export type Language = 'python' | 'javascript'
 
+export const LANGUAGE_EXTENSIONS: Record<Language, string> = {
+  python: '.py',
+  javascript: '.js',
+}
+
 interface WorkerMessage {
   type: string
   id?: string
