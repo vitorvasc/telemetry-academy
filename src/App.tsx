@@ -250,12 +250,12 @@ function App() {
 
   const phaseBar =
     currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
-      <div className="flex-shrink-0 flex border-t border-slate-700 bg-slate-900">
+      <div className="flex-shrink-0 flex border-b border-slate-700 bg-slate-900">
         <button
           onClick={() => setAppPhase('instrumentation')}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
             appPhase === 'instrumentation'
-              ? 'bg-sky-600/20 text-sky-400 border-t-2 border-sky-500'
+              ? 'bg-sky-600/20 text-sky-400 border-b-2 border-sky-500'
               : 'text-slate-500 hover:text-slate-300'
           }`}
         >
@@ -267,7 +267,7 @@ function App() {
           title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
             appPhase === 'investigation'
-              ? 'bg-amber-600/20 text-amber-400 border-t-2 border-amber-500'
+              ? 'bg-amber-600/20 text-amber-400 border-b-2 border-amber-500'
               : phaseUnlocked
                 ? 'text-slate-500 hover:text-slate-300'
                 : 'text-slate-700 cursor-not-allowed'
@@ -736,6 +736,7 @@ function App() {
                   id="ta-editor-group"
                   className="flex flex-col overflow-hidden"
                 >
+                  {phaseBar}
                   <Group
                     orientation="vertical"
                     className="flex-1 overflow-hidden"
@@ -821,12 +822,12 @@ function App() {
                       </Group>
                     </Panel>
                   </Group>
-                  {phaseBar}
                 </Panel>
               </Group>
 
               {/* ── Mobile layout (tabs) ── */}
               <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
+                {phaseBar}
                 {mobileTab === 'instructions' && (
                   <div className="flex-1 overflow-y-auto">
                     <InstructionsPanel
@@ -890,7 +891,6 @@ function App() {
                     </div>
                   </div>
                 )}
-                {phaseBar}
               </div>
             </>
           ) : (
@@ -922,6 +922,7 @@ function App() {
                   minSize="40%"
                   className="flex flex-col overflow-hidden"
                 >
+                  {phaseBar}
                   <div className="flex-1 overflow-hidden">
                     {hasPhase2Data && phase2Data ? (
                       <InvestigationView
@@ -938,12 +939,12 @@ function App() {
                       />
                     )}
                   </div>
-                  {phaseBar}
                 </Panel>
               </Group>
 
               {/* ── Mobile layout (full-width investigation) ── */}
               <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
+                {phaseBar}
                 <div className="flex-1 overflow-hidden">
                   {hasPhase2Data && phase2Data ? (
                     <InvestigationView
@@ -960,7 +961,6 @@ function App() {
                     />
                   )}
                 </div>
-                {phaseBar}
               </div>
             </>
           )}
