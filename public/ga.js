@@ -6,6 +6,7 @@
   var consentKey = (el && el.getAttribute('data-consent-key')) || 'ta-cookie-consent';
 
   window.dataLayer = window.dataLayer || [];
+  var dataLayer = window.dataLayer;
   function gtag(){dataLayer.push(arguments);}
   window.gtag = gtag;
 
@@ -27,5 +28,5 @@
   s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
   document.head.appendChild(s);
   gtag('js', new Date());
-  gtag('config', id);
+  gtag('config', id, { send_page_view: false });
 })();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { Signal } from 'lucide-react'
 import { CONSENT_STORAGE_KEY, registerBannerOpener } from '../lib/cookieConsent'
 import { invalidateConsentCache } from '../hooks/useAnalytics'
@@ -36,7 +36,7 @@ export function CookieConsent() {
   const [visible, setVisible] = useState(() => getStoredConsent() === null)
   const acceptBtnRef = useRef<HTMLButtonElement>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     registerBannerOpener(() => setVisible(true))
     return () => registerBannerOpener(null)
   }, [])

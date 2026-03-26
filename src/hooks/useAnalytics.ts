@@ -22,8 +22,12 @@ function hasAnalyticsConsent(): boolean {
   return cachedConsent
 }
 
-// Invalidate cache when consent changes in the current tab or another tab
-if (typeof window !== 'undefined') {
+// Invalidate cache when consent changes in the current tab or another tab.
+// Symbol key prevents duplicate listeners when Vite HMR reloads this module.
+const HMR_GUARD = Symbol.for('ta-consent-storage-listener')
+const g = globalThis as unknown as Record<symbol, boolean>
+if (typeof window !== 'undefined' && !g[HMR_GUARD]) {
+  g[HMR_GUARD] = true
   window.addEventListener('storage', e => {
     if (e.key === CONSENT_STORAGE_KEY || e.key === null) cachedConsent = null
   })
