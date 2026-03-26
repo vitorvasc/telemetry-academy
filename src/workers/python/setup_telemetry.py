@@ -1,17 +1,26 @@
 import sys
 import json
 import js
+from pyodide.ffi import to_js
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExporter, SpanExportResult
 from opentelemetry.sdk.resources import Resource
 
+def _post_js(d):
+    """Convert a Python dict to a plain JS object and post it via postMessage.
+    Destroys the JsProxy after posting to prevent memory leaks."""
+    proxy = to_js(d, dict_converter=js.Object.fromEntries)
+    try:
+        js.postMessage(proxy)
+    finally:
+        proxy.destroy()
+
 class JSStdout:
     def write(self, s):
         if s:
-            # postMessage via JS global
-            js.postMessage(json.dumps({"type": "stdout", "message": str(s)}))
-    
+            _post_js({"type": "stdout", "message": str(s)})
+
     def flush(self):
         pass
 
@@ -20,14 +29,14 @@ class JSSpanExporter(SpanExporter):
         for span in spans:
             try:
                 span_json_str = span.to_json()
-                js.postMessage(json.dumps({
-                    "type": "telemetry", 
+                _post_js({
+                    "type": "telemetry",
                     "span": json.loads(span_json_str)
-                }))
+                })
             except Exception as e:
-                js.postMessage(json.dumps({"type": "error", "message": f"Span export error: {str(e)}"}))
+                _post_js({"type": "error", "message": f"Span export error: {str(e)}"})
         return SpanExportResult.SUCCESS
-    
+
     def shutdown(self):
         pass
 
