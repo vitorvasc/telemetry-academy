@@ -58,7 +58,8 @@ const OTEL_MEMBER_COMPLETIONS: Record<string, CompletionItem[]> = {
       insertText: {
         camelCase:
           "startActiveSpan('${1:span-name}', (${2:span}) => {\n\t$0\n})",
-        snake_case: 'start_as_current_span(${1:name})',
+        snake_case:
+          'with tracer.start_as_current_span(${1:name}) as ${2:span}:\n\t$0',
       },
       detail: '(name, fn?) -> Span',
       kind: 0,
