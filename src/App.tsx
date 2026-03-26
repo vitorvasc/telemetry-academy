@@ -26,7 +26,11 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
 import { Footer } from './components/Footer'
 import { reopenCookieConsent } from './lib/cookieConsent'
-import { useCodeRunner, type Language, LANGUAGE_EXTENSIONS } from './hooks/useCodeRunner'
+import {
+  useCodeRunner,
+  type Language,
+  LANGUAGE_EXTENSIONS,
+} from './hooks/useCodeRunner'
 import { useAnalytics } from './hooks/useAnalytics'
 import { useAcademyPersistence } from './hooks/useAcademyPersistence'
 import { usePhase2Data } from './hooks/usePhase2Data'
@@ -354,7 +358,7 @@ function App() {
       setCurrentCaseId(id)
       setActiveLanguage('python') // reset to Python when switching cases
       // Load saved code or use initial code
-      const savedCode = getSavedCode(id, 'python') || c.phase1.initialCode
+      const savedCode = getSavedCode(id, 'python') ?? c.phase1.initialCode
       setCode(savedCode)
       setValidationResults([])
       setAppPhase(prog.phase as AppPhase)
@@ -891,9 +895,7 @@ function App() {
                           filename={
                             currentCase.type === 'yaml-config'
                               ? 'collector.yaml'
-                              : activeLanguage === 'javascript'
-                                ? 'payment_service.js'
-                                : 'payment_service.py'
+                              : `payment_service${LANGUAGE_EXTENSIONS[activeLanguage]}`
                           }
                           onRunShortcut={handleValidate}
                           defaultWordWrap={currentCase.type === 'yaml-config'}
