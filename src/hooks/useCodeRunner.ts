@@ -115,6 +115,9 @@ export function useCodeRunner(language: Language = 'python') {
 
         const timeoutId = setTimeout(() => {
           if (workerRef.current) {
+            // Remove the message listener before terminating to prevent
+            // memory leaks and duplicate output from stale listeners
+            workerRef.current.removeEventListener('message', messageHandler)
             workerRef.current.terminate()
             workerRef.current = null
           }
