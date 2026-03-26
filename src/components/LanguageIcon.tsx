@@ -1,31 +1,37 @@
-import React from 'react'
+import React, { useId } from 'react'
 
 interface IconProps {
   className?: string
 }
 
-export const PythonIcon: React.FC<IconProps> = ({ className = 'w-3.5 h-3.5' }) => (
-  <svg viewBox="0 0 256 255" className={className} aria-hidden="true">
-    <defs>
-      <linearGradient id="py-a" x1="12.96%" y1="12.04%" x2="79.64%" y2="78.01%">
-        <stop offset="0%" stopColor="#387EB8" />
-        <stop offset="100%" stopColor="#366994" />
-      </linearGradient>
-      <linearGradient id="py-b" x1="19.13%" y1="20.58%" x2="90.43%" y2="88.01%">
-        <stop offset="0%" stopColor="#FFE052" />
-        <stop offset="100%" stopColor="#FFC331" />
-      </linearGradient>
-    </defs>
-    <path
-      d="M126.916.072c-64.832 0-60.784 28.115-60.784 28.115l.072 29.128h61.868v8.745H41.631S.145 61.355.145 126.77c0 65.417 36.21 63.097 36.21 63.097h21.61v-30.356s-1.165-36.21 35.632-36.21h61.362s34.475.557 34.475-33.319V33.97S194.67.072 126.916.072zM92.802 19.66a11.12 11.12 0 0 1 11.13 11.13 11.12 11.12 0 0 1-11.13 11.13 11.12 11.12 0 0 1-11.13-11.13 11.12 11.12 0 0 1 11.13-11.13z"
-      fill="url(#py-a)"
-    />
-    <path
-      d="M128.757 254.126c64.832 0 60.784-28.115 60.784-28.115l-.072-29.127H127.6v-8.745h86.441s41.486 4.705 41.486-60.712c0-65.416-36.21-63.096-36.21-63.096h-21.61v30.355s1.165 36.21-35.632 36.21h-61.362s-34.475-.557-34.475 33.32v56.013s-5.235 33.897 62.518 33.897zm34.114-19.586a11.12 11.12 0 0 1-11.13-11.13 11.12 11.12 0 0 1 11.13-11.131 11.12 11.12 0 0 1 11.13 11.13 11.12 11.12 0 0 1-11.13 11.13z"
-      fill="url(#py-b)"
-    />
-  </svg>
-)
+export const PythonIcon: React.FC<IconProps> = ({ className = 'w-3.5 h-3.5' }) => {
+  const id = useId()
+  const gradA = `${id}-py-a`
+  const gradB = `${id}-py-b`
+
+  return (
+    <svg viewBox="0 0 256 255" className={className} aria-hidden="true">
+      <defs>
+        <linearGradient id={gradA} x1="12.96%" y1="12.04%" x2="79.64%" y2="78.01%">
+          <stop offset="0%" stopColor="#387EB8" />
+          <stop offset="100%" stopColor="#366994" />
+        </linearGradient>
+        <linearGradient id={gradB} x1="19.13%" y1="20.58%" x2="90.43%" y2="88.01%">
+          <stop offset="0%" stopColor="#FFE052" />
+          <stop offset="100%" stopColor="#FFC331" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M126.916.072c-64.832 0-60.784 28.115-60.784 28.115l.072 29.128h61.868v8.745H41.631S.145 61.355.145 126.77c0 65.417 36.21 63.097 36.21 63.097h21.61v-30.356s-1.165-36.21 35.632-36.21h61.362s34.475.557 34.475-33.319V33.97S194.67.072 126.916.072zM92.802 19.66a11.12 11.12 0 0 1 11.13 11.13 11.12 11.12 0 0 1-11.13 11.13 11.12 11.12 0 0 1-11.13-11.13 11.12 11.12 0 0 1 11.13-11.13z"
+        fill={`url(#${gradA})`}
+      />
+      <path
+        d="M128.757 254.126c64.832 0 60.784-28.115 60.784-28.115l-.072-29.127H127.6v-8.745h86.441s41.486 4.705 41.486-60.712c0-65.416-36.21-63.096-36.21-63.096h-21.61v30.355s1.165 36.21-35.632 36.21h-61.362s-34.475-.557-34.475 33.32v56.013s-5.235 33.897 62.518 33.897zm34.114-19.586a11.12 11.12 0 0 1-11.13-11.13 11.12 11.12 0 0 1 11.13-11.131 11.12 11.12 0 0 1 11.13 11.13 11.12 11.12 0 0 1-11.13 11.13z"
+        fill={`url(#${gradB})`}
+      />
+    </svg>
+  )
+}
 
 export const JavaScriptIcon: React.FC<IconProps> = ({ className = 'w-3.5 h-3.5' }) => (
   <svg viewBox="0 0 256 256" className={className} aria-hidden="true">

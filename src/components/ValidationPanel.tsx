@@ -33,7 +33,7 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
 }) => {
   const isMac = navigator.userAgent.toUpperCase().includes('MAC')
   const buttonTitle =
-    !isWorkerReady || isValidating || phaseUnlocked
+    !isWorkerReady || isValidating
       ? undefined
       : isMac
         ? 'Run code (⌘↵)'

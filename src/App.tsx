@@ -267,9 +267,9 @@ function App() {
             }`}
           >
             {lang === 'python' ? (
-              <><PythonIcon /> Python</>
+              <><PythonIcon /><span>Python</span></>
             ) : (
-              <><JavaScriptIcon /> JavaScript</>
+              <><JavaScriptIcon /><span>JavaScript</span></>
             )}
           </button>
         ))}
