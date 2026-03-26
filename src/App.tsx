@@ -208,7 +208,7 @@ function App() {
     return lang === 'javascript' && c.phase1.initialCodeJs
       ? c.phase1.initialCodeJs
       : c.phase1.initialCode
-  }, [])
+  }, [cases])
 
   const currentCase = useMemo(
     () => cases.find(c => c.id === currentCaseId) ?? cases[0],
