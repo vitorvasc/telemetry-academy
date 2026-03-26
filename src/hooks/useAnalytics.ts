@@ -24,7 +24,7 @@ function hasAnalyticsConsent(): boolean {
 
 // Invalidate cache when consent changes in the current tab or another tab
 if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (e) => {
+  window.addEventListener('storage', e => {
     if (e.key === CONSENT_STORAGE_KEY || e.key === null) cachedConsent = null
   })
 }

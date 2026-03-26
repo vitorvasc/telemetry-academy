@@ -1,7 +1,9 @@
 (function() {
   var el = document.currentScript;
   var id = el && el.getAttribute('data-id');
-  if (!id) return;
+  if (!id || id.indexOf('VITE_') !== -1) return;
+
+  var consentKey = (el && el.getAttribute('data-consent-key')) || 'ta-cookie-consent';
 
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -15,7 +17,7 @@
   });
 
   try {
-    if (localStorage.getItem('ta-cookie-consent') === 'accepted') {
+    if (localStorage.getItem(consentKey) === 'accepted') {
       gtag('consent', 'update', { analytics_storage: 'granted' });
     }
   } catch(e) { /* localStorage unavailable */ }

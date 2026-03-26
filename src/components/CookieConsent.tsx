@@ -67,8 +67,7 @@ export function CookieConsent() {
 
   return (
     <div
-      role="region"
-      aria-live="polite"
+      role="dialog"
       aria-label="Cookie consent"
       aria-describedby="cookie-consent-description"
       className="fixed z-50 bottom-4 inset-x-4 md:inset-x-0 md:bottom-6 md:mx-auto md:max-w-lg animate-consent-in"
@@ -102,7 +101,7 @@ export function CookieConsent() {
           </p>
 
           {/* Actions */}
-          <div className="flex items-center gap-2 pt-0.5">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 pt-0.5">
             <button
               ref={acceptBtnRef}
               onClick={handleAccept}
