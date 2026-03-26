@@ -1,63 +1,6 @@
 import Editor, { type OnMount } from '@monaco-editor/react'
 import React, { useRef, useEffect, useState } from 'react'
-
-// Simplified OTel type stubs for the globals injected by js.worker.ts.
-// Provides autocomplete for trace.getTracer(), span methods, context, etc.
-const OTEL_GLOBALS_DTS = `
-interface Span {
-  setAttribute(key: string, value: string | number | boolean): Span;
-  setAttributes(attributes: Record<string, string | number | boolean>): Span;
-  setStatus(status: { code: SpanStatusCode; message?: string }): Span;
-  addEvent(name: string, attributes?: Record<string, string | number | boolean>): Span;
-  recordException(exception: Error | string): void;
-  end(): void;
-  spanContext(): { traceId: string; spanId: string };
-  isRecording(): boolean;
-}
-
-interface Tracer {
-  startSpan(name: string, options?: {
-    attributes?: Record<string, string | number | boolean>;
-    kind?: number;
-  }): Span;
-  startActiveSpan<T>(name: string, fn: (span: Span) => T): T;
-  startActiveSpan<T>(name: string, options: {
-    attributes?: Record<string, string | number | boolean>;
-    kind?: number;
-  }, fn: (span: Span) => T): T;
-}
-
-interface TracerProvider {
-  getTracer(name: string, version?: string): Tracer;
-}
-
-interface TraceAPI {
-  getTracer(name: string, version?: string): Tracer;
-  setGlobalTracerProvider(provider: TracerProvider): void;
-  getTracerProvider(): TracerProvider;
-}
-
-interface ContextAPI {
-  active(): unknown;
-  with<T>(ctx: unknown, fn: () => T): T;
-}
-
-interface PropagationAPI {
-  inject(context: unknown, carrier: Record<string, string>): void;
-  extract(context: unknown, carrier: Record<string, string>): unknown;
-}
-
-interface MetricsAPI {
-  getMeter(name: string, version?: string): unknown;
-}
-
-declare const trace: TraceAPI;
-declare const context: ContextAPI;
-declare const ROOT_CONTEXT: unknown;
-declare const SpanStatusCode: { UNSET: 0; OK: 1; ERROR: 2 };
-declare const propagation: PropagationAPI;
-declare const metrics: MetricsAPI;
-`
+import { registerOTelCompletions } from '../lib/otelCompletions'
 
 interface CodeEditorProps {
   value: string
@@ -134,12 +77,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       observerRef.current.observe(containerRef.current)
     }
 
-    // Register OTel type stubs so autocomplete works for the injected globals.
-    // These match the globals provided by js.worker.ts at runtime.
-    monaco.languages.typescript.javascriptDefaults.addExtraLib(
-      OTEL_GLOBALS_DTS,
-      'otel-globals.d.ts'
-    )
+    // Register OTel autocomplete for all supported languages.
+    registerOTelCompletions(monaco)
   }
 
   useEffect(() => {
