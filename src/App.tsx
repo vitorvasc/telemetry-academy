@@ -24,6 +24,7 @@ import { ReviewModal } from './components/ReviewModal'
 import { WelcomeModal } from './components/WelcomeModal'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { useCodeRunner, type Language } from './hooks/useCodeRunner'
+import { useAnalytics } from './hooks/useAnalytics'
 import { useAcademyPersistence } from './hooks/useAcademyPersistence'
 import { usePhase2Data } from './hooks/usePhase2Data'
 import type { Case, ValidationResult } from './types'
@@ -109,6 +110,7 @@ function App() {
     markWelcomeSeen,
   } = useAcademyPersistence(INITIAL_PROGRESS)
 
+  const { trackEvent } = useAnalytics()
   const [, setLocation] = useLocation()
   const [matchCase, params] = useRoute('/case/:id')
 
@@ -344,10 +346,18 @@ function App() {
   // Navigate to a case from home
   const goToCase = useCallback(
     (id: string) => {
+      const c = cases.find(x => x.id === id)
+      if (c) {
+        trackEvent('case_started', {
+          case_id: c.id,
+          case_name: c.name,
+          difficulty: c.difficulty,
+        })
+      }
       switchCase(id)
       setLocation(`/case/${id}`)
     },
-    [switchCase, setLocation]
+    [switchCase, setLocation, trackEvent]
   )
 
   // Update progress helper
@@ -440,6 +450,12 @@ function App() {
 
     setValidationResults(results)
 
+    trackEvent('validation_attempted', {
+      case_id: currentCaseId,
+      passed: results.every(r => r.passed),
+      language: activeLanguage,
+    })
+
     if (results.every(r => r.passed)) {
       setAppPhase('investigation')
       setLastPassedCode(code)
@@ -452,6 +468,12 @@ function App() {
   // Phase 2 solved
   const handleCaseSolved = () => {
     const now = Date.now()
+    trackEvent('case_solved', {
+      case_id: currentCaseId,
+      case_name: currentCase.name,
+      attempts: investigationAttempts,
+      language: activeLanguage,
+    })
     setAppPhase('solved')
     updateProgress(currentCaseId, {
       status: 'solved',

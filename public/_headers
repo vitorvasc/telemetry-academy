@@ -5,4 +5,4 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: cdn.jsdelivr.net static.cloudflareinsights.com; worker-src blob: 'self'; connect-src 'self' cdn.jsdelivr.net static.cloudflareinsights.com https://pypi.org https://files.pythonhosted.org; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' data:;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: cdn.jsdelivr.net static.cloudflareinsights.com https://www.googletagmanager.com; worker-src blob: 'self'; connect-src 'self' cdn.jsdelivr.net static.cloudflareinsights.com https://pypi.org https://files.pythonhosted.org https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' data:;
