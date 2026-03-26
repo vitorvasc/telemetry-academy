@@ -23,6 +23,7 @@ import { OutputPanel } from './components/terminal/OutputPanel'
 import { ReviewModal } from './components/ReviewModal'
 import { WelcomeModal } from './components/WelcomeModal'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { CookieConsent } from './components/CookieConsent'
 import { useCodeRunner, type Language } from './hooks/useCodeRunner'
 import { useAnalytics } from './hooks/useAnalytics'
 import { useAcademyPersistence } from './hooks/useAcademyPersistence'
@@ -536,7 +537,12 @@ function App() {
   }
 
   if (showHome) {
-    return <HomePage progress={allProgress} onSelectCase={goToCase} />
+    return (
+      <>
+        <HomePage progress={allProgress} onSelectCase={goToCase} />
+        <CookieConsent />
+      </>
+    )
   }
 
   return (
@@ -985,6 +991,7 @@ function App() {
           GitHub ↗
         </a>
       </footer>
+      <CookieConsent />
     </div>
   )
 }

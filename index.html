@@ -37,18 +37,37 @@
     <!-- Robots -->
     <meta name="robots" content="index, follow" />
 
-    <!-- Google Analytics 4 (only loads when VITE_GA_MEASUREMENT_ID is set) -->
+    <!-- Google Analytics 4 with Consent Mode (only loads when VITE_GA_MEASUREMENT_ID is set) -->
     <script>
       (function() {
         var id = '%VITE_GA_MEASUREMENT_ID%';
         if (!id || id.indexOf('VITE_GA') !== -1) return;
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.gtag = gtag;
+
+        // Set default consent to denied — the React app updates this
+        // when the user accepts cookies via the consent banner.
+        gtag('consent', 'default', {
+          analytics_storage: 'denied',
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+        });
+
+        // If consent was already accepted in a previous session, grant immediately
+        // so the page-load hit is captured.
+        try {
+          if (localStorage.getItem('ta-cookie-consent') === 'accepted') {
+            gtag('consent', 'update', { analytics_storage: 'granted' });
+          }
+        } catch(e) { /* localStorage unavailable */ }
+
         var s = document.createElement('script');
         s.async = true;
         s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
         document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        window.gtag = gtag;
         gtag('js', new Date());
         gtag('config', id);
       })();
