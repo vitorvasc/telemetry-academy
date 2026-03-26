@@ -4,7 +4,7 @@ import type { RawOTelSpan } from './usePhase2Data'
 
 export type Language = 'python' | 'javascript'
 
-export const LANGUAGE_EXTENSIONS: Record<Language, string> = {
+export const LANGUAGE_FILE_EXTENSIONS: Record<Language, string> = {
   python: '.py',
   javascript: '.js',
 }

@@ -29,7 +29,7 @@ import { reopenCookieConsent } from './lib/cookieConsent'
 import {
   useCodeRunner,
   type Language,
-  LANGUAGE_EXTENSIONS,
+  LANGUAGE_FILE_EXTENSIONS,
 } from './hooks/useCodeRunner'
 import { useAnalytics } from './hooks/useAnalytics'
 import { useAcademyPersistence } from './hooks/useAcademyPersistence'
@@ -197,6 +197,21 @@ function App() {
   // eslint-disable-next-line react-hooks/refs
   getSavedCodeRef.current = getSavedCode
 
+  // Resolve the code for a given case+language: saved code → initial code fallback.
+  // Uses getSavedCodeRef to avoid re-triggering effects on every keystroke.
+  const resolveCode = useCallback(
+    (caseId: string, lang: Language): string => {
+      const saved = getSavedCodeRef.current(caseId, lang)
+      if (saved !== undefined) return saved
+      const c = cases.find(x => x.id === caseId)
+      if (!c) return ''
+      return lang === 'javascript' && c.phase1.initialCodeJs
+        ? c.phase1.initialCodeJs
+        : c.phase1.initialCode
+    },
+    [cases]
+  )
+
   const currentCase = useMemo(
     () => cases.find(c => c.id === currentCaseId) ?? cases[0],
     [currentCaseId]
@@ -298,20 +313,8 @@ function App() {
       return
     }
     if (!isLoaded) return
-    const saved = getSavedCodeRef.current(currentCaseId, activeLanguage)
-    if (saved !== undefined) {
-      setCode(saved)
-      return
-    }
-    // No saved code for this language — fall back to initial code
-    const c = cases.find(x => x.id === currentCaseId)
-    if (!c) return
-    const initialCode =
-      activeLanguage === 'javascript' && c.phase1.initialCodeJs
-        ? c.phase1.initialCodeJs
-        : c.phase1.initialCode
-    setCode(initialCode)
-  }, [isLoaded, currentCaseId, activeLanguage])
+    setCode(resolveCode(currentCaseId, activeLanguage))
+  }, [isLoaded, currentCaseId, activeLanguage, resolveCode])
 
   // Code auto-save effect
   useEffect(() => {
@@ -329,24 +332,12 @@ function App() {
       saveCode(currentCaseId, code, activeLanguage)
       // Load the target language's code NOW so it batches with setActiveLanguage,
       // preventing the caseKey effect in CodeEditor from reading stale content.
-      const saved = getSavedCodeRef.current(currentCaseId, lang)
-      if (saved !== undefined) {
-        setCode(saved)
-      } else {
-        const c = cases.find(x => x.id === currentCaseId)
-        if (c) {
-          const initialCode =
-            lang === 'javascript' && c.phase1.initialCodeJs
-              ? c.phase1.initialCodeJs
-              : c.phase1.initialCode
-          setCode(initialCode)
-        }
-      }
+      setCode(resolveCode(currentCaseId, lang))
       languageSwitchRef.current = true
       setActiveLanguage(lang)
       setValidationResults([])
     },
-    [activeLanguage, currentCaseId, code, saveCode, cases]
+    [activeLanguage, currentCaseId, code, saveCode, resolveCode]
   )
 
   // Switch cases
@@ -357,8 +348,7 @@ function App() {
       const prog = allProgress.find(p => p.caseId === id)!
       setCurrentCaseId(id)
       setActiveLanguage('python') // reset to Python when switching cases
-      // Load saved code or use initial code
-      const savedCode = getSavedCode(id, 'python') ?? c.phase1.initialCode
+      const savedCode = resolveCode(id, 'python')
       setCode(savedCode)
       setValidationResults([])
       setAppPhase(prog.phase as AppPhase)
@@ -370,7 +360,7 @@ function App() {
         setLastPassedCode(null)
       }
     },
-    [allProgress, getSavedCode]
+    [allProgress, resolveCode]
   )
 
   // Navigate to a case from home
@@ -805,7 +795,7 @@ function App() {
                             filename={
                               currentCase.type === 'yaml-config'
                                 ? 'collector.yaml'
-                                : `payment_service${LANGUAGE_EXTENSIONS[activeLanguage]}`
+                                : `payment_service${LANGUAGE_FILE_EXTENSIONS[activeLanguage]}`
                             }
                             onRunShortcut={handleValidate}
                             defaultWordWrap={currentCase.type === 'yaml-config'}
@@ -895,7 +885,7 @@ function App() {
                           filename={
                             currentCase.type === 'yaml-config'
                               ? 'collector.yaml'
-                              : `payment_service${LANGUAGE_EXTENSIONS[activeLanguage]}`
+                              : `payment_service${LANGUAGE_FILE_EXTENSIONS[activeLanguage]}`
                           }
                           onRunShortcut={handleValidate}
                           defaultWordWrap={currentCase.type === 'yaml-config'}
