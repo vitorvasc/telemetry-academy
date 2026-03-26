@@ -171,6 +171,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             smoothScrolling: true,
             tabSize: 4,
             wordWrap: wordWrap ? 'on' : 'off',
+            quickSuggestions: true,
+            suggestOnTriggerCharacters: true,
           }}
         />
       </div>

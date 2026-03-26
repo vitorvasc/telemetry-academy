@@ -4,6 +4,7 @@ import {
   Play,
   Loader2,
   CheckCircle,
+  RotateCw,
   XCircle,
   AlertCircle,
   Unlock,
@@ -52,15 +53,15 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
             void onValidate()
           }}
           title={buttonTitle}
-          disabled={!isWorkerReady || isValidating || phaseUnlocked}
+          disabled={!isWorkerReady || isValidating}
           className={`
             flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
             transition-all duration-200
             ${
-              phaseUnlocked
-                ? 'bg-success/20 text-green-400 cursor-default'
-                : !isWorkerReady || isValidating
-                  ? 'bg-primary/50 text-white cursor-not-allowed'
+              !isWorkerReady || isValidating
+                ? 'bg-primary/50 text-white cursor-not-allowed'
+                : phaseUnlocked
+                  ? 'bg-success/20 text-green-400 hover:bg-success/30 active:scale-95'
                   : 'bg-sky-500 hover:bg-sky-600 text-white active:scale-95'
             }
           `}
@@ -79,8 +80,8 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
             </>
           ) : phaseUnlocked ? (
             <>
-              <CheckCircle className="w-4 h-4" />
-              Complete
+              <RotateCw className="w-4 h-4" />
+              Re-check
             </>
           ) : (
             <>
