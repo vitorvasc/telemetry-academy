@@ -169,6 +169,7 @@ function App() {
     }
   }, [isLoaded, hasSeenWelcome])
   const initialLoadRef = useRef(true)
+  const languageSwitchRef = useRef(false)
   // Stable ref to getSavedCode — avoids re-triggering the load effect on every keystroke
   // (getSavedCode identity changes when caseCode updates)
   const getSavedCodeRef = useRef(getSavedCode)
@@ -287,6 +288,11 @@ function App() {
   // (caused by caseCode updates on every keystroke) does not re-trigger this effect.
   useEffect(() => {
     if (!isLoaded) return
+    // switchLanguage already set the code inline — skip to avoid double-set
+    if (languageSwitchRef.current) {
+      languageSwitchRef.current = false
+      return
+    }
     const saved = getSavedCodeRef.current(currentCaseId, activeLanguage)
     if (saved) {
       setCode(saved)
@@ -316,10 +322,26 @@ function App() {
     (lang: Language) => {
       if (lang === activeLanguage) return
       saveCode(currentCaseId, code, activeLanguage)
+      // Load the target language's code NOW so it batches with setActiveLanguage,
+      // preventing the caseKey effect in CodeEditor from reading stale content.
+      const saved = getSavedCodeRef.current(currentCaseId, lang)
+      if (saved) {
+        setCode(saved)
+      } else {
+        const c = cases.find(x => x.id === currentCaseId)
+        if (c) {
+          const initialCode =
+            lang === 'javascript' && c.phase1.initialCodeJs
+              ? c.phase1.initialCodeJs
+              : c.phase1.initialCode
+          setCode(initialCode)
+        }
+      }
+      languageSwitchRef.current = true
       setActiveLanguage(lang)
       setValidationResults([])
     },
-    [activeLanguage, currentCaseId, code, saveCode]
+    [activeLanguage, currentCaseId, code, saveCode, cases]
   )
 
   // Switch cases
