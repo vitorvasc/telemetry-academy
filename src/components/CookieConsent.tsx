@@ -67,8 +67,8 @@ export function CookieConsent() {
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
+      role="region"
+      aria-live="polite"
       aria-label="Cookie consent"
       aria-describedby="cookie-consent-description"
       className="fixed z-50 bottom-4 inset-x-4 md:inset-x-0 md:bottom-6 md:mx-auto md:max-w-lg animate-consent-in"

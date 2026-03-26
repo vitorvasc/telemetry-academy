@@ -13,6 +13,7 @@ export function Footer({ onManageCookies }: { onManageCookies?: () => void }) {
       <div className="flex items-center gap-3">
         {onManageCookies && (
           <button
+            type="button"
             onClick={onManageCookies}
             className="hover:text-slate-300 transition-colors"
           >
