@@ -31,7 +31,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
-    "react-resizable-panels": "^4.9.0",
+    "react-resizable-panels": "^4.10.0",
     "wouter": "^3.9.0"
   },
   "lint-staged": {
