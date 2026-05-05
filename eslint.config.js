@@ -38,6 +38,11 @@ export default defineConfig([
       // Formatting (via Prettier)
       'prettier/prettier': 'warn',
 
+      // Intentional pattern: setState in effect body is used for state
+      // initialization from external sources (URL params, localStorage, derived
+      // state on mount). These don't cascade — they replace stale state exactly once.
+      'react-hooks/set-state-in-effect': 'warn',
+
       // Async correctness
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': [

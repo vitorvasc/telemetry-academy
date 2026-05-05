@@ -37,11 +37,7 @@ import { useAcademyPersistence } from './hooks/useAcademyPersistence'
 import { usePhase2Data } from './hooks/usePhase2Data'
 import type { Case, ValidationResult } from './types'
 import type { CaseProgress } from './types/progress'
-import {
-  validateSpans,
-  validateYaml,
-  type SpanValidationRule,
-} from './lib/validation'
+import { validateSpans, validateYaml } from './lib/validation'
 import { cases } from './data/cases'
 import {
   FlaskConical,
@@ -200,15 +196,18 @@ function App() {
 
   // Resolve the code for a given case+language: saved code → initial code fallback.
   // Uses getSavedCodeRef to avoid re-triggering effects on every keystroke.
-  const resolveCode = useCallback((caseId: string, lang: Language): string => {
-    const saved = getSavedCodeRef.current(caseId, lang)
-    if (saved !== undefined) return saved
-    const c = cases.find(x => x.id === caseId)
-    if (!c) return ''
-    return lang === 'javascript' && c.phase1.initialCodeJs
-      ? c.phase1.initialCodeJs
-      : c.phase1.initialCode
-  }, [cases])
+  const resolveCode = useCallback(
+    (caseId: string, lang: Language): string => {
+      const saved = getSavedCodeRef.current(caseId, lang)
+      if (saved !== undefined) return saved
+      const c = cases.find(x => x.id === caseId)
+      if (!c) return ''
+      return lang === 'javascript' && c.phase1.initialCodeJs
+        ? c.phase1.initialCodeJs
+        : c.phase1.initialCode
+    },
+    [cases]
+  )
 
   const currentCase = useMemo(
     () => cases.find(c => c.id === currentCaseId) ?? cases[0],
@@ -420,10 +419,10 @@ function App() {
         )
       })
 
-      const results = validateYaml(
-        currentCase.phase1.validations as SpanValidationRule[],
-        { yamlContent: code, attemptHistory: currentAttemptHistory }
-      )
+      const results = validateYaml(currentCase.phase1.validations, {
+        yamlContent: code,
+        attemptHistory: currentAttemptHistory,
+      })
 
       results.forEach(r => {
         if (!r.passed) {
@@ -464,10 +463,10 @@ function App() {
     })
 
     // Run real span-based validation
-    const results = validateSpans(
-      currentCase.phase1.validations as SpanValidationRule[],
-      { spans: runSpans, attemptHistory: currentAttemptHistory }
-    )
+    const results = validateSpans(currentCase.phase1.validations, {
+      spans: runSpans,
+      attemptHistory: currentAttemptHistory,
+    })
 
     // Update attempt history for failed rules
     results.forEach(r => {

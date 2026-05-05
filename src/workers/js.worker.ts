@@ -68,10 +68,13 @@ function spansToRaw(spans: ReadableSpan[]): RawOTelSpan[] {
       })
     }
 
-    const statusCode = span.status.code as number
-    // SpanStatusCode: UNSET=0, OK=1, ERROR=2
+    const statusCode = span.status.code
     const statusStr =
-      statusCode === 2 ? 'ERROR' : statusCode === 1 ? 'OK' : 'UNSET'
+      statusCode === SpanStatusCode.ERROR
+        ? 'ERROR'
+        : statusCode === SpanStatusCode.OK
+          ? 'OK'
+          : 'UNSET'
 
     // parentSpanContext is the public API for accessing the parent span ID
     const parentSpanId = span.parentSpanContext?.spanId ?? null

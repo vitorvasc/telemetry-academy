@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useState } from 'react'
 import type { Phase2Data, RootCauseOption, TraceSpan } from '../types/phase2'
 import {
   transformSpans,
@@ -146,12 +146,10 @@ export function usePhase2Data(
   rawSpans: RawOTelSpan[],
   caseId: string
 ): Phase2DataState {
-  // Stable reference to "now" — initialized once at mount, not re-evaluated on re-render
-  // eslint-disable-next-line react-hooks/purity
-  const nowRef = useRef<number>(Date.now())
+  // Stable snapshot of "now" captured once at mount — never re-evaluated on re-render
+  const [now] = useState(() => Date.now())
 
   return useMemo(() => {
-    const now = nowRef.current
     // Use static Phase 2 data from registry if available for this case.
     // Cases with pre-built investigation scenarios (synthetic traces, logs, root cause options)
     // always use the registry — the user's live spans only proved Phase 1 works.
@@ -228,5 +226,5 @@ export function usePhase2Data(
         hasData: false,
       }
     }
-  }, [rawSpans, caseId])
+  }, [rawSpans, caseId, now])
 }
