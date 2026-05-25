@@ -5,13 +5,19 @@ on:
     branches:
       - main
 
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
     permissions:
-      contents: read
-      deployments: write
+      contents: read # Checkout the repository
+      deployments: write # Publish Cloudflare Pages deployment
 
     steps:
       - name: Checkout
