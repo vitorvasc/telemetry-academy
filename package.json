@@ -18,6 +18,8 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "check:csp": "node scripts/check-csp.mjs",
+    "doctor": "react-doctor .",
+    "doctor:diff": "react-doctor . --diff main --verbose",
     "prepare": "husky"
   },
   "dependencies": {
