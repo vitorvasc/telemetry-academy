@@ -49,6 +49,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
           <input
             type="text"
             placeholder="Filter logs..."
+            aria-label="Filter logs by message text"
             value={filter}
             onChange={e => setFilter(e.target.value)}
             className="flex-1 text-xs bg-transparent text-slate-300 placeholder-slate-600 outline-none"
@@ -85,12 +86,13 @@ export const LogViewer: React.FC<LogViewerProps> = ({
                 <tr
                   key={rowKey}
                   onClick={() => setSelected(isSel ? null : i)}
+                  aria-label={`${lv.label.trim()} log from ${log.service}: ${log.message}`}
                   className={`cursor-pointer border-b border-slate-800/40 ${lv.bg} ${
                     isSel ? 'bg-slate-800' : 'hover:bg-slate-800/50'
                   } transition-colors`}
                 >
                   {/* Trace correlation indicator */}
-                  <td className="w-1 p-0">
+                  <td className="w-1 p-0" aria-hidden="true">
                     <div
                       className={`h-full w-1 ${isCorr ? 'bg-sky-500' : 'bg-transparent'}`}
                       style={{ minHeight: '24px' }}

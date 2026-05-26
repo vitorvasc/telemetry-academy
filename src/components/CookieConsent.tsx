@@ -1,4 +1,10 @@
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from 'react'
 import { Signal } from 'lucide-react'
 import { CONSENT_STORAGE_KEY, registerBannerOpener } from '../lib/cookieConsent'
 import { invalidateConsentCache } from '../hooks/useAnalytics'
@@ -34,12 +40,25 @@ function updateGtagConsent(granted: boolean): void {
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(() => getStoredConsent() === null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const acceptBtnRef = useRef<HTMLButtonElement>(null)
 
   useLayoutEffect(() => {
     registerBannerOpener(() => setVisible(true))
     return () => registerBannerOpener(null)
   }, [])
+
+  // Open/close the native <dialog> in non-modal mode so it behaves like a
+  // banner (no backdrop, no focus trap, page remains interactive).
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (visible) {
+      if (!dialog.open) dialog.show()
+    } else if (dialog.open) {
+      dialog.close()
+    }
+  }, [visible])
 
   // Focus the accept button when the banner becomes visible
   useEffect(() => {
@@ -63,14 +82,12 @@ export function CookieConsent() {
     setVisible(false)
   }, [])
 
-  if (!visible) return null
-
   return (
-    <div
-      role="dialog"
+    <dialog
+      ref={dialogRef}
       aria-label="Cookie consent"
       aria-describedby="cookie-consent-description"
-      className="fixed z-50 bottom-4 inset-x-4 md:inset-x-0 md:bottom-6 md:mx-auto md:max-w-lg animate-consent-in"
+      className="fixed z-50 bottom-4 inset-x-4 md:inset-x-0 md:bottom-6 md:mx-auto md:max-w-lg w-auto p-0 m-0 bg-transparent text-inherit border-0 animate-consent-in"
     >
       <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-700/50 rounded-xl shadow-2xl shadow-black/20 overflow-hidden">
         {/* Cyan accent bar */}
@@ -118,6 +135,6 @@ export function CookieConsent() {
           </div>
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }
