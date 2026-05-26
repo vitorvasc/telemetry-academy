@@ -38,7 +38,8 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
 }) => {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
-    setTimeout(() => setVisible(true), 50)
+    const id = setTimeout(() => setVisible(true), 50)
+    return () => clearTimeout(id)
   }, [])
 
   const durationMs =
