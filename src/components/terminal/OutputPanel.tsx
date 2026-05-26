@@ -11,7 +11,7 @@ export function OutputPanel({ output, error, isRunning }: OutputPanelProps) {
         <span className="font-semibold text-slate-200">Terminal Output</span>
         {isRunning && (
           <span className="ml-4 text-emerald-400 text-xs animate-pulse">
-            Running...
+            Running…
           </span>
         )}
       </div>

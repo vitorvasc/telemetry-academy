@@ -44,11 +44,12 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
         <div className="flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-sky-400" />
+          <AlertCircle className="size-4 text-sky-400" />
           <span className="font-medium text-white">Validation</span>
         </div>
 
         <button
+          type="button"
           onClick={() => {
             void onValidate()
           }}
@@ -68,24 +69,24 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
         >
           {!isWorkerReady ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
               <span className="text-xs">
-                {loadingLabel || 'Loading Python...'}
+                {loadingLabel || 'Loading Python…'}
               </span>
             </>
           ) : isValidating ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Running code...
+              <Loader2 className="size-4 animate-spin" />
+              Running code…
             </>
           ) : phaseUnlocked ? (
             <>
-              <RotateCw className="w-4 h-4" />
+              <RotateCw className="size-4" />
               Re-check
             </>
           ) : (
             <>
-              <Play className="w-4 h-4" />
+              <Play className="size-4" />
               Check Code
             </>
           )}
@@ -96,12 +97,12 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
       <div className="flex-1 overflow-y-auto p-4">
         {isValidating && results.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin mb-3" />
-            <p className="text-sm">Running code and capturing telemetry...</p>
+            <Loader2 className="size-8 animate-spin mb-3" />
+            <p className="text-sm">Running code and capturing telemetry…</p>
           </div>
         ) : results.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
-            <Play className="w-12 h-12 mb-3 opacity-50" />
+            <Play className="size-12 mb-3 opacity-50" />
             <p className="text-sm">
               Click "Check Code" to validate your instrumentation
             </p>
@@ -133,15 +134,15 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                 >
                   <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
                     {result.passed ? (
-                      <CheckCircle className="w-5 h-5 text-green-400" />
+                      <CheckCircle className="size-5 text-green-400" />
                     ) : isGuided ? (
-                      <XCircle className="w-5 h-5 text-amber-400" />
+                      <XCircle className="size-5 text-amber-400" />
                     ) : (
-                      <XCircle className="w-5 h-5 text-red-400" />
+                      <XCircle className="size-5 text-red-400" />
                     )}
                     {!result.passed && result.attemptsOnThisRule >= 1 && (
                       <Lightbulb
-                        className="w-3.5 h-3.5 text-amber-400/70"
+                        className="size-3.5 text-amber-400/70"
                         aria-label="Hint available"
                       />
                     )}
@@ -185,8 +186,8 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                 {/* Celebration glow animation */}
                 <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 via-emerald-500/10 to-green-500/20 animate-pulse" />
                 <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center animate-pulse">
-                    <Sparkles className="w-5 h-5 text-green-400" />
+                  <div className="size-10 bg-success/20 rounded-full flex items-center justify-center animate-pulse">
+                    <Sparkles className="size-5 text-green-400" />
                   </div>
 
                   <div className="flex-1">
@@ -200,10 +201,11 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                   </div>
 
                   <button
+                    type="button"
                     onClick={onStartInvestigation}
                     className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-medium text-sm transition-colors"
                   >
-                    <Unlock className="w-4 h-4" />
+                    <Unlock className="size-4" />
                     Investigate →
                   </button>
                 </div>

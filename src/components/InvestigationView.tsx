@@ -82,9 +82,9 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({
       >
         <div className="flex items-center gap-3">
           {solved ? (
-            <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+            <CheckCircle2 className="size-4 text-green-400 flex-shrink-0" />
           ) : (
-            <Siren className="w-4 h-4 text-red-400 flex-shrink-0 animate-pulse" />
+            <Siren className="size-4 text-red-400 flex-shrink-0 animate-pulse" />
           )}
           <div>
             <span
@@ -119,6 +119,7 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({
           const isActive = activeTab === id
           return (
             <button
+              type="button"
               key={id}
               onClick={() => setActiveTab(id)}
               className={`flex items-center gap-2.5 px-5 py-3 text-sm font-medium border-b-2 transition-all duration-150 ${
@@ -128,7 +129,7 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({
               }`}
             >
               <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                className={`size-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
                   isActive
                     ? 'bg-sky-600 text-white'
                     : 'bg-slate-700 text-slate-400'
@@ -136,9 +137,7 @@ export const InvestigationView: React.FC<InvestigationViewProps> = ({
               >
                 {step}
               </div>
-              <Icon
-                className={`w-3.5 h-3.5 ${isActive ? 'text-sky-400' : ''}`}
-              />
+              <Icon className={`size-3.5 ${isActive ? 'text-sky-400' : ''}`} />
               <span>{label}</span>
             </button>
           )

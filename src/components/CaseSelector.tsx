@@ -23,22 +23,20 @@ const getPhaseStatus = (prog: CaseProgress): PhaseStatus => {
 
 const ProgressDot: React.FC<{ status: PhaseStatus }> = ({ status }) => {
   if (status === 'solved')
-    return (
-      <div className="w-2.5 h-2.5 rounded-full bg-green-400 flex-shrink-0" />
-    )
+    return <div className="size-2.5 rounded-full bg-green-400 flex-shrink-0" />
   if (status === 'phase1done')
     return (
-      <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60 border border-amber-400 flex-shrink-0" />
+      <div className="size-2.5 rounded-full bg-amber-400/60 border border-amber-400 flex-shrink-0" />
     )
   if (status === 'active')
     return (
-      <div className="w-2.5 h-2.5 rounded-full border-2 border-sky-400 flex-shrink-0" />
+      <div className="size-2.5 rounded-full border-2 border-sky-400 flex-shrink-0" />
     )
   if (status === 'available')
     return (
-      <div className="w-2.5 h-2.5 rounded-full border border-slate-500 flex-shrink-0" />
+      <div className="size-2.5 rounded-full border border-slate-500 flex-shrink-0" />
     )
-  return <Lock className="w-2.5 h-2.5 text-slate-700 flex-shrink-0" />
+  return <Lock className="size-2.5 text-slate-700 flex-shrink-0" />
 }
 
 const DIFFICULTY_COLOR: Record<string, string> = {
@@ -69,6 +67,7 @@ export const CaseSelector: React.FC<CaseSelectorProps> = ({
 
         return (
           <button
+            type="button"
             key={c.id}
             disabled={isLocked}
             onClick={() => !isLocked && onSelect(c.id)}
@@ -117,7 +116,7 @@ export const CaseSelector: React.FC<CaseSelectorProps> = ({
 
             {/* In-progress indicator */}
             {isCurrent && !isSolved && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-sky-500 rounded-full border border-slate-900" />
+              <span className="absolute -top-0.5 -right-0.5 size-2 bg-sky-500 rounded-full border border-slate-900" />
             )}
           </button>
         )

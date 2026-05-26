@@ -66,7 +66,7 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({
     <div className="max-w-2xl mx-auto space-y-5">
       {/* Prompt */}
       <div className="flex items-start gap-3">
-        <HelpCircle className="w-5 h-5 text-sky-400 flex-shrink-0 mt-0.5" />
+        <HelpCircle className="size-5 text-sky-400 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-slate-300 leading-relaxed">
           Based on the <strong className="text-sky-400">traces</strong> and{' '}
           <strong className="text-amber-400">logs</strong>, what is the root
@@ -95,6 +95,7 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({
               className="rounded-xl overflow-hidden border transition-all duration-200"
             >
               <button
+                type="button"
                 disabled={submitted}
                 onClick={() => setSelected(option.id)}
                 className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-all duration-200 ${borderCls}`}
@@ -112,13 +113,13 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({
                   }`}
                 >
                   {showResult && correct && (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                    <CheckCircle2 className="size-3.5 text-white" />
                   )}
                   {showResult && !correct && (
-                    <XCircle className="w-3.5 h-3.5 text-white" />
+                    <XCircle className="size-3.5 text-white" />
                   )}
                   {!submitted && isSelected && (
-                    <div className="w-2 h-2 rounded-full bg-sky-400" />
+                    <div className="size-2 rounded-full bg-sky-400" />
                   )}
                 </div>
 
@@ -176,6 +177,7 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({
       {/* Actions */}
       {!submitted ? (
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!selected}
           className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed bg-sky-600 hover:bg-sky-500 text-white active:scale-[0.99]"
@@ -184,8 +186,8 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({
         </button>
       ) : isCorrect ? (
         <div className="flex items-center gap-4 p-4 rounded-xl bg-green-950/40 border border-green-700">
-          <div className="w-10 h-10 bg-green-900/60 rounded-full flex items-center justify-center flex-shrink-0">
-            <Trophy className="w-5 h-5 text-green-400" />
+          <div className="size-10 bg-green-900/60 rounded-full flex items-center justify-center flex-shrink-0">
+            <Trophy className="size-5 text-green-400" />
           </div>
           <div>
             <div className="text-green-400 font-bold text-sm">Case Solved!</div>
@@ -198,17 +200,18 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({
       ) : (
         <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-red-950/30 border border-red-900/50">
           <div className="flex items-center gap-2 text-xs text-red-400">
-            <XCircle className="w-4 h-4 flex-shrink-0" />
-            Incorrect — review the trace data and try again
+            <XCircle className="size-4 flex-shrink-0" />
+            Incorrect: review the trace data and try again
             <span className="text-slate-500">
               ({attempts} attempt{attempts !== 1 ? 's' : ''})
             </span>
           </div>
           <button
+            type="button"
             onClick={handleRetry}
             className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-600 hover:border-slate-400 text-slate-300 text-xs rounded-lg transition-colors flex-shrink-0"
           >
-            <RotateCcw className="w-3 h-3" />
+            <RotateCcw className="size-3" />
             Try Again
           </button>
         </div>

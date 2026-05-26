@@ -58,8 +58,8 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
       <div className="max-w-lg w-full space-y-8 text-center">
         {/* Trophy */}
         <div className="flex flex-col items-center gap-4">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-900/40">
-            <Trophy className="w-10 h-10 text-white" />
+          <div className="size-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-900/40">
+            <Trophy className="size-10 text-white" />
           </div>
 
           {/* Stars */}
@@ -67,7 +67,7 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
             {[1, 2, 3].map(n => (
               <Star
                 key={n}
-                className={`w-7 h-7 transition-all duration-300 ${
+                className={`size-7 transition-all duration-300 ${
                   n <= stars
                     ? 'text-amber-400 fill-amber-400'
                     : 'text-slate-700'
@@ -80,7 +80,7 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
           <div>
             <div className="text-3xl font-bold text-white">{label}!</div>
             <div className="text-slate-400 text-sm mt-1">
-              Case solved —{' '}
+              Case solved:{' '}
               <span className="text-green-400 font-medium">
                 {solvedCase.name}
               </span>
@@ -119,7 +119,7 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
               key={label}
               className="bg-slate-800/60 border border-slate-700 rounded-xl p-4"
             >
-              <Icon className={`w-4 h-4 ${color} mx-auto mb-2`} />
+              <Icon className={`size-4 ${color} mx-auto mb-2`} />
               <div className={`text-xl font-bold ${color}`}>{value}</div>
               <div className="text-xs text-slate-500 mt-0.5">{label}</div>
             </div>
@@ -129,7 +129,7 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
         {/* What you learned */}
         <div className="bg-slate-800/40 border border-slate-700 rounded-xl p-4 text-left">
           <div className="flex items-center gap-2 mb-3">
-            <BookOpen className="w-4 h-4 text-sky-400" />
+            <BookOpen className="size-4 text-sky-400" />
             <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
               What you learned
             </span>
@@ -140,7 +140,7 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
                 key={concept}
                 className="flex items-center gap-2 text-sm text-slate-400"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 flex-shrink-0" />
+                <span className="size-1.5 rounded-full bg-sky-500 flex-shrink-0" />
                 {concept.replace(/_/g, ' ')}
               </li>
             ))}
@@ -151,11 +151,12 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
         <div className="flex flex-col gap-3">
           {nextCase ? (
             <button
+              type="button"
               onClick={onNext}
               className="w-full flex items-center justify-center gap-2 py-3 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl transition-colors active:scale-[0.99]"
             >
               Next Case: {nextCase.name}
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="size-4" />
             </button>
           ) : (
             <div className="py-3 text-center text-slate-500 text-sm border border-slate-700 rounded-xl">
@@ -163,6 +164,7 @@ export const CaseSolvedScreen: React.FC<CaseSolvedScreenProps> = ({
             </div>
           )}
           <button
+            type="button"
             onClick={onReview}
             className="w-full py-2.5 border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-slate-200 text-sm rounded-xl transition-colors"
           >

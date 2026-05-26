@@ -29,6 +29,7 @@ export const MobileCaseDrawer: React.FC<MobileCaseDrawerProps> = ({
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:hidden">
       {/* Backdrop */}
       <button
+        type="button"
         className="absolute inset-0 bg-black/70"
         onClick={onClose}
         aria-label="Close case switcher"
@@ -41,10 +42,11 @@ export const MobileCaseDrawer: React.FC<MobileCaseDrawerProps> = ({
             Switch Case
           </span>
           <button
+            type="button"
             onClick={onClose}
             className="p-1 text-slate-500 hover:text-slate-200"
           >
-            <X className="w-4 h-4" />
+            <X className="size-4" />
           </button>
         </div>
         {/* Case list */}
@@ -58,6 +60,7 @@ export const MobileCaseDrawer: React.FC<MobileCaseDrawerProps> = ({
             return (
               <li key={c.id}>
                 <button
+                  type="button"
                   disabled={isLocked}
                   onClick={() => !isLocked && handleSelect(c.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
@@ -70,12 +73,12 @@ export const MobileCaseDrawer: React.FC<MobileCaseDrawerProps> = ({
                 >
                   {/* Status icon */}
                   {isSolved ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    <CheckCircle2 className="size-4 text-green-400 flex-shrink-0" />
                   ) : isLocked ? (
-                    <Lock className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                    <Lock className="size-4 text-slate-600 flex-shrink-0" />
                   ) : (
                     <div
-                      className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${isCurrent ? 'border-sky-400' : 'border-slate-500'}`}
+                      className={`size-4 rounded-full border-2 flex-shrink-0 ${isCurrent ? 'border-sky-400' : 'border-slate-500'}`}
                     />
                   )}
                   {/* Case info */}

@@ -34,7 +34,8 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <button
-        className="absolute inset-0 w-full h-full bg-black/80 cursor-default"
+        type="button"
+        className="absolute inset-0 size-full bg-black/80 cursor-default"
         onClick={onClose}
         aria-label="Close welcome"
       />
@@ -52,15 +53,16 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="text-slate-500 hover:text-slate-200 transition-colors p-1 rounded"
           >
-            <X className="w-4 h-4" />
+            <X className="size-4" />
           </button>
         </div>
 
         {/* Steps */}
-        <div className="px-5 py-5 space-y-3">
+        <div className="p-5 space-y-3">
           {STEPS.map(({ icon: Icon, color, bg, title, body }, i) => (
             <div
               key={title}
@@ -89,6 +91,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
         {/* Footer CTA */}
         <div className="px-5 pb-5">
           <button
+            type="button"
             onClick={onClose}
             className="w-full py-3 bg-gradient-to-r from-sky-500 to-violet-600 text-white font-semibold rounded-xl text-sm hover:opacity-90 transition-opacity active:scale-[0.99]"
           >

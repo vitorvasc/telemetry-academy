@@ -19,7 +19,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <button
-        className="absolute inset-0 w-full h-full bg-black/70 cursor-default"
+        type="button"
+        className="absolute inset-0 size-full bg-black/70 cursor-default"
         onClick={onClose}
         aria-label="Close review modal"
       />
@@ -29,16 +30,17 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-amber-400" />
+            <Activity className="size-4 text-amber-400" />
             <span className="text-sm font-semibold text-slate-200">
               Investigation Review
             </span>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="text-slate-500 hover:text-slate-200 transition-colors p-1 rounded"
           >
-            <X className="w-4 h-4" />
+            <X className="size-4" />
           </button>
         </div>
 
@@ -51,7 +53,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             </div>
             {spans.length === 0 ? (
               <div className="rounded-lg border border-slate-700 px-4 py-3 text-xs text-slate-500 italic">
-                This case uses YAML configuration — no live spans were captured.
+                This case uses YAML configuration: no live spans were captured.
                 See the root cause explanation below.
               </div>
             ) : (
@@ -81,7 +83,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         </td>
                         <td className="px-3 py-2 text-right text-slate-400">
                           <span className="flex items-center justify-end gap-1">
-                            <Clock className="w-3 h-3" />
+                            <Clock className="size-3" />
                             {formatSpanMs(span.durationMs)}
                           </span>
                         </td>
@@ -104,7 +106,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           {correctOption && (
             <div className="bg-green-950/30 border border-green-800/50 rounded-xl p-4">
               <div className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                <CheckCircle2 className="size-4 text-green-400 flex-shrink-0 mt-0.5" />
                 <div>
                   <div className="text-xs font-semibold text-green-400 mb-1">
                     Root Cause
@@ -124,6 +126,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         {/* Footer */}
         <div className="px-5 py-4 border-t border-slate-700 flex-shrink-0">
           <button
+            type="button"
             onClick={onClose}
             className="w-full py-2.5 border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white text-sm rounded-xl transition-colors"
           >
