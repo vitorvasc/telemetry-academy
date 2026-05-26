@@ -82,8 +82,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   }
 
   useEffect(() => {
+    // Snapshot the ref so cleanup disconnects the observer present when this
+    // effect ran, regardless of what observerRef.current points to at unmount.
+    const observer = observerRef.current
     return () => {
-      observerRef.current?.disconnect()
+      observer?.disconnect()
     }
   }, [])
 
