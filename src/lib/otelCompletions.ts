@@ -201,7 +201,7 @@ const LANGUAGE_CONVENTION: Record<string, string> = {
 
 // ── JS/TS type stubs (addExtraLib handles autocomplete natively) ──
 
-export const OTEL_GLOBALS_DTS = `
+const OTEL_GLOBALS_DTS = `
 interface Span {
   setAttribute(key: string, value: string | number | boolean): Span;
   setAttributes(attributes: Record<string, string | number | boolean>): Span;
