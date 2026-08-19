@@ -41,22 +41,22 @@ NODE
 
 run_react_doctor() {
   if [ -x ./node_modules/.bin/react-doctor ]; then
-    ./node_modules/.bin/react-doctor --verbose --diff --fail-on warning --no-score
+    ./node_modules/.bin/react-doctor --verbose --scope changed --blocking warning --no-score
     return
   fi
 
   if command -v react-doctor >/dev/null 2>&1; then
-    react-doctor --verbose --diff --fail-on warning --no-score
+    react-doctor --verbose --scope changed --blocking warning --no-score
     return
   fi
 
   if command -v pnpm >/dev/null 2>&1; then
-    pnpm dlx react-doctor@latest --verbose --diff --fail-on warning --no-score
+    pnpm dlx react-doctor@latest --verbose --scope changed --blocking warning --no-score
     return
   fi
 
   if command -v npx >/dev/null 2>&1; then
-    npx --yes react-doctor@latest --verbose --diff --fail-on warning --no-score
+    npx --yes react-doctor@latest --verbose --scope changed --blocking warning --no-score
     return
   fi
 

@@ -19,7 +19,7 @@
     "test:coverage": "vitest run --coverage",
     "check:csp": "node scripts/check-csp.mjs",
     "doctor": "react-doctor .",
-    "doctor:diff": "react-doctor . --diff main --verbose",
+    "doctor:diff": "react-doctor . --scope changed --base main --verbose",
     "prepare": "husky"
   },
   "dependencies": {
@@ -77,6 +77,6 @@
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.16",
     "vitest": "^4.1.5",
-    "react-doctor": "^0.5.0"
+    "react-doctor": "^0.9.0"
   }
 }
