@@ -10,23 +10,23 @@ Scans React codebases for security, performance, correctness, and architecture i
 
 ## After making React code changes:
 
-Run `npx react-doctor@latest --verbose --diff` and check the score did not regress.
+Run `npx react-doctor@latest --verbose --scope changed` and check the score did not regress.
 
 If the score dropped, fix the regressions before committing.
 
 ## For general cleanup or code improvement:
 
-Run `npx react-doctor@latest --verbose` (without `--diff`) to scan the full codebase. Fix issues by severity — errors first, then warnings.
+Run `npx react-doctor@latest --verbose` (without `--scope changed`) to scan the full codebase. Fix issues by severity — errors first, then warnings.
 
 ## Command
 
 ```bash
-npx react-doctor@latest --verbose --diff
+npx react-doctor@latest --verbose --scope changed
 ```
 
-| Flag        | Purpose                                       |
-| ----------- | --------------------------------------------- |
-| `.`         | Scan current directory                        |
-| `--verbose` | Show affected files and line numbers per rule |
-| `--diff`    | Only scan changed files vs base branch        |
-| `--score`   | Output only the numeric score                 |
+| Flag               | Purpose                                        |
+| ------------------ | ----------------------------------------------- |
+| `.`                | Scan current directory                         |
+| `--verbose`        | Show affected files and line numbers per rule  |
+| `--scope changed`  | Only scan changed files vs base branch         |
+| `--score`          | Output only the numeric score                  |

@@ -24,101 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          fetch-depth: 0 # Required for --diff against base branch
+          fetch-depth: 0 # Required to resolve the merge base for diff scope
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - name: React Doctor
+        uses: millionco/react-doctor@01820bb4fd4d0a4aebcd8df2b2a143a098649cb2 # v2.2.8
         with:
-          node-version: '24'
-
-      - name: Fetch base branch for diff mode
-        env:
-          DIFF_BASE: ${{ github.base_ref }}
-          HEAD_REF: ${{ github.head_ref }}
-        run: |
-          case "$DIFF_BASE" in -* ) echo "::error::diff base cannot start with -"; exit 1 ;; esac
-          case "$HEAD_REF" in -* ) echo "::error::head ref cannot start with -"; exit 1 ;; esac
-          git fetch origin "$DIFF_BASE" && git branch -f "$DIFF_BASE" FETCH_HEAD 2>/dev/null || true
-          git checkout "$HEAD_REF" 2>/dev/null || true
-
-      - name: Run React Doctor (scan + capture output)
-        id: scan
-        env:
-          NO_COLOR: '1'
-          DIFF_BASE: ${{ github.base_ref }}
-        run: |
-          OUTPUT_FILE="${RUNNER_TEMP}/react-doctor-output.txt"
-          RAW_FILE="${RUNNER_TEMP}/react-doctor-raw.txt"
-          echo "output_file=$OUTPUT_FILE" >> "$GITHUB_OUTPUT"
-
-          set +e
-          npx --yes react-doctor@latest . \
-            --diff "$DIFF_BASE" \
-            --verbose \
-            --annotations \
-            --fail-on error \
-            --pr-comment \
-            | tee "$RAW_FILE"
-          PIPE_EXIT=("${PIPESTATUS[@]}")
-          set -e
-
-          # Strip workflow-command lines from the comment body; the runner
-          # already parsed them from the live step log for annotations.
-          sed -E '/^::(error|warning) /d' "$RAW_FILE" > "$OUTPUT_FILE"
-
-          if [ "${PIPE_EXIT[1]}" -ne 0 ]; then exit "${PIPE_EXIT[1]}"; fi
-          exit "${PIPE_EXIT[0]}"
-
-      - name: Collect score
-        id: score
-        if: always()
-        run: |
-          SCORE=$(npx --yes react-doctor@latest . --score --fail-on none 2>/dev/null | tail -1 | tr -d '[:space:]') || true
-          if [[ -n "$SCORE" && "$SCORE" =~ ^[0-9]+$ ]]; then
-            echo "score=$SCORE" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Post / update sticky PR comment
-        if: ${{ always() && github.event_name == 'pull_request' }}
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          OUTPUT_FILE: ${{ steps.scan.outputs.output_file }}
-          DOCTOR_SCORE: ${{ steps.score.outputs.score }}
-        with:
-          script: |
-            const fs = require('fs');
-            const path = process.env.OUTPUT_FILE;
-            if (!path || !fs.existsSync(path)) return;
-            const output = fs.readFileSync(path, 'utf8').trim();
-            if (!output) return;
-
-            const score = process.env.DOCTOR_SCORE;
-            const scoreLine = score && /^[0-9]+$/.test(score)
-              ? `**Score:** \`${score}\` / 100\n\n`
-              : '';
-            const marker = '<!-- react-doctor -->';
-            const fence = '````';
-            const body = `${marker}\n## React Doctor\n\n${scoreLine}${fence}\n${output}\n${fence}`;
-
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const prev = comments.find(c => c.body?.startsWith(marker));
-            if (prev) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: prev.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
+          blocking: error
+          review-comments: false
+          commit-status: false
