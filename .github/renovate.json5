@@ -1,11 +1,19 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:best-practices", "helpers:pinGitHubActionDigestsToSemver"],
-  minimumReleaseAge: "7 days",
+  extends: [
+    'config:best-practices',
+    'docker:pinDigests',
+    'helpers:pinGitHubActionDigestsToSemver',
+  ],  
+  ignorePresets: ['security:minimumReleaseAgeNpm'],
+  minimumReleaseAge: '7 days',
   internalChecksFilter: "strict",
   labels: ["dependencies"],
   schedule: ["before 8am on Monday"],
-
+  patch: {
+    minimumReleaseAge: '14 days',
+  },
+  
   lockFileMaintenance: {
     enabled: true,
     schedule: ["before 4am on Monday"],
