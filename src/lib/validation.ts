@@ -1,4 +1,4 @@
-import yaml from 'js-yaml'
+import { load } from 'js-yaml'
 import type { RawOTelSpan } from '../hooks/usePhase2Data'
 
 export type ValidationCheckType =
@@ -257,7 +257,7 @@ export function validateYaml(
   // Return a single synthetic error result if the YAML is malformed,
   // so students get actionable feedback instead of silent failures.
   try {
-    yaml.load(context.yamlContent)
+    load(context.yamlContent)
   } catch (err: unknown) {
     const detail = err instanceof Error ? err.message : String(err)
     return rules.map(rule => ({
@@ -299,7 +299,7 @@ function checkYamlKeyExists(
 ): boolean {
   if (!path) return false
   try {
-    const doc = yaml.load(yamlContent) as Record<string, unknown>
+    const doc = load(yamlContent) as Record<string, unknown>
     if (!doc || typeof doc !== 'object') return false
     const keys = path.split('.')
     let current: unknown = doc

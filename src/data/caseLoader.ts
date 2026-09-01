@@ -17,12 +17,12 @@ const caseYamls: Record<string, any> = import.meta.glob(
   '../cases/*/case.yaml',
   { eager: true }
 )
-const caseSetupsPy = import.meta.glob('../cases/*/setup.py', {
+const caseSetupsPy = import.meta.glob<string>('../cases/*/setup.py', {
   eager: true,
   query: '?raw',
   import: 'default',
 })
-const caseSetupsJs = import.meta.glob('../cases/*/setup.js', {
+const caseSetupsJs = import.meta.glob<string>('../cases/*/setup.js', {
   eager: true,
   query: '?raw',
   import: 'default',
@@ -68,14 +68,14 @@ export function loadCases(): Case[] {
   for (const [path, code] of Object.entries(caseSetupsPy)) {
     const id = getCaseId(path)
     const entry = caseMap.get(id) ?? { yaml: null, code: '' }
-    entry.code = code as string
+    entry.code = code
     caseMap.set(id, entry)
   }
 
   for (const [path, code] of Object.entries(caseSetupsJs)) {
     const id = getCaseId(path)
     const entry = caseMap.get(id) ?? { yaml: null, code: '' }
-    entry.codeJs = code as string
+    entry.codeJs = code
     caseMap.set(id, entry)
   }
 
