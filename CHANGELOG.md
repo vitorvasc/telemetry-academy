@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/vitorvasc/telemetry-academy/compare/telemetry-academy-v0.1.1...telemetry-academy-v0.1.2) (2026-09-01)
+
+
+### Bug Fixes
+
+* **deps:** unblock js-yaml v5 and vite 8.2.2 bumps ([#191](https://github.com/vitorvasc/telemetry-academy/issues/191)) ([fe99e28](https://github.com/vitorvasc/telemetry-academy/commit/fe99e281544a9cc583e1300378d9e4d33767dba5))
+* **deps:** update dependency pyodide to v314 ([#197](https://github.com/vitorvasc/telemetry-academy/issues/197)) ([78618a9](https://github.com/vitorvasc/telemetry-academy/commit/78618a9ec233bd64d879592bda1a9c90f7cb6f72))
+
 ## [0.1.1](https://github.com/vitorvasc/telemetry-academy/compare/telemetry-academy-v0.1.0...telemetry-academy-v0.1.1) (2026-03-26)
 
 
