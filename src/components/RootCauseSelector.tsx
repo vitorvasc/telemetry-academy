@@ -178,7 +178,7 @@ export const RootCauseSelector: React.FC<RootCauseSelectorProps> = ({
         <button
           onClick={handleSubmit}
           disabled={!selected}
-          className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed bg-sky-600 hover:bg-sky-500 text-white active:scale-[0.99]"
+          className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:bg-slate-800 disabled:text-white/60 disabled:cursor-not-allowed bg-sky-600 hover:bg-sky-500 text-white active:scale-[0.99]"
         >
           Submit Answer
         </button>

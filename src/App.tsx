@@ -655,13 +655,13 @@ function App() {
                   onClick={handleResetAll}
                   className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
                 >
-                  Yes
+                  Reset case
                 </button>
                 <button
                   onClick={() => setShowResetConfirm(false)}
                   className="px-2 py-1 bg-slate-700 text-white text-xs rounded"
                 >
-                  No
+                  Cancel
                 </button>
               </div>
             ) : (

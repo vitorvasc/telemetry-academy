@@ -135,8 +135,11 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({
           return (
             <div key={span.id}>
               {/* Row */}
-              <div
-                className={`flex items-center px-4 py-2 cursor-pointer transition-colors group ${
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-label={`${isOpen ? 'Collapse' : 'Expand'} span ${span.name}`}
+                className={`w-full text-left flex items-center px-4 py-2 cursor-pointer transition-colors group ${
                   isOpen ? 'bg-slate-800/80' : 'hover:bg-slate-800/40'
                 }`}
                 onClick={() => setOpenSpan(isOpen ? null : span.id)}
@@ -204,7 +207,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
 
               {/* Attributes Drawer */}
               {isOpen && (

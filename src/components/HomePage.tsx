@@ -284,10 +284,13 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                 const isSolved = status === 'solved'
 
                 return (
-                  <div
+                  <button
                     key={c.id}
+                    type="button"
                     onClick={() => !isLocked && handleSelect(c.id)}
-                    className={`border rounded-xl p-4 transition-all
+                    disabled={isLocked}
+                    aria-label={`${isLocked ? 'Locked: ' : isSolved ? 'Cleared: ' : 'Open case '}${c.name}`}
+                    className={`text-left w-full border rounded-xl p-4 transition-all
                       ${
                         isLocked
                           ? 'border-slate-800 bg-slate-900 opacity-50 cursor-default'
@@ -382,7 +385,7 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                         </span>
                       </div>
                     )}
-                  </div>
+                  </button>
                 )
               })}
             </div>
