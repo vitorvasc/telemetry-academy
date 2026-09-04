@@ -45,7 +45,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       {/* Toolbar */}
       <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-700 bg-slate-900">
         <div className="flex items-center gap-2 flex-1 bg-slate-800 border border-slate-700 rounded px-2 py-1 focus-within:border-sky-600">
-          <Search className="w-3 h-3 text-slate-500 flex-shrink-0" />
+          <Search className="size-3 text-slate-500 flex-shrink-0" />
           <input
             type="text"
             placeholder="Filter logs..."
@@ -55,6 +55,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
           />
         </div>
         <button
+          type="button"
           onClick={() => setTraceCorr(!traceCorr)}
           title="Highlight entries correlated with this trace"
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors border ${
@@ -63,7 +64,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
               : 'border-slate-700 text-slate-500 hover:border-slate-500'
           }`}
         >
-          <Link2 className="w-3 h-3" />
+          <Link2 className="size-3" />
           trace_id
         </button>
         <div className="text-[10px] text-slate-600 pl-1">
@@ -149,6 +150,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({
         {userOutput && userOutput.length > 0 && (
           <div className="border-t border-slate-800 mt-2">
             <button
+              type="button"
               onClick={() => setOutputExpanded(v => !v)}
               className="w-full flex items-center gap-2 px-4 py-2 text-[10px] text-slate-500 hover:text-slate-400"
             >

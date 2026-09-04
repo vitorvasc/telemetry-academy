@@ -43,10 +43,10 @@ function getDifficultyColor(difficulty: Case['difficulty']) {
 
 function StatusDot({ status }: { status: CaseProgress['status'] }) {
   if (status === 'solved')
-    return <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+    return <CheckCircle2 className="size-3.5 text-green-400 flex-shrink-0" />
   if (status === 'available' || status === 'in-progress')
-    return <Circle className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
-  return <Lock className="w-3 h-3 text-slate-600 flex-shrink-0" />
+    return <Circle className="size-3.5 text-sky-400 flex-shrink-0" />
+  return <Lock className="size-3 text-slate-600 flex-shrink-0" />
 }
 
 interface CaseListProps {
@@ -85,6 +85,7 @@ function CaseList({
         const status = prog?.status ?? 'locked'
         return (
           <button
+            type="button"
             key={c.id}
             disabled={status === 'locked'}
             onClick={() => status !== 'locked' && onSelect(c.id)}
@@ -96,7 +97,7 @@ function CaseList({
             <span
               className={`text-xs xl:text-sm truncate ${status === 'solved' ? 'text-slate-500 line-through' : status !== 'locked' ? 'text-slate-300' : 'text-slate-500'}`}
             >
-              {String(i + 1).padStart(2, '0')} — {c.name}
+              {String(i + 1).padStart(2, '0')}: {c.name}
             </span>
           </button>
         )
@@ -124,17 +125,18 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
         <div className="flex items-center gap-3 px-4 py-3">
           {/* Hamburger (mobile only) */}
           <button
+            type="button"
             onClick={() => setDrawerOpen(true)}
             className="md:hidden p-1.5 -ml-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             aria-label="Open menu"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="size-5" />
           </button>
 
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center flex-shrink-0">
-              <Shield className="w-3.5 h-3.5 text-white" />
+            <div className="size-7 rounded-lg bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+              <Shield className="size-3.5 text-white" />
             </div>
             <span className="text-sm xl:text-base font-bold text-slate-200 tracking-wide">
               Telemetry Academy
@@ -173,7 +175,8 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
       {drawerOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <button
-            className="absolute inset-0 w-full h-full bg-black/70 cursor-default"
+            type="button"
+            className="absolute inset-0 size-full bg-black/70 cursor-default"
             onClick={() => setDrawerOpen(false)}
             aria-label="Close menu"
           />
@@ -183,10 +186,11 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                 Incidents
               </span>
               <button
+                type="button"
                 onClick={() => setDrawerOpen(false)}
                 className="text-slate-500 hover:text-white p-1"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </button>
             </div>
             <CaseList
@@ -215,8 +219,8 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
         <main className="flex-1 min-w-0 bg-slate-950">
           {/* Hero */}
           <div className="flex flex-col items-center text-center px-4 py-10 border-b border-slate-800">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center mb-5 shadow-xl shadow-sky-500/20">
-              <Shield className="w-8 h-8 text-white" />
+            <div className="size-16 rounded-2xl bg-gradient-to-br from-sky-500 to-violet-600 flex items-center justify-center mb-5 shadow-xl shadow-sky-500/20">
+              <Shield className="size-8 text-white" />
             </div>
             <h1 className="text-2xl sm:text-3xl xl:text-4xl font-black tracking-tight text-white mb-2">
               TELEMETRY ACADEMY
@@ -311,9 +315,9 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                       `}
                       >
                         {isSolved ? (
-                          <CheckCircle2 className="w-5 h-5" />
+                          <CheckCircle2 className="size-5" />
                         ) : isLocked ? (
-                          <Lock className="w-4 h-4" />
+                          <Lock className="size-4" />
                         ) : (
                           String(i + 1).padStart(2, '0')
                         )}
@@ -378,7 +382,7 @@ export function HomePage({ progress, onSelectCase }: HomePageProps) {
                             : status === 'in-progress'
                               ? 'Continue'
                               : 'Investigate'}
-                          <ChevronRight className="w-3.5 h-3.5" />
+                          <ChevronRight className="size-3.5" />
                         </span>
                       </div>
                     )}

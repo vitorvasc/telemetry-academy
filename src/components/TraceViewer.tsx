@@ -79,6 +79,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({
               Trace ID
             </span>
             <button
+              type="button"
               onClick={handleCopyTraceId}
               className="cursor-pointer hover:text-sky-300 transition-colors flex items-center gap-1 text-xs text-slate-300 font-mono"
               title="Click to copy trace ID"
@@ -88,7 +89,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({
               ) : (
                 <>
                   <span>{traceId.slice(0, 16)}…</span>
-                  <Copy className="w-3 h-3 text-slate-500" />
+                  <Copy className="size-3 text-slate-500" />
                 </>
               )}
             </button>
@@ -148,9 +149,9 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({
                     className="flex items-center gap-1.5 min-w-0"
                   >
                     {isOpen ? (
-                      <ChevronDown className="w-3 h-3 text-slate-500 flex-shrink-0" />
+                      <ChevronDown className="size-3 text-slate-500 flex-shrink-0" />
                     ) : (
-                      <ChevronRight className="w-3 h-3 text-slate-600 flex-shrink-0 group-hover:text-slate-400" />
+                      <ChevronRight className="size-3 text-slate-600 flex-shrink-0 group-hover:text-slate-400" />
                     )}
                     <span
                       className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.dot}`}
@@ -241,7 +242,7 @@ export const TraceViewer: React.FC<TraceViewerProps> = ({
                     <div className="px-3 py-2 bg-amber-900/20 border-t border-amber-900/40 text-xs text-amber-400 flex items-center gap-2">
                       <span className="text-amber-500">⚠</span>
                       <span>
-                        This span has abnormally high latency — inspect the
+                        This span has abnormally high latency: inspect the
                         attributes above for clues
                       </span>
                     </div>

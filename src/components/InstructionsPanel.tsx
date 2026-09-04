@@ -36,7 +36,7 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
       {/* Case Header */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-slate-400">
-          <GraduationCap className="w-4 h-4" />
+          <GraduationCap className="size-4" />
           <span className="text-xs uppercase tracking-wide">
             {caseData.difficulty}
           </span>
@@ -59,10 +59,11 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
       {/* Phase 1: Instrumentation */}
       <div className="space-y-4">
         <button
+          type="button"
           onClick={() => setPhase1Open(o => !o)}
           className="flex items-center gap-2 text-amber-400 w-full text-left"
         >
-          <Target className="w-5 h-5 flex-shrink-0" />
+          <Target className="size-5 flex-shrink-0" />
           <h3 className="font-semibold flex-1">Phase 1: Instrumentation</h3>
           <ChevronDown
             className={`w-4 h-4 transition-transform ${phase1Open ? '' : '-rotate-90'}`}
@@ -78,7 +79,7 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
             {/* Hints Section */}
             <div className="border border-slate-700 rounded-lg overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 bg-slate-900">
-                <Lightbulb className="w-4 h-4 text-slate-400" />
+                <Lightbulb className="size-4 text-slate-400" />
                 <span className="text-sm font-medium text-slate-400">
                   Hints
                 </span>
@@ -106,13 +107,14 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
       {/* Phase 2: Investigation (Locked/Preview) */}
       <div className="space-y-4 pt-4 border-t border-slate-700">
         <button
+          type="button"
           onClick={() => setPhase2Open(o => !o)}
           className={`flex items-center gap-2 w-full text-left ${phaseUnlocked ? 'text-green-400' : 'text-slate-400'}`}
         >
           {phaseUnlocked ? (
-            <CheckCircle className="w-5 h-5 flex-shrink-0" />
+            <CheckCircle className="size-5 flex-shrink-0" />
           ) : (
-            <Lock className="w-5 h-5 flex-shrink-0" />
+            <Lock className="size-5 flex-shrink-0" />
           )}
           <h3 className="font-semibold flex-1">Phase 2: Investigation</h3>
           <ChevronDown
@@ -129,10 +131,11 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
                 </ReactMarkdown>
               </div>
               <button
+                type="button"
                 onClick={onStartInvestigation}
                 className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                <Unlock className="w-4 h-4" />
+                <Unlock className="size-4" />
                 Open Investigation →
               </button>
             </div>
@@ -149,7 +152,7 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
       {/* Resources */}
       <div className="pt-4 border-t border-slate-700">
         <div className="flex items-center gap-2 text-slate-400 mb-3">
-          <BookOpen className="w-4 h-4" />
+          <BookOpen className="size-4" />
           <span className="text-sm font-medium">Learn</span>
         </div>
 

@@ -66,8 +66,8 @@ function NoTelemetryData({ onGoToPhase1 }: { onGoToPhase1: () => void }) {
   return (
     <div className="h-full flex items-center justify-center bg-slate-900 px-6">
       <div className="text-center max-w-md mx-auto">
-        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Radio className="w-8 h-8 text-slate-600" />
+        <div className="size-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Radio className="size-8 text-slate-600" />
         </div>
         <h3 className="text-lg font-semibold text-slate-200 mb-2">
           No Telemetry Data
@@ -76,6 +76,7 @@ function NoTelemetryData({ onGoToPhase1 }: { onGoToPhase1: () => void }) {
           Run your code in Phase 1 to generate telemetry data for investigation.
         </p>
         <button
+          type="button"
           onClick={onGoToPhase1}
           className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
         >
@@ -252,6 +253,7 @@ function App() {
         </span>
         {supportedLanguages.map(lang => (
           <button
+            type="button"
             key={lang}
             role="tab"
             aria-selected={activeLanguage === lang}
@@ -282,6 +284,7 @@ function App() {
     currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
       <div className="flex-shrink-0 flex border-b border-slate-700 bg-slate-900">
         <button
+          type="button"
           onClick={() => setAppPhase('instrumentation')}
           className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
             appPhase === 'instrumentation'
@@ -289,9 +292,10 @@ function App() {
               : 'text-slate-500 hover:text-slate-300'
           }`}
         >
-          <Code2 className="w-4 h-4" />1 · Instrument
+          <Code2 className="size-4" />1 · Instrument
         </button>
         <button
+          type="button"
           disabled={!phaseUnlocked}
           onClick={() => phaseUnlocked && setAppPhase('investigation')}
           title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
@@ -303,7 +307,7 @@ function App() {
                 : 'text-slate-700 cursor-not-allowed'
           }`}
         >
-          {!phaseUnlocked && <Lock className="w-4 h-4 opacity-40" />}2 ·
+          {!phaseUnlocked && <Lock className="size-4 opacity-40" />}2 ·
           Investigate
         </button>
       </div>
@@ -555,8 +559,8 @@ function App() {
     return (
       <div className="h-screen bg-slate-900 flex items-center justify-center text-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-slate-400">Loading...</span>
+          <div className="size-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-slate-400">Loading…</span>
         </div>
       </div>
     )
@@ -581,8 +585,8 @@ function App() {
         <div className="flex items-center gap-2 sm:gap-4">
           {/* Logo (desktop only) */}
           <div className="hidden sm:flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-7 h-7 bg-gradient-to-br from-sky-500 to-violet-600 rounded-lg flex items-center justify-center">
-              <FlaskConical className="w-3.5 h-3.5 text-white" />
+            <div className="size-7 bg-gradient-to-br from-sky-500 to-violet-600 rounded-lg flex items-center justify-center">
+              <FlaskConical className="size-3.5 text-white" />
             </div>
             <div className="text-sm font-bold text-white">
               Telemetry Academy
@@ -591,10 +595,11 @@ function App() {
 
           {/* Back to home */}
           <button
+            type="button"
             onClick={() => setLocation('/')}
             className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0 px-2 py-1 rounded hover:bg-slate-700/50 border border-slate-700"
           >
-            <ArrowLeft className="w-3 h-3" />
+            <ArrowLeft className="size-3" />
             <span>Cases</span>
           </button>
 
@@ -612,6 +617,7 @@ function App() {
 
           {/* Case name (mobile) — tappable to open case switcher */}
           <button
+            type="button"
             className="flex-1 min-w-0 sm:hidden text-left flex items-center gap-1.5"
             onClick={() => setShowMobileDrawer(true)}
             aria-label="Switch case"
@@ -619,7 +625,7 @@ function App() {
             <span className="text-sm font-semibold text-slate-200 truncate">
               {currentCase.name}
             </span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+            <ChevronDown className="size-3.5 text-slate-400 flex-shrink-0" />
           </button>
 
           {/* Difficulty badge (desktop) */}
@@ -639,11 +645,12 @@ function App() {
 
           {/* Reset panel sizes (desktop) */}
           <button
+            type="button"
             onClick={handleResetPanels}
             title="Reset panel sizes"
             className="hidden sm:block p-1.5 text-slate-500 hover:text-sky-400 transition-colors"
           >
-            <LayoutPanelLeft className="w-3.5 h-3.5" />
+            <LayoutPanelLeft className="size-3.5" />
           </button>
 
           {/* Reset (desktop) */}
@@ -652,12 +659,14 @@ function App() {
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span className="text-xs text-slate-400">Reset?</span>
                 <button
+                  type="button"
                   onClick={handleResetAll}
                   className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
                 >
                   Yes
                 </button>
                 <button
+                  type="button"
                   onClick={() => setShowResetConfirm(false)}
                   className="px-2 py-1 bg-slate-700 text-white text-xs rounded"
                 >
@@ -666,11 +675,12 @@ function App() {
               </div>
             ) : (
               <button
+                type="button"
                 onClick={() => setShowResetConfirm(true)}
                 className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
                 title="Reset"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="size-3.5" />
               </button>
             )}
           </div>
@@ -688,6 +698,7 @@ function App() {
             ] as { id: MobileTab; label: string; icon: React.ElementType }[]
           ).map(({ id, label, icon: Icon }) => (
             <button
+              type="button"
               key={id}
               onClick={() => setMobileTab(id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors border-b-2 ${
@@ -696,7 +707,7 @@ function App() {
                   : 'border-transparent text-slate-500 hover:text-slate-300'
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="size-3.5" />
               {label}
             </button>
           ))}

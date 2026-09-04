@@ -1,4 +1,10 @@
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from 'react'
 import { Signal } from 'lucide-react'
 import { CONSENT_STORAGE_KEY, registerBannerOpener } from '../lib/cookieConsent'
 import { invalidateConsentCache } from '../hooks/useAnalytics'
@@ -103,6 +109,7 @@ export function CookieConsent() {
           {/* Actions */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 pt-0.5">
             <button
+              type="button"
               ref={acceptBtnRef}
               onClick={handleAccept}
               className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-800"
@@ -110,6 +117,7 @@ export function CookieConsent() {
               Allow analytics
             </button>
             <button
+              type="button"
               onClick={handleReject}
               className="flex-1 px-4 py-2 border border-slate-600 hover:border-slate-500 hover:bg-slate-700/50 active:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-800"
             >

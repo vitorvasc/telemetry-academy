@@ -115,6 +115,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           {/* Font size controls */}
           <div className="flex items-center gap-1">
             <button
+              type="button"
               onClick={decreaseFontSize}
               className="px-1.5 py-0.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded transition-colors font-mono"
               title="Decrease font size"
@@ -125,6 +126,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               {fontSize}
             </span>
             <button
+              type="button"
               onClick={increaseFontSize}
               className="px-1.5 py-0.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded transition-colors font-mono"
               title="Increase font size"
@@ -134,6 +136,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
           {/* Word wrap toggle */}
           <button
+            type="button"
             onClick={() => {
               const next = !wordWrap
               setWordWrap(next)
