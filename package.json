@@ -54,9 +54,9 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/coverage-v8": "^4.1.5",
+    "@vitest/coverage-v8": "^5.0.0",
     "@vitest/eslint-plugin": "^1.6.16",
-    "@vitest/ui": "^4.1.5",
+    "@vitest/ui": "^5.0.0",
     "autoprefixer": "^10.5.0",
     "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.8",
@@ -76,7 +76,7 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.16",
-    "vitest": "^4.1.5",
+    "vitest": "^5.0.0",
     "react-doctor": "^0.9.0"
   }
 }
