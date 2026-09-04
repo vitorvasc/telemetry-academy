@@ -92,9 +92,13 @@ export function useCodeRunner(language: Language = 'python') {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     initWorker()
+    // Snapshot the worker created by initWorker() so cleanup terminates the
+    // exact instance this effect started — not whatever a later initWorker()
+    // may have swapped into workerRef.current.
+    const worker = workerRef.current
     return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate()
+      if (worker) {
+        worker.terminate()
       }
     }
   }, [initWorker])

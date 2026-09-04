@@ -196,18 +196,16 @@ function App() {
 
   // Resolve the code for a given case+language: saved code → initial code fallback.
   // Uses getSavedCodeRef to avoid re-triggering effects on every keystroke.
-  const resolveCode = useCallback(
-    (caseId: string, lang: Language): string => {
-      const saved = getSavedCodeRef.current(caseId, lang)
-      if (saved !== undefined) return saved
-      const c = cases.find(x => x.id === caseId)
-      if (!c) return ''
-      return lang === 'javascript' && c.phase1.initialCodeJs
-        ? c.phase1.initialCodeJs
-        : c.phase1.initialCode
-    },
-    [cases]
-  )
+  // `cases` is a module-level import, so it is not a dependency.
+  const resolveCode = useCallback((caseId: string, lang: Language): string => {
+    const saved = getSavedCodeRef.current(caseId, lang)
+    if (saved !== undefined) return saved
+    const c = cases.find(x => x.id === caseId)
+    if (!c) return ''
+    return lang === 'javascript' && c.phase1.initialCodeJs
+      ? c.phase1.initialCodeJs
+      : c.phase1.initialCode
+  }, [])
 
   const currentCase = useMemo(
     () => cases.find(c => c.id === currentCaseId) ?? cases[0],
@@ -397,8 +395,9 @@ function App() {
     [setAllProgress]
   )
 
-  // Phase 1 validation
-  const handleValidate = async () => {
+  // Phase 1 validation — wrapped in useCallback so child components (CodeEditor)
+  // don't see a new function reference on every render.
+  const handleValidate = useCallback(async () => {
     setIsValidating(true)
     setWorkerError(null)
 
@@ -490,7 +489,17 @@ function App() {
     }
 
     setIsValidating(false)
-  }
+  }, [
+    currentCase,
+    currentCaseId,
+    code,
+    runCode,
+    activeLanguage,
+    getAttemptCount,
+    updateAttemptHistory,
+    updateProgress,
+    trackEvent,
+  ])
 
   // Phase 2 solved
   const handleCaseSolved = () => {

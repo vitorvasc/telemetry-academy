@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import type { LogEntry } from '../types/phase2'
 import { Search, Link2, ChevronDown } from 'lucide-react'
 
@@ -39,6 +39,18 @@ export const LogViewer: React.FC<LogViewerProps> = ({
       l.message.toLowerCase().includes(filter.toLowerCase()) ||
       l.level.includes(filter.toLowerCase())
   )
+
+  // Build stable per-line keys for the append-only code-output log so React
+  // doesn't fall back to array-index identity.
+  const userOutputLines = useMemo(() => {
+    if (!userOutput) return []
+    const seen = new Map<string, number>()
+    return userOutput.map(line => {
+      const n = (seen.get(line) ?? 0) + 1
+      seen.set(line, n)
+      return { key: `${n}:${line}`, line }
+    })
+  }, [userOutput])
 
   return (
     <div className="h-full flex flex-col bg-slate-950 font-mono">
@@ -159,8 +171,8 @@ export const LogViewer: React.FC<LogViewerProps> = ({
             </button>
             {outputExpanded && (
               <div className="px-4 pb-3 font-mono text-[11px] text-slate-600 space-y-0.5">
-                {userOutput.map((line, i) => (
-                  <div key={`out-${i}-${line.slice(0, 20)}`}>{line}</div>
+                {userOutputLines.map(({ key, line }) => (
+                  <div key={key}>{line}</div>
                 ))}
               </div>
             )}
