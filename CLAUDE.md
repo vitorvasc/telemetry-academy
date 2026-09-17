@@ -102,7 +102,12 @@ All external domains must be listed in `public/_headers` (`Content-Security-Poli
 2. Add the entry to `REQUIRED_DOMAINS` in both `scripts/check-csp.mjs` and `src/tests/csp.test.ts`
 3. Run `npm run check:csp` to verify
 
-## Current Phase: 4 (Content & Polish)
+## Project Status
 
-9 cases planned, 2 complete (`001-hello-span`, `002-auto-magic`).
-See `.planning/ROADMAP.md` for full scope and `.planning/STATE.md` for current state.
+v1.0 milestone complete: all 6 phases and 27/27 plans done. All 9 cases in `src/cases/` are shipped:
+
+`001-hello-span`, `002-auto-magic`, `003-the-collector`, `004-broken-context`,
+`005-the-baggage`, `006-metrics-meet-traces`, `007-log-detective`,
+`008-sampling-sleuth`, `009-the-perfect-storm`
+
+See `.planning/STATE.md` for current state and `.planning/ROADMAP.md` for full scope.
