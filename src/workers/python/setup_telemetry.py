@@ -8,13 +8,8 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExporter, Sp
 from opentelemetry.sdk.resources import Resource
 
 def _post_js(d):
-    """Convert a Python dict to a plain JS object and post it via postMessage.
-    Destroys the JsProxy after posting to prevent memory leaks."""
-    proxy = to_js(d, dict_converter=js.Object.fromEntries)
-    try:
-        js.postMessage(proxy)
-    finally:
-        proxy.destroy()
+    """Convert a Python dict to a plain JS object and post it via postMessage."""
+    js.postMessage(to_js(d, dict_converter=js.Object.fromEntries))
 
 class JSStdout:
     def write(self, s):
