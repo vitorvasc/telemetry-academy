@@ -5,7 +5,6 @@ import { CaseHeader } from './components/CaseHeader'
 import { MobileCaseDrawer } from './components/MobileCaseDrawer'
 import { CaseSolvedScreen } from './components/CaseSolvedScreen'
 import { HomePage } from './components/HomePage'
-import { ReviewModal } from './components/ReviewModal'
 import { WelcomeModal } from './components/WelcomeModal'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
@@ -70,7 +69,6 @@ function App() {
   >([])
   const [isValidating, setIsValidating] = useState(false)
   const [investigationAttempts, setInvestigationAttempts] = useState(0)
-  const [showReviewModal, setShowReviewModal] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showMobileDrawer, setShowMobileDrawer] = useState(false)
 
@@ -226,7 +224,6 @@ function App() {
       setValidationResults([])
       setAppPhase(prog.phase as AppPhase)
       setInvestigationAttempts(prog.attempts)
-      setShowReviewModal(false)
       if (prog.phase === 'investigation' || prog.phase === 'complete') {
         setLastPassedCode(savedCode)
       } else {
@@ -417,8 +414,6 @@ function App() {
     if (nextCase) switchCase(nextCase.id)
   }
 
-  const reviewInvestigation = () => setShowReviewModal(true)
-
   const languageBar = (
     <LanguageBar
       languages={currentCase.languages}
@@ -475,15 +470,6 @@ function App() {
       {/* ── Main ── */}
       <main className="flex-1 flex overflow-hidden">
         {/* Modals — rendered at App root level */}
-        {showReviewModal && (
-          <ReviewModal
-            spans={phase2Data?.spans ?? []}
-            correctOption={
-              phase2Data?.rootCauseOptions.find(o => o.correct) ?? null
-            }
-            onClose={() => setShowReviewModal(false)}
-          />
-        )}
         {showWelcome && <WelcomeModal onClose={handleWelcomeClose} />}
         {showMobileDrawer && (
           <MobileCaseDrawer
@@ -509,7 +495,7 @@ function App() {
                   attempts: investigationAttempts,
                 }}
                 onNext={goToNext}
-                onReview={reviewInvestigation}
+                phase2Data={phase2Data}
               />
             </div>
           ) : appPhase === 'instrumentation' ? (
