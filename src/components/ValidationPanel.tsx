@@ -22,6 +22,61 @@ interface ValidationPanelProps {
   loadingLabel?: string // Progressive loading stage label from useCodeRunner
 }
 
+type RunButtonProps = Pick<
+  ValidationPanelProps,
+  'isValidating' | 'onValidate' | 'phaseUnlocked' | 'loadingLabel'
+> & { isWorkerReady: boolean }
+
+const RunButton: React.FC<RunButtonProps> = ({
+  isValidating,
+  onValidate,
+  phaseUnlocked,
+  isWorkerReady,
+  loadingLabel,
+}) => {
+  const busy = !isWorkerReady || isValidating
+  const isMac = navigator.userAgent.toUpperCase().includes('MAC')
+  const title = busy ? undefined : isMac ? 'Run code (⌘↵)' : 'Run code (Ctrl+↵)'
+  const colorClass = busy
+    ? 'bg-primary/50 text-white cursor-not-allowed'
+    : phaseUnlocked
+      ? 'bg-success/20 text-green-400 hover:bg-success/30 active:scale-95'
+      : 'bg-sky-500 hover:bg-sky-600 text-white active:scale-95'
+
+  return (
+    <button
+      onClick={() => {
+        void onValidate()
+      }}
+      title={title}
+      disabled={busy}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${colorClass}`}
+    >
+      {!isWorkerReady ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-xs">{loadingLabel || 'Loading Python...'}</span>
+        </>
+      ) : isValidating ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Running code...
+        </>
+      ) : phaseUnlocked ? (
+        <>
+          <RotateCw className="w-4 h-4" />
+          Re-check
+        </>
+      ) : (
+        <>
+          <Play className="w-4 h-4" />
+          Check Code
+        </>
+      )}
+    </button>
+  )
+}
+
 const HintToggle: React.FC<{ text: string }> = ({ text }) => {
   const [open, setOpen] = useState(false)
   return (
@@ -39,6 +94,75 @@ const HintToggle: React.FC<{ text: string }> = ({ text }) => {
   )
 }
 
+// Progressive help for a failed rule: toggle on the first failure, inline hint
+// on the next two, guided message from the third prior failure onward.
+const HintBlock: React.FC<{ result: ValidationResult }> = ({ result }) => {
+  const { hintMessage, guidedMessage, attemptsOnThisRule: attempts } = result
+  if (attempts >= 3) {
+    return guidedMessage ? (
+      <div className="mt-2 px-3 py-2 rounded bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 animate-slide-in">
+        {guidedMessage}
+      </div>
+    ) : null
+  }
+  if (!hintMessage) return null
+  return attempts === 0 ? (
+    <HintToggle text={hintMessage} />
+  ) : (
+    <p className="mt-1.5 text-xs text-slate-400">{hintMessage}</p>
+  )
+}
+
+const TONE = {
+  passed: { bg: 'bg-green-400/10 border-success/30', text: 'text-green-400' },
+  guided: { bg: 'bg-amber-400/10 border-amber-500/30', text: 'text-amber-400' },
+  failed: { bg: 'bg-red-400/10 border-error/30', text: 'text-red-400' },
+} as const
+
+const ResultRow: React.FC<{ result: ValidationResult; index: number }> = ({
+  result,
+  index,
+}) => {
+  const attempts = result.attemptsOnThisRule
+  const failed = !result.passed
+  const tone =
+    TONE[result.passed ? 'passed' : attempts >= 3 ? 'guided' : 'failed']
+
+  return (
+    <div
+      className={`flex items-start gap-3 p-3 rounded-lg border ${tone.bg} animate-slide-in`}
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+        {result.passed ? (
+          <CheckCircle className="w-5 h-5 text-green-400" />
+        ) : (
+          <XCircle className={`w-5 h-5 ${tone.text}`} />
+        )}
+        {failed && attempts >= 1 && (
+          <Lightbulb
+            className="w-3.5 h-3.5 text-amber-400/70"
+            aria-label="Hint available"
+          />
+        )}
+      </div>
+
+      <div className="flex-1">
+        <p className={`text-sm font-medium ${tone.text}`}>{result.message}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-xs text-slate-400">{result.description}</p>
+          {failed && attempts > 0 && (
+            <span className="text-[10px] px-1.5 py-0.5 bg-slate-700 text-slate-300 rounded">
+              Attempt {attempts + 1}
+            </span>
+          )}
+        </div>
+        {failed && <HintBlock result={result} />}
+      </div>
+    </div>
+  )
+}
+
 export const ValidationPanel: React.FC<ValidationPanelProps> = ({
   results,
   isValidating,
@@ -48,14 +172,6 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
   isWorkerReady = true, // Default to true for backward compatibility
   loadingLabel,
 }) => {
-  const isMac = navigator.userAgent.toUpperCase().includes('MAC')
-  const buttonTitle =
-    !isWorkerReady || isValidating
-      ? undefined
-      : isMac
-        ? 'Run code (⌘↵)'
-        : 'Run code (Ctrl+↵)'
-
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -65,48 +181,13 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
           <span className="font-medium text-white">Validation</span>
         </div>
 
-        <button
-          onClick={() => {
-            void onValidate()
-          }}
-          title={buttonTitle}
-          disabled={!isWorkerReady || isValidating}
-          className={`
-            flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
-            transition-all duration-200
-            ${
-              !isWorkerReady || isValidating
-                ? 'bg-primary/50 text-white cursor-not-allowed'
-                : phaseUnlocked
-                  ? 'bg-success/20 text-green-400 hover:bg-success/30 active:scale-95'
-                  : 'bg-sky-500 hover:bg-sky-600 text-white active:scale-95'
-            }
-          `}
-        >
-          {!isWorkerReady ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-xs">
-                {loadingLabel || 'Loading Python...'}
-              </span>
-            </>
-          ) : isValidating ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Running code...
-            </>
-          ) : phaseUnlocked ? (
-            <>
-              <RotateCw className="w-4 h-4" />
-              Re-check
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4" />
-              Check Code
-            </>
-          )}
-        </button>
+        <RunButton
+          isValidating={isValidating}
+          onValidate={onValidate}
+          phaseUnlocked={phaseUnlocked}
+          isWorkerReady={isWorkerReady}
+          loadingLabel={loadingLabel}
+        />
       </div>
 
       {/* Results */}
@@ -125,81 +206,13 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
           </div>
         ) : (
           <div className="space-y-3">
-            {results.map((result, index) => {
-              const isGuided = result.attemptsOnThisRule >= 3
-              const bgClass = result.passed
-                ? 'bg-green-400/10 border-success/30'
-                : isGuided
-                  ? 'bg-amber-400/10 border-amber-500/30' // Amber for guided help
-                  : 'bg-red-400/10 border-error/30' // Red for errors
-              const textClass = result.passed
-                ? 'text-green-400'
-                : isGuided
-                  ? 'text-amber-400'
-                  : 'text-red-400'
-
-              return (
-                <div
-                  key={result.description}
-                  className={`
-                    flex items-start gap-3 p-3 rounded-lg border
-                    ${bgClass}
-                    animate-slide-in
-                  `}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
-                    {result.passed ? (
-                      <CheckCircle className="w-5 h-5 text-green-400" />
-                    ) : isGuided ? (
-                      <XCircle className="w-5 h-5 text-amber-400" />
-                    ) : (
-                      <XCircle className="w-5 h-5 text-red-400" />
-                    )}
-                    {!result.passed && result.attemptsOnThisRule >= 1 && (
-                      <Lightbulb
-                        className="w-3.5 h-3.5 text-amber-400/70"
-                        aria-label="Hint available"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${textClass}`}>
-                      {result.message}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-xs text-slate-400">
-                        {result.description}
-                      </p>
-                      {!result.passed && result.attemptsOnThisRule > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.5 bg-slate-700 text-slate-300 rounded">
-                          Attempt {result.attemptsOnThisRule + 1}
-                        </span>
-                      )}
-                    </div>
-                    {!result.passed &&
-                      result.hintMessage &&
-                      result.attemptsOnThisRule === 0 && (
-                        <HintToggle text={result.hintMessage} />
-                      )}
-                    {!result.passed &&
-                      result.hintMessage &&
-                      result.attemptsOnThisRule >= 1 &&
-                      result.attemptsOnThisRule < 3 && (
-                        <p className="mt-1.5 text-xs text-slate-400">
-                          {result.hintMessage}
-                        </p>
-                      )}
-                    {!result.passed && isGuided && result.guidedMessage && (
-                      <div className="mt-2 px-3 py-2 rounded bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 animate-slide-in">
-                        {result.guidedMessage}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
+            {results.map((result, index) => (
+              <ResultRow
+                key={result.description}
+                result={result}
+                index={index}
+              />
+            ))}
 
             {/* Success Message */}
             {phaseUnlocked && (

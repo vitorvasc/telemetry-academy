@@ -38,6 +38,24 @@ describe('ValidationPanel hint toggle', () => {
     expect(screen.getByText(failedResult.hintMessage!)).toBeInTheDocument()
   })
 
+  it('shows the hint inline without a toggle at 1-2 prior attempts', () => {
+    renderPanel([{ ...failedResult, attemptsOnThisRule: 1 }])
+    expect(screen.getByText(failedResult.hintMessage!)).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Need a hint?' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows the guided message at 3+ prior attempts', () => {
+    renderPanel([
+      { ...failedResult, attemptsOnThisRule: 3, guidedMessage: 'Guided text' },
+    ])
+    expect(screen.getByText('Guided text')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Need a hint?' })
+    ).not.toBeInTheDocument()
+  })
+
   it('does not render the toggle when validation passes', () => {
     renderPanel([{ ...failedResult, passed: true, message: 'Span found' }])
     expect(
