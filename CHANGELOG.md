@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.4](https://github.com/vitorvasc/telemetry-academy/compare/telemetry-academy-v0.1.3...telemetry-academy-v0.1.4) (2026-09-17)
+
+
+### Features
+
+* add Spans tab to inspect telemetry from the last run ([#238](https://github.com/vitorvasc/telemetry-academy/issues/238)) ([2f28696](https://github.com/vitorvasc/telemetry-academy/commit/2f28696e822ed700a0cf90e13c62f7fdafb9f42f))
+* let students reveal hints after the first failed attempt ([#236](https://github.com/vitorvasc/telemetry-academy/issues/236)) ([824d1b9](https://github.com/vitorvasc/telemetry-academy/commit/824d1b9cce2613f99bdb67b8fb7082c3d9c9c367))
+* show Investigation Review inline on the Case Solved screen ([#235](https://github.com/vitorvasc/telemetry-academy/issues/235)) ([f55226e](https://github.com/vitorvasc/telemetry-academy/commit/f55226e9040b42fa7afe6ebff0a55c370ff6e146))
+
+
+### Bug Fixes
+
+* deliver spans from JavaScript runs ([#240](https://github.com/vitorvasc/telemetry-academy/issues/240)) ([8b542bf](https://github.com/vitorvasc/telemetry-academy/commit/8b542bf70e1302bff7efc9259360a08e69db7dcb))
+* disable Check Code until the sandbox is ready ([#233](https://github.com/vitorvasc/telemetry-academy/issues/233)) ([cce3db7](https://github.com/vitorvasc/telemetry-academy/commit/cce3db739755ae7a2f0a7d579586d21111043468))
+
 ## [0.1.3](https://github.com/vitorvasc/telemetry-academy/compare/telemetry-academy-v0.1.2...telemetry-academy-v0.1.3) (2026-09-17)
 
 
