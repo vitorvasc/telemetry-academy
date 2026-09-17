@@ -69,6 +69,27 @@ DEFERRED IDEAS section of CONTEXT.md, not the current phase.
 - `fix(XX-YY)` — Bug fix from UAT
 - `chore` — Non-feature changes (deps, config)
 
+## React Doctor (required on every PR)
+
+Every PR against `main` runs the React Doctor workflow (`.github/workflows/react-doctor.yml`,
+blocking on errors). It posts a sticky comment listing new issues versus `main`.
+
+Before opening or updating a PR, run it locally:
+
+```bash
+npx react-doctor . --scope changed --base origin/main --no-score
+```
+
+After pushing, wait for the check with `gh pr checks <n> --watch`, then read the sticky comment:
+
+```bash
+gh api repos/vitorvasc/telemetry-academy/issues/<n>/comments --jq '.[] | select(.body | test("react-doctor")) | .body'
+```
+
+Fix every error, warning and finding in files the PR touched, push, and repeat until the
+comment reports no new issues. Pre-existing issues on `main` in untouched files are out of scope.
+A PR is not ready for review until React Doctor reports no new issues.
+
 ## Case Authoring Checklist
 
 When creating a new case:
