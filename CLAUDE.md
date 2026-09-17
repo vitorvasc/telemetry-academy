@@ -93,7 +93,8 @@ All external domains must be listed in `public/_headers` (`Content-Security-Poli
 | `https://pypi.org` | `connect-src` | micropip fetches package metadata for opentelemetry-api/sdk |
 | `https://files.pythonhosted.org` | `connect-src` | micropip downloads Python wheels at runtime |
 | `https://www.googletagmanager.com` | `script-src`, `connect-src` | Google Analytics 4 gtag.js loader |
-| `https://www.google-analytics.com` | `connect-src` | Google Analytics 4 event collection endpoint |
+| `https://*.google-analytics.com` | `connect-src`, `img-src` | Google Analytics 4 collection endpoint (regional subdomains such as `region1`) |
+| `https://*.analytics.google.com` | `connect-src` | Google Analytics 4 alternate collection endpoint |
 
 **When adding a new external dependency:**
 1. Add the domain to the correct directive(s) in `public/_headers`
