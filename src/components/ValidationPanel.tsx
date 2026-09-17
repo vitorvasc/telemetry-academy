@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import type { ValidationResult } from '../types'
 import {
   Play,
@@ -20,6 +20,23 @@ interface ValidationPanelProps {
   onStartInvestigation?: () => void
   isWorkerReady?: boolean // Add to distinguish init vs execution
   loadingLabel?: string // Progressive loading stage label from useCodeRunner
+}
+
+const HintToggle: React.FC<{ text: string }> = ({ text }) => {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mt-1.5">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        className="text-xs text-amber-400 hover:text-amber-300 underline underline-offset-2"
+      >
+        {open ? 'Hide hint' : 'Need a hint?'}
+      </button>
+      {open && <p className="mt-1 text-xs text-slate-400">{text}</p>}
+    </div>
+  )
 }
 
 export const ValidationPanel: React.FC<ValidationPanelProps> = ({
@@ -161,6 +178,11 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({
                         </span>
                       )}
                     </div>
+                    {!result.passed &&
+                      result.hintMessage &&
+                      result.attemptsOnThisRule === 0 && (
+                        <HintToggle text={result.hintMessage} />
+                      )}
                     {!result.passed &&
                       result.hintMessage &&
                       result.attemptsOnThisRule >= 1 &&
