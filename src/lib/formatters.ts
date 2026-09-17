@@ -5,7 +5,7 @@
  * - Under 1000ms: show as "Xms" (no rounding — preserves precision from OTel nanosecond source)
  * - 1000ms or more: show as "X.XXs"
  *
- * Used by: TraceViewer, ReviewModal, rootCauseEngine
+ * Used by: TraceViewer, InvestigationReview, rootCauseEngine
  */
 export function formatSpanMs(ms: number): string {
   if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`
