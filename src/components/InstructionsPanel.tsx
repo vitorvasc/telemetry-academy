@@ -86,7 +86,7 @@ export const InstructionsPanel: React.FC<InstructionsPanelProps> = ({
               <ul className="p-4 space-y-2 bg-slate-800">
                 {caseData.phase1.hints.map((hint, index) => (
                   <li
-                    key={index}
+                    key={hint}
                     className="flex items-start gap-2 text-sm text-slate-400"
                   >
                     <span className="text-sky-400 font-mono flex-shrink-0">
