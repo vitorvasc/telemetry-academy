@@ -1,37 +1,21 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-  lazy,
-  Suspense,
-} from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useLocation, useRoute } from 'wouter'
 
-const CodeEditor = lazy(() =>
-  import('./components/CodeEditor').then(m => ({ default: m.CodeEditor }))
-)
-import { InstructionsPanel } from './components/InstructionsPanel'
-import { ValidationPanel } from './components/ValidationPanel'
-import { InvestigationView } from './components/InvestigationView'
-import { CaseSelector } from './components/CaseSelector'
-import { PythonIcon, JavaScriptIcon } from './components/LanguageIcon'
+import { CaseHeader } from './components/CaseHeader'
 import { MobileCaseDrawer } from './components/MobileCaseDrawer'
 import { CaseSolvedScreen } from './components/CaseSolvedScreen'
 import { HomePage } from './components/HomePage'
-import { OutputPanel } from './components/terminal/OutputPanel'
 import { ReviewModal } from './components/ReviewModal'
 import { WelcomeModal } from './components/WelcomeModal'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { CookieConsent } from './components/CookieConsent'
 import { Footer } from './components/Footer'
+import { PhaseBar, type AppPhase } from './components/PhaseBar'
+import { LanguageBar } from './components/LanguageBar'
+import { InstrumentationWorkspace } from './components/InstrumentationWorkspace'
+import { InvestigationWorkspace } from './components/InvestigationWorkspace'
 import { reopenCookieConsent } from './lib/cookieConsent'
-import {
-  useCodeRunner,
-  type Language,
-  LANGUAGE_FILE_EXTENSIONS,
-} from './hooks/useCodeRunner'
+import { useCodeRunner, type Language } from './hooks/useCodeRunner'
 import { useAnalytics } from './hooks/useAnalytics'
 import { useAcademyPersistence } from './hooks/useAcademyPersistence'
 import { useCaseRouteGuard } from './hooks/useCaseRouteGuard'
@@ -40,52 +24,7 @@ import type { Case, ValidationResult } from './types'
 import type { CaseProgress } from './types/progress'
 import { validateSpans, validateYaml } from './lib/validation'
 import { cases } from './data/cases'
-import {
-  FlaskConical,
-  RotateCcw,
-  Radio,
-  ArrowLeft,
-  BookOpen,
-  Code2,
-  Terminal,
-  LayoutPanelLeft,
-  ChevronDown,
-  Lock,
-} from 'lucide-react'
-import {
-  Group,
-  Panel,
-  Separator,
-  useGroupRef,
-  useDefaultLayout,
-} from 'react-resizable-panels'
-
-type AppPhase = 'instrumentation' | 'investigation' | 'solved'
-type MobileTab = 'instructions' | 'code' | 'output'
-
-function NoTelemetryData({ onGoToPhase1 }: { onGoToPhase1: () => void }) {
-  return (
-    <div className="h-full flex items-center justify-center bg-slate-900 px-6">
-      <div className="text-center max-w-md mx-auto">
-        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Radio className="w-8 h-8 text-slate-600" />
-        </div>
-        <h3 className="text-lg font-semibold text-slate-200 mb-2">
-          No Telemetry Data
-        </h3>
-        <p className="text-sm text-slate-500 mb-6">
-          Run your code in Phase 1 to generate telemetry data for investigation.
-        </p>
-        <button
-          onClick={onGoToPhase1}
-          className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          Go to Phase 1
-        </button>
-      </div>
-    </div>
-  )
-}
+import { useGroupRef, useDefaultLayout } from 'react-resizable-panels'
 
 const FIRST_CASE_ID = '001-hello-span'
 
@@ -123,7 +62,6 @@ function App() {
   const showHome = !matchCase
 
   const [currentCaseId, setCurrentCaseId] = useState(cases[0].id)
-  const [mobileTab, setMobileTab] = useState<MobileTab>('instructions')
   const [appPhase, setAppPhase] = useState<AppPhase>('instrumentation')
   const [code, setCode] = useState(cases[0].phase1.initialCode)
   const [resetCount, setResetCount] = useState(0)
@@ -132,7 +70,6 @@ function App() {
   >([])
   const [isValidating, setIsValidating] = useState(false)
   const [investigationAttempts, setInvestigationAttempts] = useState(0)
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showMobileDrawer, setShowMobileDrawer] = useState(false)
@@ -237,81 +174,6 @@ function App() {
     currentProgress.phase === 'investigation' ||
     currentProgress.phase === 'complete' ||
     lastPassedCode !== null
-
-  const supportedLanguages = currentCase.languages ?? ['python']
-  const isMultiLanguage = supportedLanguages.length > 1
-
-  const languageBar =
-    isMultiLanguage && appPhase === 'instrumentation' ? (
-      <div
-        className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 border-b border-slate-700 bg-slate-900/50"
-        role="tablist"
-        aria-label="Language"
-      >
-        <span
-          className="text-[10px] uppercase tracking-widest text-slate-500 mr-1"
-          aria-hidden="true"
-        >
-          Lang
-        </span>
-        {supportedLanguages.map(lang => (
-          <button
-            key={lang}
-            role="tab"
-            aria-selected={activeLanguage === lang}
-            onClick={() => switchLanguage(lang)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-              activeLanguage === lang
-                ? 'bg-slate-700 text-slate-100'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            {lang === 'python' ? (
-              <>
-                <PythonIcon />
-                <span>Python</span>
-              </>
-            ) : (
-              <>
-                <JavaScriptIcon />
-                <span>JavaScript</span>
-              </>
-            )}
-          </button>
-        ))}
-      </div>
-    ) : null
-
-  const phaseBar =
-    currentProgress.status !== 'locked' && appPhase !== 'solved' ? (
-      <div className="flex-shrink-0 flex border-b border-slate-700 bg-slate-900">
-        <button
-          onClick={() => setAppPhase('instrumentation')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-            appPhase === 'instrumentation'
-              ? 'bg-sky-600/20 text-sky-400 border-b-2 border-sky-500'
-              : 'text-slate-500 hover:text-slate-300'
-          }`}
-        >
-          <Code2 className="w-4 h-4" />1 · Instrument
-        </button>
-        <button
-          disabled={!phaseUnlocked}
-          onClick={() => phaseUnlocked && setAppPhase('investigation')}
-          title={!phaseUnlocked ? 'Complete Phase 1 to unlock' : undefined}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-            appPhase === 'investigation'
-              ? 'bg-amber-600/20 text-amber-400 border-b-2 border-amber-500'
-              : phaseUnlocked
-                ? 'text-slate-500 hover:text-slate-300'
-                : 'text-slate-700 cursor-not-allowed'
-          }`}
-        >
-          {!phaseUnlocked && <Lock className="w-4 h-4 opacity-40" />}2 ·
-          Investigate
-        </button>
-      </div>
-    ) : null
 
   // Load persisted code when persistence is ready, case switches, or language changes.
   // getSavedCode is intentionally accessed via ref so its changing reference
@@ -534,7 +396,6 @@ function App() {
     setAppPhase('instrumentation')
     setActiveLanguage('python')
     setLastPassedCode(null)
-    setShowResetConfirm(false)
   }
 
   const handleWelcomeClose = () => {
@@ -557,6 +418,23 @@ function App() {
   }
 
   const reviewInvestigation = () => setShowReviewModal(true)
+
+  const languageBar = (
+    <LanguageBar
+      languages={currentCase.languages}
+      active={activeLanguage}
+      onSwitch={switchLanguage}
+    />
+  )
+
+  const phaseBar = (
+    <PhaseBar
+      appPhase={appPhase}
+      phaseUnlocked={phaseUnlocked}
+      locked={currentProgress.status === 'locked'}
+      onSelectPhase={setAppPhase}
+    />
+  )
 
   // Loading state
   if (!isLoaded) {
@@ -584,132 +462,15 @@ function App() {
 
   return (
     <div className="h-screen bg-slate-900 text-slate-50 flex flex-col overflow-hidden">
-      {/* ── Header ── */}
-      <header className="flex-shrink-0 border-b border-slate-700 bg-slate-800 px-3 sm:px-5 py-2">
-        <div className="flex items-center gap-2 sm:gap-4">
-          {/* Logo (desktop only) */}
-          <div className="hidden sm:flex items-center gap-2.5 flex-shrink-0">
-            <div className="w-7 h-7 bg-gradient-to-br from-sky-500 to-violet-600 rounded-lg flex items-center justify-center">
-              <FlaskConical className="w-3.5 h-3.5 text-white" />
-            </div>
-            <div className="text-sm font-bold text-white">
-              Telemetry Academy
-            </div>
-          </div>
-
-          {/* Back to home */}
-          <button
-            onClick={() => setLocation('/')}
-            className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0 px-2 py-1 rounded hover:bg-slate-700/50 border border-slate-700"
-          >
-            <ArrowLeft className="w-3 h-3" />
-            <span>Cases</span>
-          </button>
-
-          <div className="hidden sm:block w-px h-6 bg-slate-700 flex-shrink-0" />
-
-          {/* Case Selector */}
-          <div className="flex-1 min-w-0 hidden sm:block">
-            <CaseSelector
-              cases={cases}
-              progress={allProgress}
-              currentCaseId={currentCaseId}
-              onSelect={switchCase}
-            />
-          </div>
-
-          {/* Case name (mobile) — tappable to open case switcher */}
-          <button
-            className="flex-1 min-w-0 sm:hidden text-left flex items-center gap-1.5"
-            onClick={() => setShowMobileDrawer(true)}
-            aria-label="Switch case"
-          >
-            <span className="text-sm font-semibold text-slate-200 truncate">
-              {currentCase.name}
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-          </button>
-
-          {/* Difficulty badge (desktop) */}
-          <span
-            className={`hidden sm:inline text-[10px] font-bold px-2 py-1 rounded-full border flex-shrink-0 ${
-              currentCase.difficulty === 'rookie'
-                ? 'border-green-800 text-green-400 bg-green-950/40'
-                : currentCase.difficulty === 'junior'
-                  ? 'border-sky-800 text-sky-400 bg-sky-950/40'
-                  : currentCase.difficulty === 'senior'
-                    ? 'border-violet-800 text-violet-400 bg-violet-950/40'
-                    : 'border-amber-800 text-amber-400 bg-amber-950/40'
-            }`}
-          >
-            {currentCase.difficulty.toUpperCase()}
-          </span>
-
-          {/* Reset panel sizes (desktop) */}
-          <button
-            onClick={handleResetPanels}
-            title="Reset panel sizes"
-            className="hidden sm:block p-1.5 text-slate-500 hover:text-sky-400 transition-colors"
-          >
-            <LayoutPanelLeft className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Reset (desktop) */}
-          <div className="hidden sm:block">
-            {showResetConfirm ? (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-xs text-slate-400">Reset?</span>
-                <button
-                  onClick={handleResetAll}
-                  className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
-                >
-                  Yes
-                </button>
-                <button
-                  onClick={() => setShowResetConfirm(false)}
-                  className="px-2 py-1 bg-slate-700 text-white text-xs rounded"
-                >
-                  No
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowResetConfirm(true)}
-                className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
-                title="Reset"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* ── Mobile Tab Bar ── */}
-      {appPhase === 'instrumentation' && (
-        <div className="flex sm:hidden border-b border-slate-700 bg-slate-800 flex-shrink-0">
-          {(
-            [
-              { id: 'instructions', label: 'Guide', icon: BookOpen },
-              { id: 'code', label: 'Code', icon: Code2 },
-              { id: 'output', label: 'Output', icon: Terminal },
-            ] as { id: MobileTab; label: string; icon: React.ElementType }[]
-          ).map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setMobileTab(id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium transition-colors border-b-2 ${
-                mobileTab === id
-                  ? 'border-sky-500 text-sky-400'
-                  : 'border-transparent text-slate-500 hover:text-slate-300'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
+      <CaseHeader
+        currentCase={currentCase}
+        progress={allProgress}
+        onSelectCase={switchCase}
+        onBack={() => setLocation('/')}
+        onOpenMobileDrawer={() => setShowMobileDrawer(true)}
+        onResetPanels={handleResetPanels}
+        onResetAll={handleResetAll}
+      />
 
       {/* ── Main ── */}
       <main className="flex-1 flex overflow-hidden">
@@ -752,260 +513,45 @@ function App() {
               />
             </div>
           ) : appPhase === 'instrumentation' ? (
-            <>
-              {/* ── Desktop layout (resizable panels) ── */}
-              <Group
-                orientation="horizontal"
-                groupRef={mainGroupRef}
-                className="hidden sm:flex flex-1 overflow-hidden"
-                defaultLayout={mainLayout.defaultLayout}
-                onLayoutChanged={mainLayout.onLayoutChanged}
-              >
-                <Panel
-                  id="ta-instructions"
-                  defaultSize="25%"
-                  minSize="15%"
-                  maxSize="45%"
-                  className="overflow-y-auto"
-                >
-                  <InstructionsPanel
-                    case={currentCase}
-                    phaseUnlocked={phaseUnlocked}
-                    onStartInvestigation={() => setAppPhase('investigation')}
-                  />
-                </Panel>
-                <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-                <Panel
-                  id="ta-editor-group"
-                  className="flex flex-col overflow-hidden"
-                >
-                  {phaseBar}
-                  <Group
-                    orientation="vertical"
-                    className="flex-1 overflow-hidden"
-                    defaultLayout={rightLayout.defaultLayout}
-                    onLayoutChanged={rightLayout.onLayoutChanged}
-                  >
-                    <Panel
-                      id="ta-editor"
-                      defaultSize="70%"
-                      minSize="25%"
-                      className="overflow-hidden flex flex-col"
-                    >
-                      {languageBar}
-                      <div className="flex-1 p-4 overflow-hidden">
-                        <Suspense
-                          fallback={
-                            <div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />
-                          }
-                        >
-                          <CodeEditor
-                            value={code}
-                            onChange={setCode}
-                            language={
-                              currentCase.type === 'yaml-config'
-                                ? 'yaml'
-                                : activeLanguage
-                            }
-                            filename={
-                              currentCase.type === 'yaml-config'
-                                ? 'collector.yaml'
-                                : `payment_service${LANGUAGE_FILE_EXTENSIONS[activeLanguage]}`
-                            }
-                            onRunShortcut={handleValidate}
-                            defaultWordWrap={currentCase.type === 'yaml-config'}
-                            caseKey={`${currentCaseId}-${activeLanguage}-${resetCount}`}
-                          />
-                        </Suspense>
-                      </div>
-                    </Panel>
-                    <Separator className="h-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-row-resize flex-shrink-0" />
-                    <Panel
-                      id="ta-bottom"
-                      defaultSize="30%"
-                      minSize="15%"
-                      className="overflow-hidden bg-slate-800 border-t border-slate-700"
-                    >
-                      <Group
-                        orientation="horizontal"
-                        className="h-full"
-                        defaultLayout={bottomLayout.defaultLayout}
-                        onLayoutChanged={bottomLayout.onLayoutChanged}
-                      >
-                        <Panel
-                          id="ta-validation"
-                          defaultSize="50%"
-                          minSize="20%"
-                        >
-                          <ValidationPanel
-                            results={validationResults}
-                            isValidating={isValidating}
-                            isWorkerReady={isWorkerReady}
-                            loadingLabel={loadingLabel}
-                            onValidate={handleValidate}
-                            phaseUnlocked={phaseUnlocked}
-                            onStartInvestigation={() =>
-                              setAppPhase('investigation')
-                            }
-                          />
-                        </Panel>
-                        <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-                        <Panel id="ta-output" defaultSize="50%" minSize="20%">
-                          <OutputPanel
-                            output={output}
-                            error={workerError || initError}
-                            isRunning={isRunning}
-                          />
-                          {spans.length > 0 && (
-                            <div className="text-xs text-slate-500 mt-1 px-4">
-                              Captured {spans.length} telemetry span(s)
-                            </div>
-                          )}
-                        </Panel>
-                      </Group>
-                    </Panel>
-                  </Group>
-                </Panel>
-              </Group>
-
-              {/* ── Mobile layout (tabs) ── */}
-              <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
-                {phaseBar}
-                {mobileTab === 'instructions' && (
-                  <div className="flex-1 overflow-y-auto">
-                    <InstructionsPanel
-                      case={currentCase}
-                      phaseUnlocked={phaseUnlocked}
-                      onStartInvestigation={() => setAppPhase('investigation')}
-                    />
-                  </div>
-                )}
-                {mobileTab === 'code' && (
-                  <div className="flex-1 flex flex-col overflow-hidden">
-                    {languageBar}
-                    <div className="flex-1 p-3 overflow-hidden">
-                      <Suspense
-                        fallback={
-                          <div className="flex-1 h-full bg-slate-800 rounded-lg animate-pulse" />
-                        }
-                      >
-                        <CodeEditor
-                          value={code}
-                          onChange={setCode}
-                          language={
-                            currentCase.type === 'yaml-config'
-                              ? 'yaml'
-                              : activeLanguage
-                          }
-                          filename={
-                            currentCase.type === 'yaml-config'
-                              ? 'collector.yaml'
-                              : `payment_service${LANGUAGE_FILE_EXTENSIONS[activeLanguage]}`
-                          }
-                          onRunShortcut={handleValidate}
-                          defaultWordWrap={currentCase.type === 'yaml-config'}
-                          caseKey={`${currentCaseId}-${activeLanguage}-${resetCount}`}
-                        />
-                      </Suspense>
-                    </div>
-                  </div>
-                )}
-                {mobileTab === 'output' && (
-                  <div className="flex-1 flex flex-col overflow-hidden">
-                    <div className="flex-1 border-b border-slate-700 overflow-hidden">
-                      <ValidationPanel
-                        results={validationResults}
-                        isValidating={isValidating}
-                        isWorkerReady={isWorkerReady}
-                        loadingLabel={loadingLabel}
-                        onValidate={handleValidate}
-                        phaseUnlocked={phaseUnlocked}
-                        onStartInvestigation={() => {
-                          setAppPhase('investigation')
-                        }}
-                      />
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <OutputPanel
-                        output={output}
-                        error={workerError || initError}
-                        isRunning={isRunning}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
+            <InstrumentationWorkspace
+              currentCase={currentCase}
+              code={code}
+              onCodeChange={setCode}
+              language={activeLanguage}
+              resetCount={resetCount}
+              onValidate={handleValidate}
+              validationResults={validationResults}
+              isValidating={isValidating}
+              isWorkerReady={isWorkerReady}
+              loadingLabel={loadingLabel}
+              phaseUnlocked={phaseUnlocked}
+              onStartInvestigation={() => setAppPhase('investigation')}
+              output={output}
+              workerError={workerError}
+              initError={initError}
+              isRunning={isRunning}
+              spanCount={spans.length}
+              phaseBar={phaseBar}
+              languageBar={languageBar}
+              groupRef={mainGroupRef}
+              mainLayout={mainLayout}
+              rightLayout={rightLayout}
+              bottomLayout={bottomLayout}
+            />
           ) : (
-            <>
-              {/* ── Desktop layout (resizable panels) ── */}
-              <Group
-                orientation="horizontal"
-                groupRef={mainGroupRef}
-                className="hidden sm:flex flex-1 overflow-hidden"
-                defaultLayout={mainLayout.defaultLayout}
-                onLayoutChanged={mainLayout.onLayoutChanged}
-              >
-                <Panel
-                  id="ta-instructions"
-                  defaultSize="25%"
-                  minSize="15%"
-                  maxSize="45%"
-                  className="overflow-y-auto"
-                >
-                  <InstructionsPanel
-                    case={currentCase}
-                    phaseUnlocked={phaseUnlocked}
-                  />
-                </Panel>
-                <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
-                <Panel
-                  id="ta-investigation"
-                  defaultSize="75%"
-                  minSize="40%"
-                  className="flex flex-col overflow-hidden"
-                >
-                  {phaseBar}
-                  <div className="flex-1 overflow-hidden">
-                    {hasPhase2Data && phase2Data ? (
-                      <InvestigationView
-                        data={phase2Data}
-                        caseName={currentCase.name}
-                        currentCaseId={currentCaseId}
-                        onCaseSolved={handleCaseSolved}
-                        onAttempt={handleInvestigationAttempt}
-                        userOutput={output}
-                      />
-                    ) : (
-                      <NoTelemetryData
-                        onGoToPhase1={() => setAppPhase('instrumentation')}
-                      />
-                    )}
-                  </div>
-                </Panel>
-              </Group>
-
-              {/* ── Mobile layout (full-width investigation) ── */}
-              <div className="flex sm:hidden flex-1 flex-col overflow-hidden">
-                {phaseBar}
-                <div className="flex-1 overflow-hidden">
-                  {hasPhase2Data && phase2Data ? (
-                    <InvestigationView
-                      data={phase2Data}
-                      caseName={currentCase.name}
-                      currentCaseId={currentCaseId}
-                      onCaseSolved={handleCaseSolved}
-                      onAttempt={handleInvestigationAttempt}
-                      userOutput={output}
-                    />
-                  ) : (
-                    <NoTelemetryData
-                      onGoToPhase1={() => setAppPhase('instrumentation')}
-                    />
-                  )}
-                </div>
-              </div>
-            </>
+            <InvestigationWorkspace
+              currentCase={currentCase}
+              phaseUnlocked={phaseUnlocked}
+              phase2Data={phase2Data}
+              hasPhase2Data={hasPhase2Data}
+              output={output}
+              onCaseSolved={handleCaseSolved}
+              onAttempt={handleInvestigationAttempt}
+              onGoToPhase1={() => setAppPhase('instrumentation')}
+              phaseBar={phaseBar}
+              groupRef={mainGroupRef}
+              mainLayout={mainLayout}
+            />
           )}
         </ErrorBoundary>
       </main>
