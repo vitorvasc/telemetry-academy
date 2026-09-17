@@ -42,10 +42,18 @@ jobs:
       - name: Tests
         run: npm run test || true
 
+      - name: Read package version
+        run: echo "VITE_DD_VERSION=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+
       - name: Build
         run: npm run build
         env:
           VITE_GA_MEASUREMENT_ID: ${{ secrets.VITE_GA_MEASUREMENT_ID }}
+          VITE_DD_RUM_APPLICATION_ID: ${{ secrets.VITE_DD_RUM_APPLICATION_ID }}
+          VITE_DD_RUM_CLIENT_TOKEN: ${{ secrets.VITE_DD_RUM_CLIENT_TOKEN }}
+          VITE_DD_SITE: us5.datadoghq.com
+          VITE_DD_SERVICE: telemetry-academy
+          VITE_DD_ENV: production
 
       - name: Publish to Cloudflare Pages
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
