@@ -19,18 +19,15 @@ import type { RawOTelSpan } from '../hooks/usePhase2Data'
 
 let runId = 0
 
-function setupProvider(): {
-  provider: BasicTracerProvider
-  exporter: InMemorySpanExporter
-} {
-  const exporter = new InMemorySpanExporter()
-  const provider = new BasicTracerProvider({
-    spanProcessors: [new SimpleSpanProcessor(exporter)],
-  })
-  // Register as the global tracer provider
-  trace.setGlobalTracerProvider(provider)
-  return { provider, exporter }
-}
+// One provider for the worker's lifetime. The API accepts a single global tracer
+// provider registration, so a per-run provider would leave every run after the
+// first still bound to the previous (shut-down) one. The exporter is reset per run
+// instead of shut down: InMemorySpanExporter.shutdown() discards its stored spans.
+const exporter = new InMemorySpanExporter()
+const provider = new BasicTracerProvider({
+  spanProcessors: [new SimpleSpanProcessor(exporter)],
+})
+trace.setGlobalTracerProvider(provider)
 
 function captureConsole(): { lines: string[]; restore: () => void } {
   const lines: string[] = []
@@ -108,7 +105,7 @@ self.onmessage = async (event: MessageEvent) => {
   if (type !== 'run') return
 
   const currentRun = ++runId
-  const { provider, exporter } = setupProvider()
+  exporter.reset()
   const { lines, restore } = captureConsole()
 
   // 5s matches the Python worker convention. Note: setTimeout cannot interrupt a
@@ -150,8 +147,8 @@ self.onmessage = async (event: MessageEvent) => {
     clearTimeout(timeout)
     restore()
 
-    // Force-end any open spans by shutting down the provider
-    await provider.shutdown()
+    // Only spans the user code ended are exported; open spans are never delivered.
+    await provider.forceFlush()
 
     const rawSpans = spansToRaw(exporter.getFinishedSpans())
 
