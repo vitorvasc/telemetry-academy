@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 
 // Mock pyodide before importing the worker module (ESM top-level import)
-vi.mock('pyodide', () => ({ loadPyodide: vi.fn() }))
+vi.mock('pyodide', () => ({ loadPyodide: vi.fn(), version: '0.0.0' }))
 
 import { serializeResult } from './python.worker'
 

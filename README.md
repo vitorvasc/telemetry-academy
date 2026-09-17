@@ -80,7 +80,7 @@ src/
 | Frontend | React 19 + TypeScript + Vite |
 | Styling | Tailwind CSS v4 |
 | Editor | Monaco Editor (`@monaco-editor/react`) |
-| Python runtime | Pyodide 0.29.3 (WASM) |
+| Python runtime | Pyodide (WASM), version follows the `pyodide` entry in `package.json` |
 | OTel SDK | `opentelemetry-api` + `opentelemetry-sdk` (via micropip) |
 | Icons | Lucide React |
 | Routing | Wouter |
