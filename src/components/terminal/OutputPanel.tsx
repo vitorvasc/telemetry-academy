@@ -106,14 +106,14 @@ export function OutputPanel({
             No spans captured yet. Run your code to see telemetry output.
           </div>
         )}
-        {spans.map((span, i) => {
+        {spans.map(span => {
           const status = span.status?.status_code ?? 'UNSET'
           const attributes = Object.entries(
             normalizeAttributes(span.attributes ?? {})
           )
           return (
             <div
-              key={span.context?.span_id ?? `${i}-${span.name}`}
+              key={span.context.span_id}
               className="mb-3 pb-2 border-b border-slate-800 last:border-0"
             >
               <div className="flex flex-wrap items-baseline gap-x-3">
