@@ -34,11 +34,11 @@ import {
 } from './hooks/useCodeRunner'
 import { useAnalytics } from './hooks/useAnalytics'
 import { useAcademyPersistence } from './hooks/useAcademyPersistence'
+import { useCaseRouteGuard } from './hooks/useCaseRouteGuard'
 import { usePhase2Data } from './hooks/usePhase2Data'
 import type { Case, ValidationResult } from './types'
 import type { CaseProgress } from './types/progress'
 import { validateSpans, validateYaml } from './lib/validation'
-import { resolveGuardedCase } from './lib/routeGuard'
 import { cases } from './data/cases'
 import {
   FlaskConical,
@@ -164,15 +164,7 @@ function App() {
     }
   }, [matchCase, params?.id])
 
-  // Route guard: locked cases are not reachable by direct URL.
-  // Waits for persisted progress so returning users keep their unlocked cases.
-  useEffect(() => {
-    if (!isLoaded || !matchCase || !params?.id) return
-    const allowed = resolveGuardedCase(allProgress, params.id)
-    if (allowed !== params.id) {
-      setLocation(allowed ? `/case/${allowed}` : '/', { replace: true })
-    }
-  }, [isLoaded, matchCase, params?.id, allProgress, setLocation])
+  useCaseRouteGuard(isLoaded, allProgress, matchCase ? params?.id : undefined)
 
   // Show welcome modal on first visit
   useEffect(() => {
