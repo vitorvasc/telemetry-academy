@@ -69,6 +69,27 @@ DEFERRED IDEAS section of CONTEXT.md, not the current phase.
 - `fix(XX-YY)` — Bug fix from UAT
 - `chore` — Non-feature changes (deps, config)
 
+## React Doctor (required on every PR)
+
+Every PR against `main` runs the React Doctor workflow (`.github/workflows/react-doctor.yml`,
+blocking on errors). It posts a sticky comment listing new issues versus `main`.
+
+Before opening or updating a PR, run it locally:
+
+```bash
+npx react-doctor . --scope changed --base origin/main --no-score
+```
+
+After pushing, wait for the check with `gh pr checks <n> --watch`, then read the sticky comment:
+
+```bash
+gh api repos/vitorvasc/telemetry-academy/issues/<n>/comments --jq '.[] | select(.body | test("react-doctor")) | .body'
+```
+
+Fix every error, warning and finding in files the PR touched, push, and repeat until the
+comment reports no new issues. Pre-existing issues on `main` in untouched files are out of scope.
+A PR is not ready for review until React Doctor reports no new issues.
+
 ## Case Authoring Checklist
 
 When creating a new case:
@@ -102,7 +123,12 @@ All external domains must be listed in `public/_headers` (`Content-Security-Poli
 2. Add the entry to `REQUIRED_DOMAINS` in both `scripts/check-csp.mjs` and `src/tests/csp.test.ts`
 3. Run `npm run check:csp` to verify
 
-## Current Phase: 4 (Content & Polish)
+## Project Status
 
-9 cases planned, 2 complete (`001-hello-span`, `002-auto-magic`).
-See `.planning/ROADMAP.md` for full scope and `.planning/STATE.md` for current state.
+v1.0 milestone complete: all 6 phases and 27/27 plans done. All 9 cases in `src/cases/` are shipped:
+
+`001-hello-span`, `002-auto-magic`, `003-the-collector`, `004-broken-context`,
+`005-the-baggage`, `006-metrics-meet-traces`, `007-log-detective`,
+`008-sampling-sleuth`, `009-the-perfect-storm`
+
+See `.planning/STATE.md` for current state and `.planning/ROADMAP.md` for full scope.
