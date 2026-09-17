@@ -11,6 +11,7 @@ import { InstructionsPanel } from './InstructionsPanel'
 import { ValidationPanel } from './ValidationPanel'
 import { OutputPanel } from './terminal/OutputPanel'
 import { LANGUAGE_FILE_EXTENSIONS, type Language } from '../hooks/useCodeRunner'
+import type { RawOTelSpan } from '../hooks/usePhase2Data'
 import type { Case, ValidationResult } from '../types'
 
 const CodeEditor = lazy(() =>
@@ -111,7 +112,7 @@ interface InstrumentationWorkspaceProps {
   workerError: string | null
   initError: string | null
   isRunning: boolean
-  spanCount: number
+  spans: RawOTelSpan[]
   phaseBar: ReactNode
   languageBar: ReactNode
   groupRef: ReturnType<typeof useGroupRef>
@@ -137,7 +138,7 @@ export function InstrumentationWorkspace({
   workerError,
   initError,
   isRunning,
-  spanCount,
+  spans,
   phaseBar,
   languageBar,
   groupRef,
@@ -172,7 +173,12 @@ export function InstrumentationWorkspace({
   )
 
   const outputPanel = (
-    <OutputPanel output={output} error={runError} isRunning={isRunning} />
+    <OutputPanel
+      output={output}
+      error={runError}
+      isRunning={isRunning}
+      spans={spans}
+    />
   )
 
   return (
@@ -235,11 +241,6 @@ export function InstrumentationWorkspace({
                 <Separator className="w-1.5 bg-slate-700 hover:bg-sky-500/50 active:bg-sky-500 transition-colors cursor-col-resize flex-shrink-0" />
                 <Panel id="ta-output" defaultSize="50%" minSize="20%">
                   {outputPanel}
-                  {spanCount > 0 && (
-                    <div className="text-xs text-slate-500 mt-1 px-4">
-                      Captured {spanCount} telemetry span(s)
-                    </div>
-                  )}
                 </Panel>
               </Group>
             </Panel>

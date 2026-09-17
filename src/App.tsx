@@ -530,7 +530,7 @@ function App() {
               workerError={workerError}
               initError={initError}
               isRunning={isRunning}
-              spanCount={spans.length}
+              spans={spans}
               phaseBar={phaseBar}
               languageBar={languageBar}
               groupRef={mainGroupRef}
