@@ -1,4 +1,4 @@
-import { loadPyodide } from 'pyodide'
+import { loadPyodide, version } from 'pyodide'
 import type { PyodideInterface } from 'pyodide'
 
 let pyodide: PyodideInterface | null = null
@@ -40,10 +40,8 @@ self.onmessage = async (event: MessageEvent) => {
         total: 3,
         label: 'Loading Python runtime',
       })
-      // NOTE: Keep this version in sync with the "pyodide" entry in package.json.
-      // When upgrading pyodide, update the version segment in this URL to match.
       pyodide = await loadPyodide({
-        indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/',
+        indexURL: `https://cdn.jsdelivr.net/pyodide/v${version}/full/`,
         // @ts-expect-error - cache option exists but types are outdated
         cache: true,
       })
