@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.3](https://github.com/vitorvasc/telemetry-academy/compare/telemetry-academy-v0.1.2...telemetry-academy-v0.1.3) (2026-09-17)
+
+
+### Features
+
+* **29:** guard locked case routes ([#227](https://github.com/vitorvasc/telemetry-academy/issues/227)) ([f54b3a9](https://github.com/vitorvasc/telemetry-academy/commit/f54b3a900562fd085b91010d0b7091e7fb35fe32))
+* add Datadog RUM browser SDK ([#229](https://github.com/vitorvasc/telemetry-academy/issues/229)) ([7762ad4](https://github.com/vitorvasc/telemetry-academy/commit/7762ad4face45121d56a5c43430507a49beab7d5))
+
+
+### Bug Fixes
+
+* **42:** reset code editor contents on Reset ([#228](https://github.com/vitorvasc/telemetry-academy/issues/228)) ([e3d938a](https://github.com/vitorvasc/telemetry-academy/commit/e3d938ae97d9bcb2298c0b5ad4505f2fe25a4f2e)), closes [#42](https://github.com/vitorvasc/telemetry-academy/issues/42)
+* allow GA4 regional collect endpoints in CSP and enable page views ([#221](https://github.com/vitorvasc/telemetry-academy/issues/221)) ([b0f0f7f](https://github.com/vitorvasc/telemetry-academy/commit/b0f0f7f1df6a1d83e596d4be20f2654c142d3ea6))
+* derive Pyodide CDN URL from the installed package version ([#223](https://github.com/vitorvasc/telemetry-academy/issues/223)) ([2659ffa](https://github.com/vitorvasc/telemetry-academy/commit/2659ffa56a200e1ed70a134746cce7a095000467))
+* stop destroying JsProxy results in the Python telemetry bridge ([#224](https://github.com/vitorvasc/telemetry-academy/issues/224)) ([f8637fa](https://github.com/vitorvasc/telemetry-academy/commit/f8637fa02444c461b265322486b8bf4a11030bc4))
+
 ## [0.1.2](https://github.com/vitorvasc/telemetry-academy/compare/telemetry-academy-v0.1.1...telemetry-academy-v0.1.2) (2026-09-01)
 
 
