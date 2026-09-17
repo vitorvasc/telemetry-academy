@@ -63,3 +63,45 @@ describe('ValidationPanel hint toggle', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('ValidationPanel run button', () => {
+  const renderButton = (
+    props: Partial<React.ComponentProps<typeof ValidationPanel>>
+  ) =>
+    render(
+      <ValidationPanel
+        results={[]}
+        isValidating={false}
+        onValidate={vi.fn()}
+        phaseUnlocked={false}
+        {...props}
+      />
+    )
+
+  it('is disabled with a loading label until the worker is ready', () => {
+    renderButton({ isWorkerReady: false })
+    expect(
+      screen.getByRole('button', { name: /loading sandbox/i })
+    ).toBeDisabled()
+  })
+
+  it('shows the loading stage label while initializing', () => {
+    renderButton({
+      isWorkerReady: false,
+      loadingLabel: 'Setting up sandbox (3/3)',
+    })
+    expect(
+      screen.getByRole('button', { name: /setting up sandbox \(3\/3\)/i })
+    ).toBeDisabled()
+  })
+
+  it('is enabled once the worker is ready', () => {
+    renderButton({ isWorkerReady: true })
+    expect(screen.getByRole('button', { name: /check code/i })).toBeEnabled()
+  })
+
+  it('is disabled while a run is in progress', () => {
+    renderButton({ isWorkerReady: true, isValidating: true })
+    expect(screen.getByRole('button', { name: /running code/i })).toBeDisabled()
+  })
+})

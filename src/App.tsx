@@ -403,6 +403,9 @@ function App() {
 
   // Phase 1 validation
   const handleValidate = async () => {
+    // Both the panel button and the editor's Cmd/Ctrl+Enter shortcut land here;
+    // running before the worker is ready burns a failed attempt on zero spans.
+    if (!isWorkerReady || isValidating) return
     setIsValidating(true)
     setWorkerError(null)
 
