@@ -95,6 +95,7 @@ All external domains must be listed in `public/_headers` (`Content-Security-Poli
 | `https://www.googletagmanager.com` | `script-src`, `connect-src` | Google Analytics 4 gtag.js loader |
 | `https://*.google-analytics.com` | `connect-src`, `img-src` | Google Analytics 4 collection endpoint (regional subdomains such as `region1`) |
 | `https://*.analytics.google.com` | `connect-src` | Google Analytics 4 alternate collection endpoint |
+| `https://browser-intake-us5-datadoghq.com` | `connect-src` | Datadog RUM browser SDK intake (us5 site) |
 
 **When adding a new external dependency:**
 1. Add the domain to the correct directive(s) in `public/_headers`

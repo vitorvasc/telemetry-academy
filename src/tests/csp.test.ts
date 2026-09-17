@@ -76,6 +76,11 @@ const REQUIRED_DOMAINS: Array<{
     directives: ['connect-src'],
     reason: 'Google Analytics 4 alternate collection endpoint',
   },
+  {
+    domain: 'https://browser-intake-us5-datadoghq.com',
+    directives: ['connect-src'],
+    reason: 'Datadog RUM intake (us5 site)',
+  },
 ]
 
 describe('Content Security Policy', () => {
