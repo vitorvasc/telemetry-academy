@@ -55,7 +55,7 @@ const RunButton: React.FC<RunButtonProps> = ({
       {!isWorkerReady ? (
         <>
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span className="text-xs">{loadingLabel || 'Loading Python...'}</span>
+          <span className="text-xs">{loadingLabel || 'Loading sandbox...'}</span>
         </>
       ) : isValidating ? (
         <>
