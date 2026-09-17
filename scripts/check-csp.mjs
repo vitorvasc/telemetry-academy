@@ -47,9 +47,14 @@ const REQUIRED_DOMAINS = [
     reason: 'Google Analytics 4 gtag.js loader',
   },
   {
-    domain: 'https://www.google-analytics.com',
+    domain: 'https://*.google-analytics.com',
+    directives: ['connect-src', 'img-src'],
+    reason: 'Google Analytics 4 collection endpoint (regional subdomains such as region1)',
+  },
+  {
+    domain: 'https://*.analytics.google.com',
     directives: ['connect-src'],
-    reason: 'Google Analytics 4 event collection endpoint',
+    reason: 'Google Analytics 4 alternate collection endpoint',
   },
 ];
 

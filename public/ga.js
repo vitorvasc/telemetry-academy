@@ -28,5 +28,5 @@
   s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
   document.head.appendChild(s);
   gtag('js', new Date());
-  gtag('config', id, { send_page_view: false });
+  gtag('config', id);
 })();
