@@ -34,6 +34,7 @@ import {
 } from './hooks/useCodeRunner'
 import { useAnalytics } from './hooks/useAnalytics'
 import { useAcademyPersistence } from './hooks/useAcademyPersistence'
+import { useCaseRouteGuard } from './hooks/useCaseRouteGuard'
 import { usePhase2Data } from './hooks/usePhase2Data'
 import type { Case, ValidationResult } from './types'
 import type { CaseProgress } from './types/progress'
@@ -162,6 +163,8 @@ function App() {
       }
     }
   }, [matchCase, params?.id])
+
+  useCaseRouteGuard(isLoaded, allProgress, matchCase ? params?.id : undefined)
 
   // Show welcome modal on first visit
   useEffect(() => {
