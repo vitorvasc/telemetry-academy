@@ -125,6 +125,7 @@ function App() {
   const [mobileTab, setMobileTab] = useState<MobileTab>('instructions')
   const [appPhase, setAppPhase] = useState<AppPhase>('instrumentation')
   const [code, setCode] = useState(cases[0].phase1.initialCode)
+  const [resetCount, setResetCount] = useState(0)
   const [validationResults, setValidationResults] = useState<
     ValidationResult[]
   >([])
@@ -521,6 +522,7 @@ function App() {
   const handleResetAll = () => {
     resetAll()
     setCode(currentCase.phase1.initialCode)
+    setResetCount(c => c + 1)
     setValidationResults([])
     setInvestigationAttempts(0)
     setAppPhase('instrumentation')
@@ -806,7 +808,7 @@ function App() {
                             }
                             onRunShortcut={handleValidate}
                             defaultWordWrap={currentCase.type === 'yaml-config'}
-                            caseKey={`${currentCaseId}-${activeLanguage}`}
+                            caseKey={`${currentCaseId}-${activeLanguage}-${resetCount}`}
                           />
                         </Suspense>
                       </div>
@@ -896,7 +898,7 @@ function App() {
                           }
                           onRunShortcut={handleValidate}
                           defaultWordWrap={currentCase.type === 'yaml-config'}
-                          caseKey={`${currentCaseId}-${activeLanguage}`}
+                          caseKey={`${currentCaseId}-${activeLanguage}-${resetCount}`}
                         />
                       </Suspense>
                     </div>
