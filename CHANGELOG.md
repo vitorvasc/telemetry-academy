@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/vitorvasc/telemetry-academy/compare/telemetry-academy-v0.1.4...telemetry-academy-v0.1.5) (2026-09-21)
+
+
+### Bug Fixes
+
+* **renovate:** consolidate dependency update configuration ([#249](https://github.com/vitorvasc/telemetry-academy/issues/249)) ([1af8b82](https://github.com/vitorvasc/telemetry-academy/commit/1af8b82f3ff56ede3a780efb6ec07c58e90bcb28))
+
 ## [0.1.4](https://github.com/vitorvasc/telemetry-academy/compare/telemetry-academy-v0.1.3...telemetry-academy-v0.1.4) (2026-09-17)
 
 
