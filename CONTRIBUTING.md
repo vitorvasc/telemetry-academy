@@ -56,7 +56,11 @@ For substantial changes (new phases, architecture changes), open an issue first 
 
 - TypeScript strict mode — all files must pass `tsc --noEmit`
 - ESLint with `@typescript-eslint/recommended-type-checked` — 0 errors required
-- Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`
+- Use Conventional Commits for commits and PR titles; squash merges use the PR title.
+- Use `chore(renovate):` for Renovate configuration and `ci:` for workflow infrastructure. Internal maintenance must not use `fix:` merely to trigger a release.
+- Use `fix:` for genuine product/runtime bugs, including dependency changes that fix runtime behavior; use `feat:` for product features.
+- Review the squash title before merging. Before 1.0, `fix:` bumps patch, `feat:` bumps minor, and breaking changes bump minor.
+- See [Releasing](docs/RELEASING.md) for automation setup and Datadog build correlation.
 - Commits are signed (`git commit -s`)
 
 ## Issue Labels
