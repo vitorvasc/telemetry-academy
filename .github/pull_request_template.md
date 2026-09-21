@@ -19,6 +19,8 @@
 
 ## Checklist
 
+- [ ] PR/squash title uses the right type: `chore(renovate)` or `ci` for internal infrastructure; `fix` only for product/runtime fixes
+
 - [ ] `npm run build` passes locally
 - [ ] `npm run lint` passes with 0 errors
 - [ ] No breaking changes to existing cases
